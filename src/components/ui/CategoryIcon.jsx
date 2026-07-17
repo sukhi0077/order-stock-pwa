@@ -421,7 +421,8 @@ const ICONS = {
   Bags: shoppingBag,
   Cutlery: cutlery,
   "Foil & film": roll,
-  Takeaway: curryBox,
+  "Takeaway box": curryBox,
+  Takeaway: curryBox, // legacy alias — items not yet renamed in the DB
 };
 
 const FALLBACK = (

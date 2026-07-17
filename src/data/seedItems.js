@@ -62,7 +62,7 @@ export const SUBCATEGORY_ORDER = {
     "Bags",
     "Cutlery",
     "Foil & film",
-    "Takeaway"
+    "Takeaway box"
   ]
 };
 
@@ -332,16 +332,16 @@ export const SEED_ITEMS = [
   {"code": "ITM-0199", "name": "Plastic Spoon", "category": "Packing", "subCategory": "Cutlery", "unit": "pack", "active": true, "sortOrder": 258},
   {"code": "ITM-0222", "name": "Silver Foil", "category": "Packing", "subCategory": "Foil & film", "unit": "roll", "active": true, "sortOrder": 259},
   {"code": "ITM-0223", "name": "Transparent Food Foil", "category": "Packing", "subCategory": "Foil & film", "unit": "roll", "active": true, "sortOrder": 260},
-  {"code": "ITM-0207", "name": "Biryani Box", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 261},
-  {"code": "ITM-0208", "name": "Bottle 300ml", "category": "Packing", "subCategory": "Takeaway", "unit": "pcs", "active": true, "sortOrder": 262},
-  {"code": "ITM-0209", "name": "Curry Box 350ml", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 263},
-  {"code": "ITM-0210", "name": "Curry Box 450ml", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 264},
-  {"code": "ITM-0211", "name": "Curry Box Cover", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 265},
-  {"code": "ITM-0213", "name": "Lunch Box", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 266},
-  {"code": "ITM-0218", "name": "Samosa Box", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 267},
-  {"code": "ITM-0219", "name": "Sauce Box 30ml", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 268},
-  {"code": "ITM-0220", "name": "Sauce Box 80ml", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 269},
-  {"code": "ITM-0221", "name": "Sauce Box Cover", "category": "Packing", "subCategory": "Takeaway", "unit": "pack", "active": true, "sortOrder": 270},
+  {"code": "ITM-0207", "name": "Biryani Box", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 261},
+  {"code": "ITM-0208", "name": "Bottle 300ml", "category": "Packing", "subCategory": "Takeaway box", "unit": "pcs", "active": true, "sortOrder": 262},
+  {"code": "ITM-0209", "name": "Curry Box 350ml", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 263},
+  {"code": "ITM-0210", "name": "Curry Box 450ml", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 264},
+  {"code": "ITM-0211", "name": "Curry Box Cover", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 265},
+  {"code": "ITM-0213", "name": "Lunch Box", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 266},
+  {"code": "ITM-0218", "name": "Samosa Box", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 267},
+  {"code": "ITM-0219", "name": "Sauce Box 30ml", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 268},
+  {"code": "ITM-0220", "name": "Sauce Box 80ml", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 269},
+  {"code": "ITM-0221", "name": "Sauce Box Cover", "category": "Packing", "subCategory": "Takeaway box", "unit": "pack", "active": true, "sortOrder": 270},
 ];
 
 export const SEED_COUNT = SEED_ITEMS.length;
