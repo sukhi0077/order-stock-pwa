@@ -13,6 +13,7 @@ export const SUBCATEGORY_ORDER = {
     "Soft Drinks",
     "Straw & chopstick",
     "Syrups",
+    "Tea & Coffee",
     "Water",
     "Wine & Prosecco"
   ],
@@ -37,8 +38,7 @@ export const SUBCATEGORY_ORDER = {
     "Snacks & Nuts",
     "Spices & Masala",
     "Sugar & Salt",
-    "Sweets & Desserts",
-    "Tea & Coffee"
+    "Sweets & Desserts"
   ],
   "Miscellaneous": [
     "Staff wear & PPE"
@@ -272,8 +272,8 @@ export const SEED_ITEMS = [
   {"code": "ITM-0121", "name": "Mango Pulp", "category": "Kitchen", "subCategory": "Sweets & Desserts", "unit": "jar", "active": true, "sortOrder": 198},
   {"code": "ITM-0122", "name": "Nutella", "category": "Kitchen", "subCategory": "Sweets & Desserts", "unit": "kg", "active": true, "sortOrder": 199},
   {"code": "ITM-0123", "name": "Rasgulla", "category": "Kitchen", "subCategory": "Sweets & Desserts", "unit": "jar", "active": true, "sortOrder": 200},
-  {"code": "ITM-0124", "name": "Black Tea", "category": "Kitchen", "subCategory": "Tea & Coffee", "unit": "kg", "active": true, "sortOrder": 201},
-  {"code": "ITM-0125", "name": "Coffee Beans", "category": "Kitchen", "subCategory": "Tea & Coffee", "unit": "kg", "active": true, "sortOrder": 202},
+  {"code": "ITM-0124", "name": "Black Tea", "category": "Bar", "subCategory": "Tea & Coffee", "unit": "kg", "active": true, "sortOrder": 201},
+  {"code": "ITM-0125", "name": "Coffee Beans", "category": "Bar", "subCategory": "Tea & Coffee", "unit": "kg", "active": true, "sortOrder": 202},
   {"code": "ITM-0259", "name": "Kitchen Clogs 41/42 Black", "category": "Miscellaneous", "subCategory": "Staff wear & PPE", "unit": "pcs", "active": true, "sortOrder": 203},
   {"code": "ITM-0204", "name": "Print - Kitchen Printer Roll 80mm", "category": "Office", "subCategory": "Printer rolls", "unit": "roll", "active": true, "sortOrder": 204},
   {"code": "ITM-0205", "name": "Print - Payment Machine Roll 57mm", "category": "Office", "subCategory": "Printer rolls", "unit": "roll", "active": true, "sortOrder": 205},
