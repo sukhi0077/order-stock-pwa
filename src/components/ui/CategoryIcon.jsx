@@ -350,11 +350,13 @@ const cutlery = (
     <path d="M17 3c-1.5 0-2 2-2 4.5S15.5 12 17 12v9" />
   </>
 );
-const takeoutBox = (
+// Round curry/takeaway container: oval lid with a pull-tab over a round tub.
+const curryBox = (
   <>
-    <path d="M5 8h14" />
-    <path d="M9 8V6.5a2.5 2.5 0 0 1 5 0V8" />
-    <path d="M6 8l1 12h10l1-12" />
+    <ellipse cx="12" cy="6.5" rx="8" ry="2.5" />
+    <path d="M11 4h2" />
+    <path d="M4.5 9.5a7.5 2.2 0 0 0 15 0" />
+    <path d="M5.5 10.5 6.8 18.5a2 2 0 0 0 2 1.7h6.4a2 2 0 0 0 2-1.7L18.5 10.5" />
   </>
 );
 
@@ -419,7 +421,7 @@ const ICONS = {
   Bags: shoppingBag,
   Cutlery: cutlery,
   "Foil & film": roll,
-  Takeaway: takeoutBox,
+  Takeaway: curryBox,
 };
 
 const FALLBACK = (
