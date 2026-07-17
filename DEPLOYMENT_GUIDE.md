@@ -37,25 +37,100 @@ git remote add origin https://github.com/<you>/order-stock-pwa.git
 git push -u origin main
 ```
 
-## 3. Cloudflare Pages (hosting, push-to-deploy)
+## 3. Cloudflare hosting (push-to-deploy)
 
-1. https://dash.cloudflare.com → **Workers & Pages → Create → Pages → Connect to
-   Git** → pick the repo.
-2. Build settings:
-   - **Framework preset:** None (or Vite)
+Cloudflare now offers **two** ways to host a Git repo, and they differ in one
+place that trips people up:
+
+| | **Pages** flow | **Workers** flow (newer) |
+|---|---|---|
+| Where | Workers & Pages → Create → **Pages** tab | Workers & Pages → Create → **Workers** / Import repository |
+| Build command | `npm run build` | `npm run build` |
+| **Deploy command** | *(not asked)* | **`npx wrangler deploy`** |
+| SPA routing | `public/_redirects` | `wrangler.jsonc` (`not_found_handling`) |
+| Output/served | `dist` directory | `dist` via `wrangler.jsonc` assets |
+
+**If Cloudflare is asking you for a "Deploy command," you're in the Workers
+flow.** Both work for this app. Pick one:
+
+### Option A — Pages (simplest, no deploy command)
+
+Follow these steps and you'll never be asked for a deploy command:
+
+1. **Start the project.** Go to https://dash.cloudflare.com → in the left sidebar
+   open **Workers & Pages** → click **Create application** → the **Pages** tab →
+   **Connect to Git** (in some accounts this button reads **Import an existing Git
+   repository**).
+2. **Authorize + pick the repo.** Sign in to GitHub (or GitLab), click **Install &
+   Authorize**, choose your `order-stock-pwa` repo, then **Begin setup**.
+3. **Set up builds and deployments:**
+   - **Project name:** becomes your URL (`<name>.pages.dev`) — pick something like
+     `order-stock`.
+   - **Production branch:** `main`.
+   - **Framework preset:** select **Vite** (or leave as **None** — both work).
    - **Build command:** `npm run build`
    - **Build output directory:** `dist`
-   - **Node version:** 20 (set env var `NODE_VERSION=20` if needed)
-   - If the install step hits a peer-dep error, set the install command to
-     `npm install --legacy-peer-deps`.
-3. **Settings → Environment variables** (Production **and** Preview):
-   - `VITE_SUPABASE_URL` = your Project URL
+   - **Root directory:** leave as-is (only change it for a monorepo).
+4. **Environment variables** (expand **Environment variables (optional)** — in
+   newer dashboards this may be labelled **Variables and Secrets**). Add both, for
+   **Production** (and add the same two to **Preview** afterwards):
+   - `VITE_SUPABASE_URL` = your Project **base** URL, e.g.
+     `https://YOUR-PROJECT.supabase.co` (no `/rest/v1/` on the end)
    - `VITE_SUPABASE_PUBLISHABLE_KEY` = your publishable key (`sb_publishable_...`)
-4. **Save and Deploy.** Every push to `main` auto-builds and deploys; pull
-   requests get their own preview URL.
+   - If the build's install step ever hits a peer-dependency error, also add
+     `NPM_FLAGS` = `--legacy-peer-deps`. Set `NODE_VERSION` = `20` if you need to
+     pin Node.
+5. **Save and Deploy.** Watch the build log; when it finishes you get a
+   `https://<project>.pages.dev` URL. Every push to `main` auto-builds and
+   deploys, and every pull request gets its own preview URL.
 
-> The `public/_redirects` file (`/* /index.html 200`) makes Cloudflare serve the
-> SPA shell for any path — safe even though this app has no client-side router.
+To change build settings or env vars later: **Workers & Pages → your project →
+Settings**. (Note: a Git-connected Pages project can't later switch to manual
+"Direct Upload" — not something you need here.)
+
+The `public/_redirects` file (`/* /index.html 200`) makes Pages serve the SPA
+shell for any path — safe even though this app has no client-side router.
+
+### Option B — Workers (only if you deliberately chose the Workers flow)
+
+Cloudflare is steering new static sites toward **Workers** (an "Import a
+repository" flow powered by Workers Builds). That flow asks for a **Deploy
+command**, and Wrangler needs a small config file to know what to upload. This
+repo is set up Pages-first, so those Workers-only files are **not** included —
+add them if (and only if) you go the Workers route:
+
+1. Create `wrangler.jsonc` in the project root:
+   ```jsonc
+   {
+     "name": "order-stock-pwa",
+     "compatibility_date": "2026-07-01",
+     "assets": {
+       "directory": "./dist",
+       "not_found_handling": "single-page-application"
+     }
+   }
+   ```
+   (`not_found_handling` is the SPA fallback — it replaces `public/_redirects` on
+   the Workers path.)
+2. **Start the project.** https://dash.cloudflare.com → **Workers & Pages** →
+   **Create application** → **Workers** → **Import a repository** → pick your repo.
+3. **Set the commands:**
+   - **Build command:** `npm run build`
+   - **Deploy command:** `npx wrangler deploy`
+4. **Environment variables** — same two build-time variables as Option A
+   (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`). They must be **build**
+   variables, because Vite bakes them into the static files during `npm run build`.
+5. **Save / Deploy.** Wrangler uploads `dist`; pushes to `main` redeploy.
+
+To deploy by hand from your computer instead: `npx wrangler login`, then
+`npm run build && npx wrangler deploy`.
+
+**Recommendation: use Option A (Pages).** It's simpler, needs none of the above,
+and is what this repo is configured for.
+
+SPA routing on Workers comes from `not_found_handling: "single-page-application"`
+in `wrangler.jsonc` (not from `_redirects`). The `name` in that file
+(`order-stock-pwa`) becomes the Worker/subdomain name — change it if you like.
 
 ## 4. Keep the free DB awake (optional)
 
