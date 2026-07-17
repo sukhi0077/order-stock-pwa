@@ -1,0 +1,16 @@
+# Cloudflare Pages headers.
+#
+# Never long-cache the files that drive PWA updates. Without this, iOS/Safari
+# can hold the old service worker (sw.js) for up to 24h and keep serving the
+# previous build even after a new deploy. "no-cache" = the browser must
+# revalidate with the server before reusing it, so a new deploy is picked up on
+# the next open/reload. (Hashed /assets/* files keep their long cache — they're
+# safe because their filename changes when their contents change.)
+/sw.js
+  Cache-Control: no-cache
+/registerSW.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
