@@ -1,7 +1,7 @@
 // src/i18n/i18n.jsx
 //
 // Tiny i18n layer: English + Hindi. Only the UI is translated — all data saved
-// to Firestore (item names, categories, sub-categories, suppliers, notes) stays
+// to Supabase (item names, categories, sub-categories, suppliers, notes) stays
 // in English. Category / sub-category / month names are translated for DISPLAY
 // only, via lookup maps that fall back to the English string.
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
@@ -140,7 +140,7 @@ const STR = {
     setupItems_title: "Set up the item list",
     setupItems_desc:
       "Load the {n} items from your spreadsheet into the database. You only need to do this once.",
-    seedFailed: "Seeding failed. Check your Firestore rules.",
+    seedFailed: "Seeding failed. Check your Supabase RLS policies.",
     load260: "Load {n} items",
     reloadMaster: "Reload from master list",
     reloadConfirm:
@@ -236,7 +236,7 @@ const STR = {
     expires: "एक्सपायरी",
     daysLeft: "{n} दिन शेष",
     expiresToday: "आज एक्सपायरी",
-    expiredAgo: "{n} दिन पहले एक्सपायर",
+    expiredAgo: "{n} दिन पहले एक्सपायर हुआ",
     addedReceipt: "{name} जोड़ा — {qty} {unit}, एक्सपायरी {date}।",
     removeReceipt: "यह बैच हटाएँ?",
 
@@ -261,7 +261,7 @@ const STR = {
     loadItemsErr: "आइटम सूची लोड नहीं हो सकी।",
     noItemsStaff: "अभी गिनने के लिए कोई आइटम नहीं। एडमिन से आइटम सूची सेट करने को कहें।",
     endMonthCount: "माह-अंत क्लोज़िंग गिनती",
-    unsaved: "असहेजे बदलाव",
+    unsaved: "बिना सहेजे बदलाव",
     loadingMonth: "इस माह का डेटा लोड हो रहा है…",
     finalizedRO: "इस माह को एडमिन ने फ़ाइनल कर दिया है और अब यह केवल-पढ़ने के लिए है।",
     prefillLast: "खाली जगह पिछले माह की क्लोज़िंग से भरें",
@@ -308,7 +308,7 @@ const STR = {
     setupItems_title: "आइटम सूची सेट करें",
     setupItems_desc:
       "अपनी स्प्रेडशीट से {n} आइटम डेटाबेस में लोड करें। यह केवल एक बार करना है।",
-    seedFailed: "सीडिंग विफल। अपने Firestore नियम जाँचें।",
+    seedFailed: "सीडिंग विफल। अपनी Supabase RLS नीतियाँ जाँचें।",
     load260: "{n} आइटम लोड करें",
     reloadMaster: "मास्टर सूची से पुनः लोड करें",
     reloadConfirm:
@@ -386,7 +386,7 @@ const SUB_HI = {
   "Bakery & Bread": "बेकरी और ब्रेड",
   "Dairy & Eggs": "डेयरी और अंडे",
   "Fresh Vegetables & Herbs": "ताज़ी सब्ज़ियाँ और जड़ी-बूटी",
-  "Frozen Foods": "फ्रोज़न खाद्य",
+  "Frozen Foods": "फ्रोज़न फ़ूड",
   "Kitchen sundries": "रसोई का फुटकर सामान",
   "Lentils & Pulses": "दालें",
   "Meat & Seafood": "मांस और समुद्री भोजन",
@@ -417,7 +417,7 @@ const SUB_HI = {
   Bags: "बैग",
   Cutlery: "कटलरी",
   "Foil & film": "फ़ॉइल और फ़िल्म",
-  Takeaway: "टेकअवे",
+  "Takeaway box": "टेकअवे बॉक्स",
 };
 
 const MONTHS = {
