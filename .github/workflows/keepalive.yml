@@ -1,0 +1,37 @@
+name: Supabase keep-alive
+
+# Free-tier Supabase projects PAUSE after 7 days with no activity. This pings a
+# tiny read every 3 days so a low-traffic project (dev, holidays, closures)
+# never sleeps. It uses only the PUBLIC publishable key (RLS-protected) — no
+# secrets beyond the two you already set for the app.
+#
+# SETUP: GitHub repo -> Settings -> Secrets and variables -> Actions -> add
+#   SUPABASE_URL              = https://YOUR-PROJECT.supabase.co
+#   SUPABASE_PUBLISHABLE_KEY  = your publishable key (sb_publishable_...)
+#
+# NOTE: the new publishable/secret keys are NOT JWTs, so they must be sent on the
+# `apikey` header only — never `Authorization: Bearer` (that path expects a JWT
+# and would reject the request). Signed-in RLS SELECT policies use
+# `to authenticated`, so this anonymous ping gets 0 rows back — that's fine; the
+# request still counts as activity and keeps the project awake. (You can also
+# just open the app every few days instead.)
+
+on:
+  schedule:
+    - cron: "0 8 */3 * *" # 08:00 UTC, every 3rd day
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/app_meta?select=key&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}")
+          echo "HTTP $code from Supabase"
+          # Any HTTP response (200/401/406) proves the project is awake.
+          if [ "$code" = "000" ]; then
+            echo "No response — check SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY secrets."; exit 1
+          fi

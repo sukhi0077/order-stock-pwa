@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+install.log
+
+# Secrets — never commit. Env vars live in Cloudflare Pages settings in prod.
+.env
+.env.local
+.env.*.local
