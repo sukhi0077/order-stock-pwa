@@ -6,7 +6,8 @@ import {
   useUpdateItem,
   useResyncItems,
 } from "../hooks/useItems.js";
-import { CATEGORY_ORDER, SUBCATEGORY_ORDER, UNITS, SEED_COUNT } from "../data/seedItems.js";
+import { useMasterData } from "../hooks/useMasterData.js";
+import { SEED_COUNT } from "../data/seedItems.js";
 import { useT } from "../i18n/i18n.jsx";
 
 // A small filter chip.
@@ -27,17 +28,18 @@ function Chip({ active, onClick, children }) {
 }
 
 // Inline full editor for one item (name, category, sub-category, unit, supplier).
-function EditRow({ item, onSave, onCancel }) {
+// category / sub-category / unit options come from the master-data tables.
+function EditRow({ item, onSave, onCancel, categories, subByCategory, units }) {
   const { t, tc, ts } = useT();
   const [f, setF] = useState({
     name: item.name || "",
     nameHi: item.nameHi || "",
-    category: item.category || CATEGORY_ORDER[0],
+    category: item.category || categories[0] || "",
     subCategory: item.subCategory || "",
-    unit: item.unit || UNITS[0],
+    unit: item.unit || units[0] || "",
     supplier: item.supplier || "",
   });
-  const subs = SUBCATEGORY_ORDER[f.category] || [];
+  const subs = subByCategory[f.category] || [];
   const sel =
     "p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-teal-500";
 
@@ -72,7 +74,7 @@ function EditRow({ item, onSave, onCancel }) {
           value={f.category}
           onChange={(e) => {
             const cat = e.target.value;
-            const list = SUBCATEGORY_ORDER[cat] || [];
+            const list = subByCategory[cat] || [];
             setF((v) => ({
               ...v,
               category: cat,
@@ -81,7 +83,7 @@ function EditRow({ item, onSave, onCancel }) {
           }}
           className={sel}
         >
-          {CATEGORY_ORDER.map((c) => (
+          {categories.map((c) => (
             <option key={c} value={c}>
               {tc(c)}
             </option>
@@ -103,7 +105,7 @@ function EditRow({ item, onSave, onCancel }) {
           onChange={(e) => setF((v) => ({ ...v, unit: e.target.value }))}
           className={sel}
         >
-          {UNITS.map((u) => (
+          {units.map((u) => (
             <option key={u}>{u}</option>
           ))}
         </select>
@@ -166,6 +168,9 @@ export default function ItemManagerModal({ items, onBack }) {
   const setActive = useSetItemActive();
   const updateItem = useUpdateItem();
   const resync = useResyncItems();
+  // Category / sub-category / unit options from the master-data tables
+  // (falls back to the bundled seed lists if those tables are empty).
+  const { categories, subByCategory, units } = useMasterData();
 
   const handleResync = async () => {
     if (!window.confirm(t("reloadConfirm", { n: SEED_COUNT }))) return;
@@ -184,13 +189,13 @@ export default function ItemManagerModal({ items, onBack }) {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
     name: "",
-    category: CATEGORY_ORDER[0],
-    subCategory: (SUBCATEGORY_ORDER[CATEGORY_ORDER[0]] || [])[0] || "",
-    unit: UNITS[0],
+    category: categories[0] || "",
+    subCategory: (subByCategory[categories[0]] || [])[0] || "",
+    unit: units[0] || "",
     supplier: "",
   });
 
-  const subOptions = SUBCATEGORY_ORDER[form.category] || [];
+  const subOptions = subByCategory[form.category] || [];
 
   // Distinct suppliers already in use — powers the autocomplete datalist.
   const suppliers = useMemo(() => {
@@ -282,12 +287,12 @@ export default function ItemManagerModal({ items, onBack }) {
                 setForm((f) => ({
                   ...f,
                   category: e.target.value,
-                  subCategory: (SUBCATEGORY_ORDER[e.target.value] || [])[0] || "",
+                  subCategory: (subByCategory[e.target.value] || [])[0] || "",
                 }))
               }
               className={sel}
             >
-              {CATEGORY_ORDER.map((c) => (
+              {categories.map((c) => (
                 <option key={c} value={c}>
                   {tc(c)}
                 </option>
@@ -309,7 +314,7 @@ export default function ItemManagerModal({ items, onBack }) {
               onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
               className={sel}
             >
-              {UNITS.map((u) => (
+              {units.map((u) => (
                 <option key={u}>{u}</option>
               ))}
             </select>
@@ -367,7 +372,7 @@ export default function ItemManagerModal({ items, onBack }) {
             >
               {t("all")}
             </Chip>
-            {CATEGORY_ORDER.map((c) => (
+            {categories.map((c) => (
               <Chip
                 key={c}
                 active={filterCat === c}
@@ -381,12 +386,12 @@ export default function ItemManagerModal({ items, onBack }) {
             ))}
           </div>
           {/* Quick sub-category filter (for the chosen category) */}
-          {filterCat && (SUBCATEGORY_ORDER[filterCat] || []).length > 0 && (
+          {filterCat && (subByCategory[filterCat] || []).length > 0 && (
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
               <Chip active={!filterSub} onClick={() => setFilterSub(null)}>
                 {t("all")}
               </Chip>
-              {(SUBCATEGORY_ORDER[filterCat] || []).map((s) => (
+              {(subByCategory[filterCat] || []).map((s) => (
                 <Chip key={s} active={filterSub === s} onClick={() => setFilterSub(s)}>
                   {ts(s)}
                 </Chip>
@@ -403,6 +408,9 @@ export default function ItemManagerModal({ items, onBack }) {
                 <div key={item.id} className="py-2">
                   <EditRow
                     item={item}
+                    categories={categories}
+                    subByCategory={subByCategory}
+                    units={units}
                     onCancel={() => setEditingId(null)}
                     onSave={(patch) => {
                       updateItem.mutate({ id: item.id, patch });
