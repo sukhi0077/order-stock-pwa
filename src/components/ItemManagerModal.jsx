@@ -402,7 +402,10 @@ export default function ItemManagerModal({ items, onBack }) {
 
         <div className="px-4 py-2 divide-y divide-slate-100">
           {filtered.map((item) => {
-            const inactive = item.active === false;
+            const masterOff = item.globalActive === false; // disabled in SupplyTracker
+            const localOff = item.ospActive === false; // disabled here only
+            const inactive = localOff; // the toggle reflects the LOCAL switch
+            const unavailable = localOff || masterOff;
             if (editingId === item.id) {
               return (
                 <div key={item.id} className="py-2">
@@ -421,10 +424,10 @@ export default function ItemManagerModal({ items, onBack }) {
               );
             }
             return (
-              <div key={item.id} className={`py-2 ${inactive ? "opacity-60" : ""}`}>
+              <div key={item.id} className={`py-2 ${unavailable ? "opacity-60" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium break-words ${inactive ? "text-slate-400 line-through" : "text-slate-800"}`}>
+                    <div className={`text-sm font-medium break-words ${unavailable ? "text-slate-400 line-through" : "text-slate-800"}`}>
                       {ti(item.name, item)}
                     </div>
                     <div className="text-[11px] text-slate-400 truncate">
@@ -442,6 +445,14 @@ export default function ItemManagerModal({ items, onBack }) {
                       <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
                     </svg>
                   </button>
+                  {masterOff && (
+                    <span
+                      title="Disabled in SupplyTracker (master). Re-enable it there."
+                      className="shrink-0 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      master
+                    </span>
+                  )}
                   <span
                     className={`text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
                       inactive ? "text-slate-400" : "text-teal-600"
@@ -453,10 +464,11 @@ export default function ItemManagerModal({ items, onBack }) {
                     type="button"
                     role="switch"
                     aria-checked={!inactive}
+                    disabled={masterOff}
                     aria-label={inactive ? t("reactivate") : t("deactivate")}
                     onClick={() => setActive.mutate({ id: item.id, active: inactive })}
                     className={`relative h-6 w-11 rounded-full shrink-0 transition ${
-                      inactive ? "bg-slate-300" : "bg-teal-500"
+                      masterOff ? "cursor-not-allowed bg-slate-200" : inactive ? "bg-slate-300" : "bg-teal-500"
                     }`}
                   >
                     <span

@@ -106,12 +106,21 @@ create table if not exists public.items (
   order_unit  text,
   supplier    text default '',
   sort_order  int  not null default 0,
+  -- TWO active flags:
+  --   active     = MASTER flag, owned by SupplyTracker. false here disables the
+  --                item in BOTH apps.
+  --   osp_active = LOCAL flag, owned by Order & Stock. false here disables the
+  --                item ONLY in this app; SupplyTracker is unaffected.
+  -- An item is usable in Order & Stock only when (active AND osp_active).
   active      boolean not null default true,
+  osp_active  boolean not null default true,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz
 );
 create index if not exists items_sort_idx on public.items (sort_order);
 create index if not exists items_name_lower_idx on public.items (lower(name));
+-- For existing databases (create table above is a no-op once items exists):
+alter table public.items add column if not exists osp_active boolean not null default true;
 
 -- -----------------------------------------------------------------------------
 -- 3. STOCK_COUNTS  (one row per month, id = "YYYY-MM"; lines is itemId->number)

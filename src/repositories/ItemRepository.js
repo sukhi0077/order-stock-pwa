@@ -25,7 +25,11 @@ function fromRow(r) {
     orderUnit: r.order_unit || "",
     supplier: r.supplier || "",
     sortOrder: r.sort_order ?? 0,
-    active: r.active !== false,
+    // Effective active in THIS app = master AND local. Staff/admin flows filter
+    // on `active`, so a master-off (SupplyTracker) OR local-off item disappears.
+    active: r.active !== false && r.osp_active !== false,
+    globalActive: r.active !== false, // master flag (SupplyTracker owns it)
+    ospActive: r.osp_active !== false, // local flag (this app owns it)
     createdAt: toTs(r.created_at),
   };
 }
@@ -222,7 +226,7 @@ export class ItemRepository {
     const key = (s) => String(s || "").trim().toLowerCase();
 
     const rows = unwrap(
-      await withTimeout(supabase.from(ITEMS).select("id,name,active"), 20000, "Loading items"),
+      await withTimeout(supabase.from(ITEMS).select("id,name,osp_active"), 20000, "Loading items"),
       "Loading items",
     );
     const existing = new Map();
@@ -238,13 +242,13 @@ export class ItemRepository {
     let deactivated = 0;
 
     for (const it of SEED_ITEMS) {
+      // Never write the master `active` flag on resync — SupplyTracker owns it.
       const fields = {
         ...baseRow({
           name: it.name,
           unit: it.unit,
           code: it.code || "",
           sortOrder: it.sortOrder,
-          active: it.active !== false,
         }),
         ...resolveIds(maps, it.category, it.subCategory, it.unit),
       };
@@ -253,14 +257,17 @@ export class ItemRepository {
         toUpdate.push({ id: match.id, fields });
         updated += 1;
       } else {
-        toInsert.push(fields);
+        // Brand-new items are active in both apps.
+        toInsert.push({ ...fields, active: true, osp_active: true });
         added += 1;
       }
     }
 
+    // Items no longer in the seed are disabled LOCALLY only (osp_active),
+    // leaving the master `active` flag for SupplyTracker to manage.
     for (const [k, r] of existing) {
-      if (!seedKeys.has(k) && r.active !== false) {
-        toUpdate.push({ id: r.id, fields: { active: false } });
+      if (!seedKeys.has(k) && r.osp_active !== false) {
+        toUpdate.push({ id: r.id, fields: { osp_active: false } });
         deactivated += 1;
       }
     }
@@ -339,8 +346,21 @@ export class ItemRepository {
     return true;
   }
 
-  // Soft-deactivate / reactivate rather than delete, so history stays intact.
+  // Soft-deactivate / reactivate in THIS app only: writes the LOCAL `osp_active`
+  // flag, never the master `active` (which SupplyTracker owns). So disabling an
+  // item here never affects SupplyTracker.
   static async setActive(itemId, active) {
-    return ItemRepository.update(itemId, { active: !!active });
+    unwrap(
+      await withTimeout(
+        supabase
+          .from(ITEMS)
+          .update({ osp_active: !!active, updated_at: new Date().toISOString() })
+          .eq("id", itemId),
+        15000,
+        "Updating item",
+      ),
+      "Updating item",
+    );
+    return true;
   }
 }
