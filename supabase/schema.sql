@@ -100,9 +100,9 @@ create table if not exists public.items (
   code        text,
   name        text not null check (char_length(name) between 1 and 120),
   name_hi     text default '',
-  -- category / sub-category are normalised into master tables (category_id /
-  -- sub_category_id FKs are added in the MASTER DATA section below).
-  unit        text,
+  -- category / sub-category / unit are normalised into master tables
+  -- (category_id / sub_category_id / unit_id FKs are added in the MASTER DATA
+  -- section below). order_unit stays a per-item text preference.
   order_unit  text,
   supplier    text default '',
   sort_order  int  not null default 0,
@@ -335,8 +335,8 @@ create table if not exists public.units (
   created_at timestamptz not null default now()
 );
 
--- FK columns on items. Category / sub-category live ONLY here (the text columns
--- are migrated + dropped below). `unit` stays text and is linked to units.unit_id.
+-- FK columns on items. Category / sub-category / unit all live ONLY here now —
+-- the corresponding text columns are migrated into the master tables + dropped below.
 alter table public.items add column if not exists category_id     uuid references public.categories(id);
 alter table public.items add column if not exists sub_category_id uuid references public.sub_categories(id);
 alter table public.items add column if not exists unit_id         uuid references public.units(id);
@@ -344,40 +344,15 @@ create index if not exists items_category_id_idx     on public.items (category_i
 create index if not exists items_sub_category_id_idx on public.items (sub_category_id);
 create index if not exists items_unit_id_idx         on public.items (unit_id);
 
--- Keep unit_id in sync with the `unit` text on every write (creating the unit
--- master row if needed). Category / sub-category FKs are set directly by the app.
--- SECURITY DEFINER so it can write the units table regardless of caller RLS.
-create or replace function public.items_link_masters()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_unit uuid;
-begin
-  if new.unit is not null and btrim(new.unit) <> '' then
-    insert into public.units(code) values (btrim(new.unit))
-      on conflict (code) do nothing;
-    select id into v_unit from public.units where code = btrim(new.unit);
-  end if;
-  new.unit_id := v_unit;
-  return new;
-end;
-$$;
-
+-- The app now sets category_id / sub_category_id / unit_id directly, so the old
+-- text-deriving trigger is no longer needed.
 drop trigger if exists items_link_masters_trg on public.items;
-create trigger items_link_masters_trg
-  before insert or update of unit on public.items
-  for each row execute function public.items_link_masters();
+drop function if exists public.items_link_masters();
 
--- Backfill unit_id for existing rows.
-update public.items set unit = unit where unit is not null;
-
--- Migrate category / sub_category TEXT -> master tables + FKs, then DROP the
--- text columns. Runs only while the old columns still exist; idempotent and
--- self-healing (fills the master tables from the text, sets the FKs, then
--- removes the text so category/sub-category live only in the master tables).
+-- Migrate category / sub_category / unit TEXT -> master tables + FKs, then DROP
+-- the text columns. Each guard runs only while its column still exists;
+-- idempotent + self-healing (fills the master tables from the text, sets the
+-- FKs, then removes the text so these dimensions live only in the master tables).
 do $$
 begin
   if exists (
@@ -411,10 +386,28 @@ begin
           and i.sub_category_id is distinct from s.id
     $mig$;
   end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'items' and column_name = 'unit'
+  ) then
+    execute $mig$
+      insert into public.units(code)
+        select distinct btrim(unit) from public.items
+        where unit is not null and btrim(unit) <> ''
+        on conflict (code) do nothing
+    $mig$;
+    execute $mig$
+      update public.items i set unit_id = u.id
+        from public.units u
+        where u.code = btrim(i.unit) and i.unit_id is distinct from u.id
+    $mig$;
+  end if;
 end $$;
 
 alter table public.items drop column if exists category;
 alter table public.items drop column if exists sub_category;
+alter table public.items drop column if exists unit;
 
 -- Give master rows a display order derived from the seed's item ordering.
 update public.categories c set sort_order = t.mn

@@ -27,7 +27,7 @@ systems. The `MERGE-READINESS` section of `schema.sql` enforces it:
 | `name` | `name` | Unique in both |
 | `category_id` → `categories.name` | `SubCategory.category.name` | FK; names match (same sheet) |
 | `sub_category_id` → `sub_categories.name` | `SubCategory.name` | FK; names match (same sheet) |
-| `unit` (text) | `Item.default_unit` | Human label |
+| `unit_id` → `units.code` | `Item.default_unit` / `UnitOfMeasure.code` | FK; code maps to SupplyTracker's unit |
 | `uom_code` (new) | `UnitOfMeasure.code` | Canonical unit (e.g. `btl`, `kg`) — fill during merge where the display label differs |
 | `vat_rate` (new, default 23) | `Item.default_vat_rate` | Carried for round-trip |
 | `match_keywords` (new) | `Item.match_keywords` | KSeF matching keywords |
@@ -49,14 +49,11 @@ counterparts of SupplyTracker's `Category`, `SubCategory`, and `UnitOfMeasure`:
 | `units(code)` | `core.UnitOfMeasure(code)` | `code` (unique) |
 
 `items` carries FK columns `category_id`, `sub_category_id`, `unit_id`.
-**Category and sub-category are the source of truth in these tables** — the old
-text columns on `items` have been migrated into them and dropped, and the app
-reads category/sub-category by joining and writes the FKs. `unit` remains a text
-column, linked to `units.unit_id` by a `SECURITY DEFINER` trigger
-(`items_link_masters`) that creates the unit master row on write. The
-`units.code` values are the app's unit strings (e.g. `bottle`); map them to
-SupplyTracker's canonical codes (`btl`) via `items.uom_code` / the `units` table
-during the merge.
+**Category, sub-category and unit are all the source of truth in these tables** —
+the old text columns on `items` have been migrated into them and dropped; the app
+reads all three by joining and writes the FKs. The `units.code` values are the
+app's unit strings (e.g. `bottle`); map them to SupplyTracker's canonical codes
+(`btl`) via `items.uom_code` / the `units` table during the merge.
 
 ## The captured data, already shaped for SupplyTracker
 

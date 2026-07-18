@@ -7,7 +7,7 @@ const META = "app_meta";
 
 // Category + sub-category NAMES come from the master tables via FK embeds — the
 // `items` table no longer stores them as text. `unit` remains a text column.
-const SELECT = "*, categories(name), sub_categories(name)";
+const SELECT = "*, categories(name), sub_categories(name), units(code)";
 
 // ----- row <-> app-object mappers -------------------------------------------
 function fromRow(r) {
@@ -18,7 +18,7 @@ function fromRow(r) {
     nameHi: r.name_hi || "",
     category: r.categories?.name || "",
     subCategory: r.sub_categories?.name || "",
-    unit: r.unit || "",
+    unit: r.units?.code || "",
     orderUnit: r.order_unit || "",
     supplier: r.supplier || "",
     sortOrder: r.sort_order ?? 0,
@@ -34,7 +34,6 @@ function baseRow(obj = {}) {
     code: "code",
     name: "name",
     nameHi: "name_hi",
-    unit: "unit",
     orderUnit: "order_unit",
     supplier: "supplier",
     sortOrder: "sort_order",
@@ -49,19 +48,22 @@ function baseRow(obj = {}) {
 
 // ----- master-data resolution (name -> id) ----------------------------------
 async function loadMaps() {
-  const [catRes, subRes] = await Promise.all([
+  const [catRes, subRes, unitRes] = await Promise.all([
     withTimeout(supabase.from("categories").select("id,name"), 15000, "Loading categories"),
     withTimeout(
       supabase.from("sub_categories").select("id,name,category_id"),
       15000,
       "Loading sub-categories",
     ),
+    withTimeout(supabase.from("units").select("id,code"), 15000, "Loading units"),
   ]);
   const cats = unwrap(catRes, "Loading categories") || [];
   const subs = unwrap(subRes, "Loading sub-categories") || [];
+  const unitsRows = unwrap(unitRes, "Loading units") || [];
   const catByName = new Map(cats.map((c) => [c.name, c.id]));
   const subByKey = new Map(subs.map((s) => [`${s.category_id}|${s.name}`, s.id]));
-  return { catByName, subByKey };
+  const unitByCode = new Map(unitsRows.map((u) => [u.code, u.id]));
+  return { catByName, subByKey, unitByCode };
 }
 
 // Make sure every (category, subCategory) in `pairs` exists in the master
@@ -119,16 +121,38 @@ async function ensureMasters(pairs) {
     maps = await loadMaps();
   }
 
+  const newUnits = [];
+  const seenUnit = new Set();
+  for (const p of pairs) {
+    const u = String(p.unit || "").trim();
+    if (!u || maps.unitByCode.has(u) || seenUnit.has(u)) continue;
+    seenUnit.add(u);
+    newUnits.push({ code: u });
+  }
+  if (newUnits.length) {
+    unwrap(
+      await withTimeout(
+        supabase.from("units").upsert(newUnits, { onConflict: "code", ignoreDuplicates: true }),
+        20000,
+        "Creating units",
+      ),
+      "Creating units",
+    );
+    maps = await loadMaps();
+  }
+
   return maps;
 }
 
-function resolveIds(maps, category, subCategory) {
+function resolveIds(maps, category, subCategory, unit) {
   const c = String(category || "").trim();
   const s = String(subCategory || "").trim();
+  const u = String(unit || "").trim();
   const category_id = maps.catByName.get(c) ?? null;
   const sub_category_id =
     category_id && s ? maps.subByKey.get(`${category_id}|${s}`) ?? null : null;
-  return { category_id, sub_category_id };
+  const unit_id = u ? maps.unitByCode.get(u) ?? null : null;
+  return { category_id, sub_category_id, unit_id };
 }
 
 export class ItemRepository {
@@ -172,7 +196,7 @@ export class ItemRepository {
     for (let i = 0; i < SEED_ITEMS.length; i += chunkSize) {
       const rows = SEED_ITEMS.slice(i, i + chunkSize).map((it) => ({
         ...baseRow({ ...it, active: it.active !== false }),
-        ...resolveIds(maps, it.category, it.subCategory),
+        ...resolveIds(maps, it.category, it.subCategory, it.unit),
       }));
       unwrap(
         await withTimeout(supabase.from(ITEMS).insert(rows), 20000, "Seeding items"),
@@ -219,7 +243,7 @@ export class ItemRepository {
           sortOrder: it.sortOrder,
           active: it.active !== false,
         }),
-        ...resolveIds(maps, it.category, it.subCategory),
+        ...resolveIds(maps, it.category, it.subCategory, it.unit),
       };
       const match = existing.get(key(it.name));
       if (match) {
@@ -266,10 +290,12 @@ export class ItemRepository {
 
   // Create a new item (admin).
   static async add(item) {
-    const maps = await ensureMasters([{ category: item.category, subCategory: item.subCategory }]);
+    const maps = await ensureMasters([
+      { category: item.category, subCategory: item.subCategory, unit: item.unit },
+    ]);
     const row = {
       ...baseRow({ ...item, active: true }),
-      ...resolveIds(maps, item.category, item.subCategory),
+      ...resolveIds(maps, item.category, item.subCategory, item.unit),
     };
     const data = unwrap(
       await withTimeout(
@@ -285,12 +311,19 @@ export class ItemRepository {
   // Update fields on an existing item (admin).
   static async update(itemId, patch) {
     const row = { ...baseRow(patch), updated_at: new Date().toISOString() };
-    // Only touch the category FKs when the patch actually changes them.
-    if (patch.category !== undefined || patch.subCategory !== undefined) {
+    // Only touch the master FKs the patch actually changes.
+    const needsCat = patch.category !== undefined || patch.subCategory !== undefined;
+    const needsUnit = patch.unit !== undefined;
+    if (needsCat || needsUnit) {
       const maps = await ensureMasters([
-        { category: patch.category, subCategory: patch.subCategory },
+        { category: patch.category, subCategory: patch.subCategory, unit: patch.unit },
       ]);
-      Object.assign(row, resolveIds(maps, patch.category, patch.subCategory));
+      const ids = resolveIds(maps, patch.category, patch.subCategory, patch.unit);
+      if (needsCat) {
+        row.category_id = ids.category_id;
+        row.sub_category_id = ids.sub_category_id;
+      }
+      if (needsUnit) row.unit_id = ids.unit_id;
     }
     unwrap(
       await withTimeout(
