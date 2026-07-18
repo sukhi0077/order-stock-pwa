@@ -294,6 +294,267 @@ create policy app_meta_admin_write on public.app_meta
   with check (public.is_admin());
 
 -- =============================================================================
+-- MASTER DATA TABLES (categories, sub_categories, units)
+--
+-- The three reference dimensions become real tables (mirroring SupplyTracker's
+-- Category / SubCategory / UnitOfMeasure), with foreign keys on `items`.
+--
+-- For now the app still reads & writes the TEXT columns on `items`
+-- (`category`, `sub_category`, `unit`) — a trigger derives the FKs and keeps the
+-- master tables populated automatically, so nothing in the app changes yet.
+-- Later you can promote the FKs to the source of truth.
+--
+-- Additive + idempotent — safe to run and re-run on the live DB.
+-- =============================================================================
+
+create table if not exists public.categories (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null unique,
+  sort_order int  not null default 0,
+  active     boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.sub_categories (
+  id          uuid primary key default gen_random_uuid(),
+  category_id uuid not null references public.categories(id) on delete restrict,
+  name        text not null,
+  sort_order  int  not null default 0,
+  active      boolean not null default true,
+  created_at  timestamptz not null default now(),
+  unique (category_id, name)
+);
+
+create table if not exists public.units (
+  id         uuid primary key default gen_random_uuid(),
+  code       text not null unique,           -- the app's unit string; maps to SupplyTracker UnitOfMeasure.code
+  name       text not null default '',
+  dimension  text not null default 'count'
+             check (dimension in ('mass', 'volume', 'count', 'length', 'time')),
+  created_at timestamptz not null default now()
+);
+
+-- Nullable FK columns on items, kept in sync with the text columns.
+alter table public.items add column if not exists category_id     uuid references public.categories(id);
+alter table public.items add column if not exists sub_category_id uuid references public.sub_categories(id);
+alter table public.items add column if not exists unit_id         uuid references public.units(id);
+create index if not exists items_category_id_idx     on public.items (category_id);
+create index if not exists items_sub_category_id_idx on public.items (sub_category_id);
+create index if not exists items_unit_id_idx         on public.items (unit_id);
+
+-- On every item write, create any missing master rows and set the FKs from the
+-- text values. SECURITY DEFINER so it can write the master tables regardless of
+-- the caller's RLS.
+create or replace function public.items_link_masters()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_cat uuid; v_sub uuid; v_unit uuid;
+begin
+  if new.category is not null and btrim(new.category) <> '' then
+    insert into public.categories(name) values (btrim(new.category))
+      on conflict (name) do nothing;
+    select id into v_cat from public.categories where name = btrim(new.category);
+  end if;
+  new.category_id := v_cat;
+
+  if v_cat is not null and new.sub_category is not null and btrim(new.sub_category) <> '' then
+    insert into public.sub_categories(category_id, name) values (v_cat, btrim(new.sub_category))
+      on conflict (category_id, name) do nothing;
+    select id into v_sub from public.sub_categories
+      where category_id = v_cat and name = btrim(new.sub_category);
+  end if;
+  new.sub_category_id := v_sub;
+
+  if new.unit is not null and btrim(new.unit) <> '' then
+    insert into public.units(code) values (btrim(new.unit))
+      on conflict (code) do nothing;
+    select id into v_unit from public.units where code = btrim(new.unit);
+  end if;
+  new.unit_id := v_unit;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists items_link_masters_trg on public.items;
+create trigger items_link_masters_trg
+  before insert or update of category, sub_category, unit on public.items
+  for each row execute function public.items_link_masters();
+
+-- One-time backfill: re-touch each item so the trigger populates masters + FKs.
+update public.items set category = category;
+
+-- Give master rows a display order derived from the seed's item ordering.
+update public.categories c set sort_order = t.mn
+  from (select category_id, min(sort_order) mn from public.items
+        where category_id is not null group by category_id) t
+  where t.category_id = c.id;
+update public.sub_categories s set sort_order = t.mn
+  from (select sub_category_id, min(sort_order) mn from public.items
+        where sub_category_id is not null group by sub_category_id) t
+  where t.sub_category_id = s.id;
+
+-- RLS: any signed-in user reads; only admins manage master data directly.
+alter table public.categories     enable row level security;
+alter table public.sub_categories enable row level security;
+alter table public.units          enable row level security;
+
+drop policy if exists categories_read on public.categories;
+create policy categories_read on public.categories
+  for select to authenticated using (true);
+drop policy if exists categories_admin_write on public.categories;
+create policy categories_admin_write on public.categories
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists sub_categories_read on public.sub_categories;
+create policy sub_categories_read on public.sub_categories
+  for select to authenticated using (true);
+drop policy if exists sub_categories_admin_write on public.sub_categories;
+create policy sub_categories_admin_write on public.sub_categories
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists units_read on public.units;
+create policy units_read on public.units
+  for select to authenticated using (true);
+drop policy if exists units_admin_write on public.units;
+create policy units_admin_write on public.units
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- =============================================================================
+-- MERGE-READINESS (for a future merge with SupplyTracker)
+--
+-- SupplyTracker (Django/Postgres) is the system of record for the CATALOGUE and
+-- INVENTORY. This capture app feeds it three things: month-end closing counts,
+-- purchase orders, and received-stock batches. Both apps were seeded from the
+-- same items sheet, so the natural join key across them is  items.code
+-- (ITM-#### in both). See supabase/MERGE.md for the full plan.
+--
+-- Everything below is ADDITIVE and IDEMPOTENT — safe to run on the live DB and
+-- safe to re-run. It changes nothing about how the app reads or writes; it only
+-- (a) guarantees a stable, unique item code, (b) adds a few reconciliation
+-- columns, and (c) adds read-only VIEWS that project the JSONB capture into the
+-- relational shape SupplyTracker expects.
+-- =============================================================================
+
+-- ---- Items: stable cross-app identity + reconciliation fields ---------------
+-- Canonical unit code (SupplyTracker UnitOfMeasure.code, e.g. kg/ml/btl); the
+-- existing `unit` column stays a human display label.
+alter table public.items add column if not exists uom_code       text;
+alter table public.items add column if not exists vat_rate       numeric(5,2) default 23.00;
+alter table public.items add column if not exists match_keywords text not null default '';
+
+-- Every item needs a stable, unique code so it maps 1:1 to a SupplyTracker item.
+-- Seeded items already carry ITM-#### codes; app-added items get an OSP-#####
+-- code automatically (distinct prefix marks app-origin and avoids collisions).
+create sequence if not exists public.items_code_seq;
+
+create or replace function public.items_set_code()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.code is null or btrim(new.code) = '' then
+    new.code := 'OSP-' || lpad(nextval('public.items_code_seq')::text, 5, '0');
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists items_set_code_trg on public.items;
+create trigger items_set_code_trg
+  before insert on public.items
+  for each row execute function public.items_set_code();
+
+-- Backfill any existing rows that have no code (added before this section).
+update public.items
+  set code = 'OSP-' || lpad(nextval('public.items_code_seq')::text, 5, '0')
+  where code is null or btrim(code) = '';
+
+-- code is THE merge key -> unique.
+create unique index if not exists items_code_uq on public.items (code);
+
+-- SupplyTracker also keys items on a unique name. Add the same constraint, but
+-- only if the live data has no duplicate names, so re-running never hard-fails.
+do $$
+begin
+  if exists (
+    select 1 from public.items group by lower(name) having count(*) > 1
+  ) then
+    raise notice 'items: duplicate names present — resolve them, then re-run to add items_name_lower_uq.';
+  else
+    create unique index if not exists items_name_lower_uq on public.items (lower(name));
+  end if;
+end $$;
+
+-- ---- Suppliers: reconcile to SupplyTracker.Supplier ------------------------
+alter table public.suppliers add column if not exists nip       text; -- tax id (strong supplier key)
+alter table public.suppliers add column if not exists ksef_name text; -- full legal name as on invoices
+
+-- ---- Merge views: capture data in SupplyTracker's shape --------------------
+-- Month-end closing counts -> one row per item per month, matching a
+-- StockMovement(kind='count', happened_at = last day of the month).
+create or replace view public.merge_stock_movements as
+select
+  sc.month_id,
+  (to_date(sc.month_id || '-01', 'YYYY-MM-DD') + interval '1 month' - interval '1 day')::date
+                                        as happened_at,
+  it.code                              as item_code,
+  it.name                              as item_name,
+  coalesce(it.uom_code, it.unit)       as uom,
+  (line.value)::numeric                as closing_qty,
+  'count'::text                        as kind,
+  sc.status,
+  sc.reporter
+from public.stock_counts sc
+cross join lateral jsonb_each_text(sc.lines) as line(item_id, value)
+left join public.items it on it.id::text = line.item_id;
+
+-- Order lines -> reorder signal (item, quantity, note).
+create or replace view public.merge_order_lines as
+select
+  o.id                                 as order_id,
+  o.status,
+  o.created_at,
+  o.submitted_at,
+  o.reporter,
+  it.code                              as item_code,
+  it.name                              as item_name,
+  (line.value ->> 'qty')::numeric      as qty,
+  line.value ->> 'note'                as note
+from public.orders o
+cross join lateral jsonb_each(o.lines) as line(item_id, value)
+left join public.items it on it.id::text = line.item_id;
+
+-- Received batches -> StockMovement(kind='purchase_in') + expiry (batch/expiry
+-- tracking, which SupplyTracker does not capture natively).
+create or replace view public.merge_receipts as
+select
+  r.id,
+  r.received_at,
+  r.expiry,
+  it.code                              as item_code,
+  coalesce(it.name, r.item_name)       as item_name,
+  r.qty,
+  coalesce(it.uom_code, r.unit)        as uom,
+  'purchase_in'::text                  as kind,
+  r.reporter
+from public.receipts r
+left join public.items it on it.id::text = r.item_id;
+
+-- Views honour the underlying tables' RLS (Postgres 15+) and are readable by
+-- any signed-in user.
+alter view public.merge_stock_movements set (security_invoker = on);
+alter view public.merge_order_lines     set (security_invoker = on);
+alter view public.merge_receipts        set (security_invoker = on);
+grant select on public.merge_stock_movements to authenticated;
+grant select on public.merge_order_lines     to authenticated;
+grant select on public.merge_receipts        to authenticated;
+
+-- =============================================================================
 -- DONE. Next: create staff/admin users under Authentication -> Users, then
 -- promote your admin:  update public.profiles set role='admin' where email='...';
 -- Sign in as admin in the app and click "Load items" to seed the master list.
