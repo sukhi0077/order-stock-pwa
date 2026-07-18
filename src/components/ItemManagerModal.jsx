@@ -424,7 +424,7 @@ export default function ItemManagerModal({ items, onBack }) {
               <div key={item.id} className={`py-2 ${inactive ? "opacity-60" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium truncate ${inactive ? "text-slate-400 line-through" : "text-slate-800"}`}>
+                    <div className={`text-sm font-medium break-words ${inactive ? "text-slate-400 line-through" : "text-slate-800"}`}>
                       {ti(item.name, item)}
                     </div>
                     <div className="text-[11px] text-slate-400 truncate">

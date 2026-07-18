@@ -25,7 +25,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding }) {
   return (
     <div className={`rounded-xl border p-3 ${has ? "bg-blue-50/60 border-blue-200" : "bg-white border-slate-200"}`}>
       <div className="flex items-baseline justify-between gap-2 mb-2">
-        <span className="text-base font-medium text-slate-800 leading-tight truncate">
+        <span className="text-base font-medium text-slate-800 leading-tight break-words min-w-0">
           {ti(item.name, item)}
         </span>
         <span className="text-[11px] text-slate-400 shrink-0">{item.unit}</span>

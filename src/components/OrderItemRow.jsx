@@ -37,7 +37,7 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
     >
       <div className="flex items-center gap-3 py-2.5 pl-3 pr-2">
         <div className="min-w-0 flex-1">
-          <div className="text-base font-medium text-slate-800 leading-tight truncate">
+          <div className="text-base font-medium text-slate-800 leading-tight break-words">
             {ti(item.name, item)}
           </div>
           <span className="text-[11px] text-slate-400">{unit}</span>

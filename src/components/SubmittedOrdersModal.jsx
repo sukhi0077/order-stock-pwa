@@ -74,7 +74,7 @@ function OrderView({ order, itemsById, onBack }) {
                   {groups[cat][sub].map(({ it, line }) => (
                     <div key={it.id} className="flex items-center gap-2 px-3 py-2">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-800 truncate">{ti(it.name, it)}</div>
+                        <div className="text-sm font-medium text-slate-800 break-words">{ti(it.name, it)}</div>
                         {line.note && <div className="text-[11px] text-slate-400 truncate">{line.note}</div>}
                       </div>
                       <span className="text-sm font-semibold text-teal-700 shrink-0 whitespace-nowrap">

@@ -34,7 +34,7 @@ function ItemRow({ item, value, prev, disabled, onCommit }) {
               ✓
             </span>
           )}
-          <span className="text-base font-medium text-slate-800 leading-tight truncate">
+          <span className="text-base font-medium text-slate-800 leading-tight break-words min-w-0">
             {ti(item.name, item)}
           </span>
         </div>

@@ -230,7 +230,7 @@ export default function CountNavigator({
                                 <button
                                   type="button"
                                   onClick={() => setNav({ level: "items", cat, sub })}
-                                  className="flex-1 min-w-0 text-left text-sm font-medium text-slate-800 truncate"
+                                  className="flex-1 min-w-0 text-left text-sm font-medium text-slate-800 break-words"
                                 >
                                   {ti(it.name, it)}
                                 </button>

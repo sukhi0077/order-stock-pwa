@@ -215,7 +215,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
                               }
                               className="flex-1 min-w-0 text-left"
                             >
-                              <div className="text-sm font-medium text-slate-800 truncate">
+                              <div className="text-sm font-medium text-slate-800 break-words">
                                 {ti(item.name, item)}
                               </div>
                               {line.note && (

@@ -183,7 +183,7 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
               {recent.map((r) => (
                 <div key={r.id} className="flex items-center gap-2 px-3 py-2">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 truncate">{nameOf(r)}</div>
+                    <div className="text-sm font-medium text-slate-800 break-words">{nameOf(r)}</div>
                     <div className="text-[11px] text-slate-500">
                       {num(r.qty)} {r.unit} · {t("expires")} {formatDay(r.expiry)}
                     </div>
