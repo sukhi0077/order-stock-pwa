@@ -7,7 +7,10 @@ const META = "app_meta";
 
 // Category + sub-category NAMES come from the master tables via FK embeds — the
 // `items` table no longer stores them as text. `unit` remains a text column.
-const SELECT = "*, categories(name), sub_categories(name), units(code)";
+// Explicit FK hints (…!column) so the embed is unambiguous even if items has
+// more than one FK to a table (e.g. a stray units FK like default_uom_id).
+const SELECT =
+  "*, categories!category_id(name), sub_categories!sub_category_id(name), units!unit_id(code)";
 
 // ----- row <-> app-object mappers -------------------------------------------
 function fromRow(r) {
