@@ -405,6 +405,13 @@ begin
   end if;
 end $$;
 
+-- The merge views (rebuilt in the MERGE-READINESS section below) reference item
+-- columns, so drop them first — otherwise Postgres blocks the column drops with
+-- a dependency error. They are recreated against the master tables afterwards.
+drop view if exists public.merge_stock_movements;
+drop view if exists public.merge_order_lines;
+drop view if exists public.merge_receipts;
+
 alter table public.items drop column if exists category;
 alter table public.items drop column if exists sub_category;
 alter table public.items drop column if exists unit;
@@ -525,14 +532,15 @@ select
                                         as happened_at,
   it.code                              as item_code,
   it.name                              as item_name,
-  coalesce(it.uom_code, it.unit)       as uom,
+  coalesce(it.uom_code, u.code)        as uom,
   (line.value)::numeric                as closing_qty,
   'count'::text                        as kind,
   sc.status,
   sc.reporter
 from public.stock_counts sc
 cross join lateral jsonb_each_text(sc.lines) as line(item_id, value)
-left join public.items it on it.id::text = line.item_id;
+left join public.items it on it.id::text = line.item_id
+left join public.units u on u.id = it.unit_id;
 
 -- Order lines -> reorder signal (item, quantity, note).
 create or replace view public.merge_order_lines as
