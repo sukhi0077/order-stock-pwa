@@ -100,8 +100,8 @@ create table if not exists public.items (
   code        text,
   name        text not null check (char_length(name) between 1 and 120),
   name_hi     text default '',
-  category    text,
-  sub_category text,
+  -- category / sub-category are normalised into master tables (category_id /
+  -- sub_category_id FKs are added in the MASTER DATA section below).
   unit        text,
   order_unit  text,
   supplier    text default '',
@@ -296,15 +296,16 @@ create policy app_meta_admin_write on public.app_meta
 -- =============================================================================
 -- MASTER DATA TABLES (categories, sub_categories, units)
 --
--- The three reference dimensions become real tables (mirroring SupplyTracker's
+-- The three reference dimensions are real tables (mirroring SupplyTracker's
 -- Category / SubCategory / UnitOfMeasure), with foreign keys on `items`.
 --
--- For now the app still reads & writes the TEXT columns on `items`
--- (`category`, `sub_category`, `unit`) — a trigger derives the FKs and keeps the
--- master tables populated automatically, so nothing in the app changes yet.
--- Later you can promote the FKs to the source of truth.
+-- Category / sub-category are the SOURCE OF TRUTH here: the app reads them by
+-- joining these tables and writes items.category_id / sub_category_id — the old
+-- text columns on `items` are migrated into these tables and then DROPPED below.
+-- `unit` remains a text column and is linked to units.unit_id by a trigger.
 --
--- Additive + idempotent — safe to run and re-run on the live DB.
+-- Idempotent — safe to run and re-run on the live DB. The migrate-and-drop step
+-- only acts while the old text columns still exist, so re-runs are no-ops.
 -- =============================================================================
 
 create table if not exists public.categories (
@@ -334,7 +335,8 @@ create table if not exists public.units (
   created_at timestamptz not null default now()
 );
 
--- Nullable FK columns on items, kept in sync with the text columns.
+-- FK columns on items. Category / sub-category live ONLY here (the text columns
+-- are migrated + dropped below). `unit` stays text and is linked to units.unit_id.
 alter table public.items add column if not exists category_id     uuid references public.categories(id);
 alter table public.items add column if not exists sub_category_id uuid references public.sub_categories(id);
 alter table public.items add column if not exists unit_id         uuid references public.units(id);
@@ -342,9 +344,9 @@ create index if not exists items_category_id_idx     on public.items (category_i
 create index if not exists items_sub_category_id_idx on public.items (sub_category_id);
 create index if not exists items_unit_id_idx         on public.items (unit_id);
 
--- On every item write, create any missing master rows and set the FKs from the
--- text values. SECURITY DEFINER so it can write the master tables regardless of
--- the caller's RLS.
+-- Keep unit_id in sync with the `unit` text on every write (creating the unit
+-- master row if needed). Category / sub-category FKs are set directly by the app.
+-- SECURITY DEFINER so it can write the units table regardless of caller RLS.
 create or replace function public.items_link_masters()
 returns trigger
 language plpgsql
@@ -352,41 +354,67 @@ security definer
 set search_path = public
 as $$
 declare
-  v_cat uuid; v_sub uuid; v_unit uuid;
+  v_unit uuid;
 begin
-  if new.category is not null and btrim(new.category) <> '' then
-    insert into public.categories(name) values (btrim(new.category))
-      on conflict (name) do nothing;
-    select id into v_cat from public.categories where name = btrim(new.category);
-  end if;
-  new.category_id := v_cat;
-
-  if v_cat is not null and new.sub_category is not null and btrim(new.sub_category) <> '' then
-    insert into public.sub_categories(category_id, name) values (v_cat, btrim(new.sub_category))
-      on conflict (category_id, name) do nothing;
-    select id into v_sub from public.sub_categories
-      where category_id = v_cat and name = btrim(new.sub_category);
-  end if;
-  new.sub_category_id := v_sub;
-
   if new.unit is not null and btrim(new.unit) <> '' then
     insert into public.units(code) values (btrim(new.unit))
       on conflict (code) do nothing;
     select id into v_unit from public.units where code = btrim(new.unit);
   end if;
   new.unit_id := v_unit;
-
   return new;
 end;
 $$;
 
 drop trigger if exists items_link_masters_trg on public.items;
 create trigger items_link_masters_trg
-  before insert or update of category, sub_category, unit on public.items
+  before insert or update of unit on public.items
   for each row execute function public.items_link_masters();
 
--- One-time backfill: re-touch each item so the trigger populates masters + FKs.
-update public.items set category = category;
+-- Backfill unit_id for existing rows.
+update public.items set unit = unit where unit is not null;
+
+-- Migrate category / sub_category TEXT -> master tables + FKs, then DROP the
+-- text columns. Runs only while the old columns still exist; idempotent and
+-- self-healing (fills the master tables from the text, sets the FKs, then
+-- removes the text so category/sub-category live only in the master tables).
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'items' and column_name = 'category'
+  ) then
+    execute $mig$
+      insert into public.categories(name)
+        select distinct btrim(category) from public.items
+        where category is not null and btrim(category) <> ''
+        on conflict (name) do nothing
+    $mig$;
+    execute $mig$
+      insert into public.sub_categories(category_id, name)
+        select distinct c.id, btrim(i.sub_category)
+        from public.items i
+        join public.categories c on c.name = btrim(i.category)
+        where i.sub_category is not null and btrim(i.sub_category) <> ''
+        on conflict (category_id, name) do nothing
+    $mig$;
+    execute $mig$
+      update public.items i set category_id = c.id
+        from public.categories c
+        where c.name = btrim(i.category) and i.category_id is distinct from c.id
+    $mig$;
+    execute $mig$
+      update public.items i set sub_category_id = s.id
+        from public.sub_categories s
+        join public.categories c on c.id = s.category_id
+        where c.name = btrim(i.category) and s.name = btrim(i.sub_category)
+          and i.sub_category_id is distinct from s.id
+    $mig$;
+  end if;
+end $$;
+
+alter table public.items drop column if exists category;
+alter table public.items drop column if exists sub_category;
 
 -- Give master rows a display order derived from the seed's item ordering.
 update public.categories c set sort_order = t.mn

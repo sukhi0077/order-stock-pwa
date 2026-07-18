@@ -25,8 +25,8 @@ systems. The `MERGE-READINESS` section of `schema.sql` enforces it:
 |---|---|---|
 | `code` | `code` | **Join key.** `ITM-####` shared; `OSP-#####` = app-origin |
 | `name` | `name` | Unique in both |
-| `category` (text) | `SubCategory.category.name` | Same sheet ⇒ names already match |
-| `sub_category` (text) | `SubCategory.name` | Same sheet ⇒ names already match |
+| `category_id` → `categories.name` | `SubCategory.category.name` | FK; names match (same sheet) |
+| `sub_category_id` → `sub_categories.name` | `SubCategory.name` | FK; names match (same sheet) |
 | `unit` (text) | `Item.default_unit` | Human label |
 | `uom_code` (new) | `UnitOfMeasure.code` | Canonical unit (e.g. `btl`, `kg`) — fill during merge where the display label differs |
 | `vat_rate` (new, default 23) | `Item.default_vat_rate` | Carried for round-trip |
@@ -48,12 +48,12 @@ counterparts of SupplyTracker's `Category`, `SubCategory`, and `UnitOfMeasure`:
 | `sub_categories(category_id, name)` | `core.SubCategory(category, name)` | `(category, name)` |
 | `units(code)` | `core.UnitOfMeasure(code)` | `code` (unique) |
 
-`items` carries FK columns `category_id`, `sub_category_id`, `unit_id`. **For now
-the text columns (`category`, `sub_category`, `unit`) remain what the app reads
-and writes** — a `SECURITY DEFINER` trigger (`items_link_masters`) creates any
-missing master row and sets the FKs on every item write, so the tables stay
-populated and consistent with zero app changes. When you merge (or whenever you
-choose), promote the FKs to the source of truth and drop the text columns. The
+`items` carries FK columns `category_id`, `sub_category_id`, `unit_id`.
+**Category and sub-category are the source of truth in these tables** — the old
+text columns on `items` have been migrated into them and dropped, and the app
+reads category/sub-category by joining and writes the FKs. `unit` remains a text
+column, linked to `units.unit_id` by a `SECURITY DEFINER` trigger
+(`items_link_masters`) that creates the unit master row on write. The
 `units.code` values are the app's unit strings (e.g. `bottle`); map them to
 SupplyTracker's canonical codes (`btl`) via `items.uom_code` / the `units` table
 during the merge.
