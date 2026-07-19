@@ -1,17 +1,22 @@
 // src/repositories/ReceiptRepository.js
+//
+// Receipts are NORMALISED: item_id is a uuid FK to items. The item's name,
+// unit, category and sub-category are read by JOINING the catalogue (they are
+// no longer copied onto each receipt row), so a rename in the catalogue is
+// reflected everywhere automatically.
 import { supabase, withTimeout, unwrap, toTs } from "../supabase.js";
 import { buildPayload } from "../models/ReceiptModel.js";
 
 const RECEIPTS = "receipts";
 
-// Persisted payload (camelCase, item fields denormalized) -> DB row (snake_case).
+// Join the catalogue for the display fields the expiry views need.
+const SELECT =
+  "*, item:items(name, units!unit_id(code), categories!category_id(name), sub_categories!sub_category_id(name))";
+
+// Persisted payload (camelCase) -> DB row (snake_case). Only the FK + batch data.
 function toRow(p) {
   return {
     item_id: p.itemId,
-    item_name: p.itemName,
-    unit: p.unit,
-    category: p.category,
-    sub_category: p.subCategory,
     qty: p.qty,
     expiry: p.expiry,
     reporter: p.reporter,
@@ -22,10 +27,10 @@ function fromRow(r) {
   return {
     id: r.id,
     itemId: r.item_id || "",
-    itemName: r.item_name || "",
-    unit: r.unit || "",
-    category: r.category || "",
-    subCategory: r.sub_category || "",
+    itemName: r.item?.name || "",
+    unit: r.item?.units?.code || "",
+    category: r.item?.categories?.name || "",
+    subCategory: r.item?.sub_categories?.name || "",
     qty: Number(r.qty) || 0,
     expiry: r.expiry || "",
     reporter: r.reporter || "",
@@ -54,7 +59,7 @@ export class ReceiptRepository {
       await withTimeout(
         supabase
           .from(RECEIPTS)
-          .select("*")
+          .select(SELECT)
           .order("expiry", { ascending: true })
           .limit(limitCount),
         15000,

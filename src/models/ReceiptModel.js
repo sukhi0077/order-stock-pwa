@@ -62,15 +62,12 @@ export function validate({ itemId, qty, expiry }) {
   return { ok: errors.length === 0, errors };
 }
 
-// The persisted payload for a receipt (item details denormalized for the
-// expiry view + resilience if the item is later renamed).
+// The persisted payload for a receipt. Item details are NORMALISED — only the
+// item_id FK is stored; name / unit / category / sub-category are read back by
+// joining the catalogue (see ReceiptRepository).
 export function buildPayload({ item, qty, expiry, reporter }) {
   return {
     itemId: item.id,
-    itemName: item.name || "",
-    unit: item.unit || "",
-    category: item.category || "",
-    subCategory: item.subCategory || "",
     qty: num(qty),
     expiry,
     reporter: String(reporter || "").slice(0, 120),

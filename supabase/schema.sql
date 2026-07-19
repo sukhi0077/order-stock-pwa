@@ -104,7 +104,10 @@ create table if not exists public.items (
   -- (category_id / sub_category_id / unit_id FKs are added in the MASTER DATA
   -- section below). order_unit stays a per-item text preference.
   order_unit  text,
-  supplier    text default '',
+  -- supplier is NORMALISED: items reference a supplier row via
+  -- primary_supplier_id (added in the MASTER DATA section). The old free-text
+  -- `supplier` column is migrated into suppliers + that FK, then DROPPED (see
+  -- the NORMALISATION section). Fresh installs never create the text column.
   sort_order  int  not null default 0,
   -- TWO active flags:
   --   active     = MASTER flag, owned by SupplyTracker. false here disables the
@@ -123,14 +126,16 @@ create index if not exists items_name_lower_idx on public.items (lower(name));
 alter table public.items add column if not exists osp_active boolean not null default true;
 
 -- -----------------------------------------------------------------------------
--- 3. STOCK_COUNTS  (one row per month, id = "YYYY-MM"; lines is itemId->number)
+-- 3. STOCK_COUNTS  (one HEADER row per month, id = "YYYY-MM")
+--    The per-item closing quantities are NORMALISED into stock_count_lines
+--    (one row per item per month) — see the NORMALISATION section. The old
+--    `lines` JSONB column is migrated into that table and then DROPPED.
 -- -----------------------------------------------------------------------------
 create table if not exists public.stock_counts (
   month_id     text primary key check (char_length(month_id) <= 7),
   reporter     text,
   status       text not null default 'draft'
                check (status in ('draft', 'submitted', 'finalized')),
-  lines        jsonb not null default '{}'::jsonb,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz,
   submitted_at timestamptz,
@@ -138,14 +143,16 @@ create table if not exists public.stock_counts (
 );
 
 -- -----------------------------------------------------------------------------
--- 4. ORDERS  (running draft built by staff, then submitted; lines itemId->{qty,note})
+-- 4. ORDERS  (HEADER row per order; staff build a draft, then submit it)
+--    The per-item order lines are NORMALISED into order_lines (one row per item
+--    per order, with qty + note) — see the NORMALISATION section. The old
+--    `lines` JSONB column is migrated into that table and then DROPPED.
 -- -----------------------------------------------------------------------------
 create table if not exists public.orders (
   id           uuid primary key default gen_random_uuid(),
   reporter     text,
   status       text not null default 'draft'
                check (status in ('draft', 'submitted')),
-  lines        jsonb not null default '{}'::jsonb,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz,
   submitted_at timestamptz
@@ -154,21 +161,22 @@ create index if not exists orders_status_idx on public.orders (status);
 create index if not exists orders_created_idx on public.orders (created_at desc);
 
 -- -----------------------------------------------------------------------------
--- 5. RECEIPTS  (received-stock batches with expiry dates; item fields denormalized)
+-- 5. RECEIPTS  (received-stock batches with expiry dates)
+--    NORMALISED: item_id is a uuid FK to items. The item's name / unit /
+--    category / sub-category are read by JOINING items (not copied here). On an
+--    existing DB the old text `item_id` + denormalised columns are migrated and
+--    dropped in the NORMALISATION section.
 -- -----------------------------------------------------------------------------
 create table if not exists public.receipts (
   id           uuid primary key default gen_random_uuid(),
-  item_id      text,
-  item_name    text,
-  unit         text,
-  category     text,
-  sub_category text,
+  item_id      uuid references public.items(id) on delete restrict,
   qty          numeric not null default 0 check (qty >= 0 and qty <= 1000000),
   expiry       text,     -- 'YYYY-MM-DD'
   reporter     text,
   received_at  timestamptz not null default now()
 );
-create index if not exists receipts_expiry_idx on public.receipts (expiry);
+create index if not exists receipts_expiry_idx  on public.receipts (expiry);
+create index if not exists receipts_item_id_idx on public.receipts (item_id);
 
 -- -----------------------------------------------------------------------------
 -- 6. APP_META  (one-time seed flag, admin-maintained)
@@ -349,9 +357,13 @@ create table if not exists public.units (
 alter table public.items add column if not exists category_id     uuid references public.categories(id);
 alter table public.items add column if not exists sub_category_id uuid references public.sub_categories(id);
 alter table public.items add column if not exists unit_id         uuid references public.units(id);
+-- Supplier is normalised too: items reference a supplier row (the old text
+-- `supplier` column is migrated into this FK + dropped, see NORMALISATION).
+alter table public.items add column if not exists primary_supplier_id uuid references public.suppliers(id) on delete set null;
 create index if not exists items_category_id_idx     on public.items (category_id);
 create index if not exists items_sub_category_id_idx on public.items (sub_category_id);
 create index if not exists items_unit_id_idx         on public.items (unit_id);
+create index if not exists items_primary_supplier_idx on public.items (primary_supplier_id);
 
 -- The app now sets category_id / sub_category_id / unit_id directly, so the old
 -- text-deriving trigger is no longer needed.
@@ -462,6 +474,287 @@ create policy units_admin_write on public.units
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 -- =============================================================================
+-- NORMALISATION  (3NF cleanup — idempotent + data-preserving)
+--
+-- Removes redundant/derivable columns and turns the two JSONB capture blobs
+-- into proper line tables:
+--   * items.supplier (text)   -> suppliers row + items.primary_supplier_id (FK)
+--   * items.default_uom_id / items.uom_code  -> folded into the single items.unit_id
+--   * receipts item_id (text) + denormalised item fields -> item_id (uuid FK) + JOIN
+--   * stock_counts.lines (jsonb) -> stock_count_lines (month_id, item_id, qty)
+--   * orders.lines       (jsonb) -> order_lines       (order_id, item_id, qty, note)
+--
+-- Each step is guarded on the OLD shape still being present, so a fresh install
+-- is a no-op here and a re-run never double-migrates.
+-- =============================================================================
+
+-- Merge views reference receipts / the line data, so drop them before any
+-- column drops; MERGE-READINESS recreates them against the normalised tables.
+drop view if exists public.merge_stock_movements;
+drop view if exists public.merge_order_lines;
+drop view if exists public.merge_receipts;
+
+-- ---- items.supplier (text) -> suppliers + primary_supplier_id (FK) -----------
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'items' and column_name = 'supplier'
+  ) then
+    insert into public.suppliers(name)
+      select distinct btrim(supplier) from public.items
+      where supplier is not null and btrim(supplier) <> ''
+      on conflict (name) do nothing;
+    update public.items i set primary_supplier_id = s.id
+      from public.suppliers s
+      where s.name = btrim(i.supplier)
+        and i.supplier is not null and btrim(i.supplier) <> ''
+        and i.primary_supplier_id is distinct from s.id;
+    alter table public.items drop column supplier;
+  end if;
+end $$;
+
+-- ---- items.default_uom_id / items.uom_code -> single items.unit_id -----------
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'items' and column_name = 'default_uom_id'
+  ) then
+    update public.items set unit_id = default_uom_id
+      where unit_id is null and default_uom_id is not null;
+    alter table public.items drop column default_uom_id;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'items' and column_name = 'uom_code'
+  ) then
+    insert into public.units(code)
+      select distinct btrim(uom_code) from public.items
+      where uom_code is not null and btrim(uom_code) <> ''
+      on conflict (code) do nothing;
+    update public.items i set unit_id = u.id
+      from public.units u
+      where i.unit_id is null and u.code = btrim(i.uom_code)
+        and i.uom_code is not null and btrim(i.uom_code) <> '';
+    alter table public.items drop column uom_code;
+  end if;
+end $$;
+
+-- ---- line tables ------------------------------------------------------------
+create table if not exists public.stock_count_lines (
+  month_id text not null references public.stock_counts(month_id) on delete cascade,
+  item_id  uuid not null references public.items(id)              on delete restrict,
+  qty      numeric not null default 0 check (qty >= 0 and qty <= 1000000),
+  primary key (month_id, item_id)
+);
+create index if not exists scl_item_idx on public.stock_count_lines (item_id);
+
+create table if not exists public.order_lines (
+  order_id uuid not null references public.orders(id)  on delete cascade,
+  item_id  uuid not null references public.items(id)   on delete restrict,
+  qty      numeric not null default 0 check (qty >= 0 and qty <= 1000000),
+  note     text not null default '',
+  primary key (order_id, item_id)
+);
+create index if not exists order_lines_item_idx on public.order_lines (item_id);
+
+-- ---- receipts: text item_id + denormalised fields -> uuid FK -----------------
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'receipts' and column_name = 'item_name'
+  ) then
+    alter table public.receipts add column if not exists item_id_uuid uuid;
+    update public.receipts r set item_id_uuid = i.id
+      from public.items i where i.id::text = r.item_id;
+    alter table public.receipts drop column if exists item_name;
+    alter table public.receipts drop column if exists unit;
+    alter table public.receipts drop column if exists category;
+    alter table public.receipts drop column if exists sub_category;
+    alter table public.receipts drop column if exists item_id;
+    alter table public.receipts rename column item_id_uuid to item_id;
+    alter table public.receipts
+      add constraint receipts_item_fk foreign key (item_id)
+      references public.items(id) on delete restrict;
+    create index if not exists receipts_item_id_idx on public.receipts (item_id);
+  end if;
+end $$;
+
+-- ---- migrate stock_counts.lines (jsonb) -> stock_count_lines ----------------
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'stock_counts' and column_name = 'lines'
+  ) then
+    insert into public.stock_count_lines (month_id, item_id, qty)
+      select sc.month_id, i.id, (line.value)::numeric
+      from public.stock_counts sc
+      cross join lateral jsonb_each_text(sc.lines) as line(item_id, value)
+      join public.items i on i.id::text = line.item_id
+      where line.value ~ '^-?[0-9]+(\.[0-9]+)?$'
+      on conflict (month_id, item_id) do update set qty = excluded.qty;
+    alter table public.stock_counts drop column lines;
+  end if;
+end $$;
+
+-- ---- migrate orders.lines (jsonb) -> order_lines ----------------------------
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'orders' and column_name = 'lines'
+  ) then
+    insert into public.order_lines (order_id, item_id, qty, note)
+      select o.id, i.id,
+             (line.value ->> 'qty')::numeric,
+             coalesce(line.value ->> 'note', '')
+      from public.orders o
+      cross join lateral jsonb_each(o.lines) as line(item_id, value)
+      join public.items i on i.id::text = line.item_id
+      where (line.value ->> 'qty') ~ '^-?[0-9]+(\.[0-9]+)?$'
+        and (line.value ->> 'qty')::numeric > 0
+      on conflict (order_id, item_id) do update
+        set qty = excluded.qty, note = excluded.note;
+    alter table public.orders drop column lines;
+  end if;
+end $$;
+
+-- ---- RLS on the line tables -------------------------------------------------
+-- READ: any signed-in user. DIRECT WRITE: admins only. Staff writes go through
+-- the save_stock_count / save_order RPCs below (SECURITY DEFINER), which
+-- enforce the same staff rules the old row-level policies did, atomically.
+alter table public.stock_count_lines enable row level security;
+alter table public.order_lines       enable row level security;
+
+drop policy if exists scl_read on public.stock_count_lines;
+create policy scl_read on public.stock_count_lines
+  for select to authenticated using (true);
+drop policy if exists scl_admin_write on public.stock_count_lines;
+create policy scl_admin_write on public.stock_count_lines
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists order_lines_read on public.order_lines;
+create policy order_lines_read on public.order_lines
+  for select to authenticated using (true);
+drop policy if exists order_lines_admin_write on public.order_lines;
+create policy order_lines_admin_write on public.order_lines
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- ---- atomic save RPCs (header + lines in one server-side transaction) -------
+-- Replace the whole-document upsert the app used to do. SECURITY DEFINER so a
+-- single call writes the header + line rows atomically while still enforcing
+-- the staff/admin rules (mirrors the old stock_counts / orders RLS).
+create or replace function public.save_stock_count(
+  p_month_id text,
+  p_reporter text,
+  p_status   text,
+  p_lines    jsonb
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_existing text;
+  v_now timestamptz := now();
+begin
+  if p_status not in ('draft', 'submitted', 'finalized') then
+    raise exception 'invalid status %', p_status;
+  end if;
+
+  select status into v_existing from public.stock_counts where month_id = p_month_id;
+
+  -- Staff: only the current month, never finalized (can't touch a finalized
+  -- month, can't set finalized themselves). Admins: anything.
+  if not public.is_admin() then
+    if not public.is_current_month(p_month_id)
+       or p_status = 'finalized'
+       or coalesce(v_existing, 'draft') = 'finalized' then
+      raise exception 'not allowed to save month %', p_month_id;
+    end if;
+  end if;
+
+  insert into public.stock_counts as sc
+      (month_id, reporter, status, updated_at, submitted_at, finalized_at)
+    values (p_month_id, p_reporter, p_status, v_now,
+      case when p_status = 'submitted' then v_now end,
+      case when p_status = 'finalized' then v_now end)
+  on conflict (month_id) do update set
+    reporter     = excluded.reporter,
+    status       = excluded.status,
+    updated_at   = v_now,
+    submitted_at = case when p_status = 'submitted' then v_now else sc.submitted_at end,
+    finalized_at = case when p_status = 'finalized' then v_now else sc.finalized_at end;
+
+  delete from public.stock_count_lines where month_id = p_month_id;
+  insert into public.stock_count_lines (month_id, item_id, qty)
+    select p_month_id, i.id, (e.value)::numeric
+    from jsonb_each_text(coalesce(p_lines, '{}'::jsonb)) as e(item_id, value)
+    join public.items i on i.id::text = e.item_id
+    where e.value ~ '^-?[0-9]+(\.[0-9]+)?$';
+end;
+$$;
+grant execute on function public.save_stock_count(text, text, text, jsonb) to authenticated;
+
+create or replace function public.save_order(
+  p_order_id uuid,
+  p_reporter text,
+  p_status   text,
+  p_lines    jsonb
+) returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id       uuid := p_order_id;
+  v_existing text;
+  v_now timestamptz := now();
+begin
+  if p_status not in ('draft', 'submitted') then
+    raise exception 'invalid status %', p_status;
+  end if;
+
+  if v_id is null then
+    insert into public.orders (reporter, status, updated_at, submitted_at)
+      values (p_reporter, p_status, v_now,
+        case when p_status = 'submitted' then v_now end)
+      returning id into v_id;
+  else
+    select status into v_existing from public.orders where id = v_id;
+    if v_existing is null then
+      raise exception 'order % not found', v_id;
+    end if;
+    -- Staff: only while the existing order is still a draft. Admins: anything.
+    if not public.is_admin() and coalesce(v_existing, 'draft') <> 'draft' then
+      raise exception 'not allowed to modify order %', v_id;
+    end if;
+    update public.orders set
+      reporter     = p_reporter,
+      status       = p_status,
+      updated_at   = v_now,
+      submitted_at = case when p_status = 'submitted' then v_now else submitted_at end
+    where id = v_id;
+  end if;
+
+  delete from public.order_lines where order_id = v_id;
+  insert into public.order_lines (order_id, item_id, qty, note)
+    select v_id, i.id, (e.value ->> 'qty')::numeric, coalesce(e.value ->> 'note', '')
+    from jsonb_each(coalesce(p_lines, '{}'::jsonb)) as e(item_id, value)
+    join public.items i on i.id::text = e.item_id
+    where (e.value ->> 'qty') ~ '^-?[0-9]+(\.[0-9]+)?$'
+      and (e.value ->> 'qty')::numeric > 0;
+
+  return v_id;
+end;
+$$;
+grant execute on function public.save_order(uuid, text, text, jsonb) to authenticated;
+
+-- =============================================================================
 -- MERGE-READINESS (for a future merge with SupplyTracker)
 --
 -- SupplyTracker (Django/Postgres) is the system of record for the CATALOGUE and
@@ -478,9 +771,9 @@ create policy units_admin_write on public.units
 -- =============================================================================
 
 -- ---- Items: stable cross-app identity + reconciliation fields ---------------
--- Canonical unit code (SupplyTracker UnitOfMeasure.code, e.g. kg/ml/btl); the
--- existing `unit` column stays a human display label.
-alter table public.items add column if not exists uom_code       text;
+-- Unit is normalised to a single FK (items.unit_id -> units); the canonical
+-- code is read by joining units.code, so no redundant uom_code / default_uom_id
+-- columns are kept (they are dropped in the NORMALISATION section).
 alter table public.items add column if not exists vat_rate       numeric(5,2) default 23.00;
 alter table public.items add column if not exists match_keywords text not null default '';
 
@@ -541,14 +834,14 @@ select
                                         as happened_at,
   it.code                              as item_code,
   it.name                              as item_name,
-  coalesce(it.uom_code, u.code)        as uom,
-  (line.value)::numeric                as closing_qty,
+  u.code                               as uom,
+  scl.qty                              as closing_qty,
   'count'::text                        as kind,
   sc.status,
   sc.reporter
-from public.stock_counts sc
-cross join lateral jsonb_each_text(sc.lines) as line(item_id, value)
-left join public.items it on it.id::text = line.item_id
+from public.stock_count_lines scl
+join public.stock_counts sc on sc.month_id = scl.month_id
+left join public.items it on it.id = scl.item_id
 left join public.units u on u.id = it.unit_id;
 
 -- Order lines -> reorder signal (item, quantity, note).
@@ -561,11 +854,11 @@ select
   o.reporter,
   it.code                              as item_code,
   it.name                              as item_name,
-  (line.value ->> 'qty')::numeric      as qty,
-  line.value ->> 'note'                as note
-from public.orders o
-cross join lateral jsonb_each(o.lines) as line(item_id, value)
-left join public.items it on it.id::text = line.item_id;
+  ol.qty                               as qty,
+  ol.note                              as note
+from public.order_lines ol
+join public.orders o on o.id = ol.order_id
+left join public.items it on it.id = ol.item_id;
 
 -- Received batches -> StockMovement(kind='purchase_in') + expiry (batch/expiry
 -- tracking, which SupplyTracker does not capture natively).
@@ -575,13 +868,14 @@ select
   r.received_at,
   r.expiry,
   it.code                              as item_code,
-  coalesce(it.name, r.item_name)       as item_name,
+  it.name                              as item_name,
   r.qty,
-  coalesce(it.uom_code, r.unit)        as uom,
+  u.code                               as uom,
   'purchase_in'::text                  as kind,
   r.reporter
 from public.receipts r
-left join public.items it on it.id::text = r.item_id;
+left join public.items it on it.id = r.item_id
+left join public.units u on u.id = it.unit_id;
 
 -- Views honour the underlying tables' RLS (Postgres 15+) and are readable by
 -- any signed-in user.

@@ -1,20 +1,29 @@
 // src/repositories/StockCountRepository.js
+//
+// A month's closing count is now NORMALISED: a header row in `stock_counts`
+// plus one row per item in `stock_count_lines`. The app still works with a
+// `lines` map (itemId -> number), so this repository is the single place that
+// translates between that map and the line rows:
+//   - READS rebuild the map from stock_count_lines.
+//   - WRITES go through the save_stock_count() RPC, which upserts the header and
+//     replaces the lines in one atomic, RLS-enforcing transaction.
 import { supabase, withTimeout, unwrap, toTs } from "../supabase.js";
 import { prevMonthId } from "../utils/monthUtils.js";
 import { buildPayload } from "../models/StockCountModel.js";
 
-const COUNTS = "stock_counts"; // one row per month, primary key = "YYYY-MM"
+const COUNTS = "stock_counts"; // header, primary key = "YYYY-MM"
+const LINES = "stock_count_lines"; // (month_id, item_id, qty)
 
-// DB row -> app object. `id` mirrors `monthId` so the UI (which used the
-// Firestore doc id) keeps working. Timestamps become { seconds } shapes.
-function fromRow(r) {
+// Header row (+ its lines map) -> app object. `id` mirrors `monthId` so the UI
+// keeps working. Timestamps become { seconds } shapes.
+function fromRow(r, lines = {}) {
   if (!r) return null;
   return {
     id: r.month_id,
     monthId: r.month_id,
     reporter: r.reporter || "",
     status: r.status || "draft",
-    lines: r.lines || {},
+    lines: lines || {},
     createdAt: toTs(r.created_at),
     updatedAt: toTs(r.updated_at),
     submittedAt: toTs(r.submitted_at),
@@ -22,10 +31,43 @@ function fromRow(r) {
   };
 }
 
+// Fetch the lines for one month as a { itemId: qty } map.
+async function linesForMonth(monthId) {
+  const rows = unwrap(
+    await withTimeout(
+      supabase.from(LINES).select("item_id, qty").eq("month_id", monthId),
+      15000,
+      "Loading counts",
+    ),
+    "Loading counts",
+  );
+  const map = {};
+  for (const row of rows || []) map[row.item_id] = Number(row.qty);
+  return map;
+}
+
+// Fetch the lines for several months at once -> { monthId: { itemId: qty } }.
+async function linesForMonths(monthIds) {
+  if (!monthIds.length) return {};
+  const rows = unwrap(
+    await withTimeout(
+      supabase.from(LINES).select("month_id, item_id, qty").in("month_id", monthIds),
+      15000,
+      "Loading counts",
+    ),
+    "Loading counts",
+  );
+  const byMonth = {};
+  for (const row of rows || []) {
+    (byMonth[row.month_id] ||= {})[row.item_id] = Number(row.qty);
+  }
+  return byMonth;
+}
+
 export class StockCountRepository {
   // Fetch a single month's count (or null if it doesn't exist yet).
   static async getMonth(monthId) {
-    const data = unwrap(
+    const header = unwrap(
       await withTimeout(
         supabase.from(COUNTS).select("*").eq("month_id", monthId).maybeSingle(),
         15000,
@@ -33,7 +75,9 @@ export class StockCountRepository {
       ),
       "Loading month",
     );
-    return fromRow(data);
+    if (!header) return null;
+    const lines = await linesForMonth(monthId);
+    return fromRow(header, lines);
   }
 
   // The previous month's closing quantities, keyed by itemId. {} if none.
@@ -43,23 +87,18 @@ export class StockCountRepository {
     return { ...prev.lines };
   }
 
-  // Create or overwrite a month's count. Uses the monthId as the primary key so
-  // a month can never be duplicated. status moves draft -> submitted -> finalized.
+  // Create or overwrite a month's count. The RPC upserts the header and replaces
+  // stock_count_lines atomically; status moves draft -> submitted -> finalized.
   static async saveMonth({ monthId, reporter, status, counts }) {
     const payload = buildPayload({ monthId, reporter, status, counts });
-    const now = new Date().toISOString();
-    const row = {
-      month_id: payload.monthId,
-      reporter: payload.reporter,
-      status: payload.status,
-      lines: payload.lines,
-      updated_at: now,
-      ...(status === "submitted" ? { submitted_at: now } : {}),
-      ...(status === "finalized" ? { finalized_at: now } : {}),
-    };
     unwrap(
       await withTimeout(
-        supabase.from(COUNTS).upsert(row, { onConflict: "month_id" }),
+        supabase.rpc("save_stock_count", {
+          p_month_id: payload.monthId,
+          p_reporter: payload.reporter,
+          p_status: payload.status,
+          p_lines: payload.lines,
+        }),
         20000,
         "Saving month",
       ),
@@ -68,7 +107,7 @@ export class StockCountRepository {
     return { id: monthId };
   }
 
-  // Change only the status of a month (admin finalize / reopen).
+  // Change only the status of a month (admin finalize / reopen) — header only.
   static async setStatus(monthId, status) {
     const now = new Date().toISOString();
     unwrap(
@@ -91,7 +130,7 @@ export class StockCountRepository {
 
   // List recent months (newest first) for the admin month picker / history.
   static async listMonths(limitCount = 24) {
-    const data = unwrap(
+    const headers = unwrap(
       await withTimeout(
         supabase
           .from(COUNTS)
@@ -103,12 +142,13 @@ export class StockCountRepository {
       ),
       "Loading months",
     );
-    return (data || []).map(fromRow);
+    const byMonth = await linesForMonths((headers || []).map((h) => h.month_id));
+    return (headers || []).map((h) => fromRow(h, byMonth[h.month_id] || {}));
   }
 
   // Fetch several months in a range (inclusive) for trend comparisons.
   static async getMonthsInRange(startMonthId, endMonthId) {
-    const data = unwrap(
+    const headers = unwrap(
       await withTimeout(
         supabase
           .from(COUNTS)
@@ -121,6 +161,7 @@ export class StockCountRepository {
       ),
       "Loading months",
     );
-    return (data || []).map(fromRow);
+    const byMonth = await linesForMonths((headers || []).map((h) => h.month_id));
+    return (headers || []).map((h) => fromRow(h, byMonth[h.month_id] || {}));
   }
 }

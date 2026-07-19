@@ -5,12 +5,11 @@ import { SEED_ITEMS, CATEGORY_ORDER, SUBCATEGORY_ORDER } from "../data/seedItems
 const ITEMS = "items";
 const META = "app_meta";
 
-// Category + sub-category NAMES come from the master tables via FK embeds — the
-// `items` table no longer stores them as text. `unit` remains a text column.
-// Explicit FK hints (…!column) so the embed is unambiguous even if items has
-// more than one FK to a table (e.g. a stray units FK like default_uom_id).
+// Category / sub-category / unit / supplier are all NORMALISED: the `items`
+// table stores only FK ids, and the display names/codes come from the master
+// tables via FK embeds. Explicit FK hints (…!column) keep each embed unambiguous.
 const SELECT =
-  "*, categories!category_id(name), sub_categories!sub_category_id(name), units!unit_id(code)";
+  "*, categories!category_id(name), sub_categories!sub_category_id(name), units!unit_id(code), suppliers!primary_supplier_id(name)";
 
 // ----- row <-> app-object mappers -------------------------------------------
 function fromRow(r) {
@@ -23,7 +22,8 @@ function fromRow(r) {
     subCategory: r.sub_categories?.name || "",
     unit: r.units?.code || "",
     orderUnit: r.order_unit || "",
-    supplier: r.supplier || "",
+    supplier: r.suppliers?.name || "",
+    supplierId: r.primary_supplier_id || null,
     sortOrder: r.sort_order ?? 0,
     // Effective active in THIS app = master AND local. Staff/admin flows filter
     // on `active`, so a master-off (SupplyTracker) OR local-off item disappears.
@@ -34,15 +34,15 @@ function fromRow(r) {
   };
 }
 
-// Non-category columns only (category_id / sub_category_id are resolved + set
-// separately from the master tables).
+// Plain scalar columns only. FK-backed fields (category_id / sub_category_id /
+// unit_id / primary_supplier_id) are resolved + set separately from the master
+// tables, so `supplier` is NOT written here — it maps to primary_supplier_id.
 function baseRow(obj = {}) {
   const map = {
     code: "code",
     name: "name",
     nameHi: "name_hi",
     orderUnit: "order_unit",
-    supplier: "supplier",
     sortOrder: "sort_order",
     active: "active",
   };
@@ -51,6 +51,23 @@ function baseRow(obj = {}) {
     if (obj[camel] !== undefined) row[snake] = obj[camel];
   }
   return row;
+}
+
+// Resolve a supplier NAME to a suppliers.id, creating the supplier row if it's
+// new (upsert on the unique name). Empty name -> null (no primary supplier).
+// Item admin is admin-only, so the caller also satisfies suppliers' admin-write RLS.
+async function resolveSupplierId(name) {
+  const nm = String(name || "").trim();
+  if (!nm) return null;
+  const data = unwrap(
+    await withTimeout(
+      supabase.from("suppliers").upsert({ name: nm }, { onConflict: "name" }).select("id").single(),
+      15000,
+      "Saving supplier",
+    ),
+    "Saving supplier",
+  );
+  return data?.id ?? null;
 }
 
 // ----- master-data resolution (name -> id) ----------------------------------
@@ -306,6 +323,7 @@ export class ItemRepository {
     const row = {
       ...baseRow({ ...item, active: true }),
       ...resolveIds(maps, item.category, item.subCategory, item.unit),
+      primary_supplier_id: await resolveSupplierId(item.supplier),
     };
     const data = unwrap(
       await withTimeout(
@@ -321,6 +339,10 @@ export class ItemRepository {
   // Update fields on an existing item (admin).
   static async update(itemId, patch) {
     const row = { ...baseRow(patch), updated_at: new Date().toISOString() };
+    // Supplier is stored as a FK: resolve the name -> primary_supplier_id.
+    if (patch.supplier !== undefined) {
+      row.primary_supplier_id = await resolveSupplierId(patch.supplier);
+    }
     // Only touch the master FKs the patch actually changes.
     const needsCat = patch.category !== undefined || patch.subCategory !== undefined;
     const needsUnit = patch.unit !== undefined;
