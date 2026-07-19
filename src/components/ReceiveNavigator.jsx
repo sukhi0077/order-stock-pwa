@@ -7,6 +7,7 @@ import React, { useMemo, useState } from "react";
 import ReceiveItemRow from "./ReceiveItemRow.jsx";
 import ExpiryBadge from "./ui/ExpiryBadge.jsx";
 import CategoryIcon from "./ui/CategoryIcon.jsx";
+import { useMasterData } from "../hooks/useMasterData.js";
 import { CATEGORY_ORDER, SUBCATEGORY_ORDER } from "../data/seedItems.js";
 import { num } from "../models/ReceiptModel.js";
 import { formatDay } from "../utils/monthUtils.js";
@@ -18,7 +19,7 @@ function orderedKeys(keys, preferred) {
   return [...known, ...extra];
 }
 
-function Tile({ iconName, label, count, onClick }) {
+function Tile({ iconName, iconId, label, count, onClick }) {
   const { t } = useT();
   const has = count > 0;
   return (
@@ -29,7 +30,7 @@ function Tile({ iconName, label, count, onClick }) {
     >
       <div className="flex items-center gap-2">
         <span className="text-blue-600">
-          <CategoryIcon name={iconName} size={20} />
+          <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
         <span className="flex-1 min-w-0 text-base font-medium text-slate-800 leading-tight">
           {label}
@@ -47,6 +48,7 @@ function Tile({ iconName, label, count, onClick }) {
 
 export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, adding }) {
   const { t, tc, ts, ti } = useT();
+  const { iconForCat, iconForSub } = useMasterData();
   const [nav, setNav] = useState({ level: "cat", cat: null, sub: null });
   const [search, setSearch] = useState("");
   const query = search.trim().toLowerCase();
@@ -169,6 +171,7 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
             <Tile
               key={cat}
               iconName={cat}
+              iconId={iconForCat[cat]}
               label={tc(cat)}
               count={catCount[cat] || 0}
               onClick={() => setNav({ level: "sub", cat, sub: null })}
@@ -238,6 +241,7 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
               <Tile
                 key={sub}
                 iconName={sub}
+                iconId={iconForSub[sub]}
                 label={ts(sub)}
                 count={subCount[cat]?.[sub] || 0}
                 onClick={() => setNav({ level: "items", cat, sub })}

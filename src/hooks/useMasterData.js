@@ -41,10 +41,19 @@ export function useMasterData() {
 
   const units = hasUnits ? d.units.map((u) => u.code) : UNITS;
 
+  // Display name -> icon_id, straight from the master rows. Icons are chosen by
+  // this stable id (see CategoryIcon), so renaming a category/sub keeps its icon.
+  const iconForCat = {};
+  const iconForSub = {};
+  if (hasCats) for (const c of d.categories) if (c.icon_id) iconForCat[c.name] = c.icon_id;
+  if (hasSubs) for (const s of d.subCategories) if (s.icon_id) iconForSub[s.name] = s.icon_id;
+
   return {
     categories,
     subByCategory,
     units,
+    iconForCat,
+    iconForSub,
     isLoading: query.isLoading,
     fromMaster: hasCats, // true when options came from the DB tables
   };

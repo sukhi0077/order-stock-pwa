@@ -1,6 +1,7 @@
 // src/repositories/ItemRepository.js
 import { supabase, withTimeout, unwrap, toTs } from "../supabase.js";
 import { SEED_ITEMS, CATEGORY_ORDER, SUBCATEGORY_ORDER } from "../data/seedItems.js";
+import { ICON_KEY_BY_NAME } from "../components/ui/CategoryIcon.jsx";
 
 const ITEMS = "items";
 const META = "app_meta";
@@ -103,7 +104,7 @@ async function ensureMasters(pairs) {
     if (!c || maps.catByName.has(c) || seenCat.has(c)) continue;
     seenCat.add(c);
     const idx = CATEGORY_ORDER.indexOf(c);
-    newCats.push({ name: c, sort_order: idx >= 0 ? idx : 999 });
+    newCats.push({ name: c, sort_order: idx >= 0 ? idx : 999, icon_id: ICON_KEY_BY_NAME[c] || null });
   }
   if (newCats.length) {
     unwrap(
@@ -129,7 +130,7 @@ async function ensureMasters(pairs) {
     if (maps.subByKey.has(kk) || seenSub.has(kk)) continue;
     seenSub.add(kk);
     const order = (SUBCATEGORY_ORDER[c] || []).indexOf(s);
-    newSubs.push({ category_id: catId, name: s, sort_order: order >= 0 ? order : 999 });
+    newSubs.push({ category_id: catId, name: s, sort_order: order >= 0 ? order : 999, icon_id: ICON_KEY_BY_NAME[s] || null });
   }
   if (newSubs.length) {
     unwrap(

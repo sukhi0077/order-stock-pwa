@@ -5,6 +5,7 @@
 import React, { useMemo, useState } from "react";
 import OrderItemRow from "./OrderItemRow.jsx";
 import CategoryIcon from "./ui/CategoryIcon.jsx";
+import { useMasterData } from "../hooks/useMasterData.js";
 import { CATEGORY_ORDER, SUBCATEGORY_ORDER } from "../data/seedItems.js";
 import { isOrdered, num, orderUnitOf } from "../models/OrderModel.js";
 import { useT } from "../i18n/i18n.jsx";
@@ -15,7 +16,7 @@ function orderedKeys(keys, preferred) {
   return [...known, ...extra];
 }
 
-function Tile({ iconName, label, onOrder, total, onClick }) {
+function Tile({ iconName, iconId, label, onOrder, total, onClick }) {
   const { t } = useT();
   const has = onOrder > 0;
   const pct = total ? Math.round((onOrder / total) * 100) : 0;
@@ -27,7 +28,7 @@ function Tile({ iconName, label, onOrder, total, onClick }) {
     >
       <div className="flex items-center gap-2">
         <span className="text-teal-600">
-          <CategoryIcon name={iconName} size={20} />
+          <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
         <span className="flex-1 min-w-0 text-base font-medium text-slate-800 leading-tight">
           {label}
@@ -49,6 +50,7 @@ function Tile({ iconName, label, onOrder, total, onClick }) {
 
 export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit, busy }) {
   const { t, tc, ts, ti } = useT();
+  const { iconForCat, iconForSub } = useMasterData();
   const [nav, setNav] = useState({ level: "cat", cat: null, sub: null });
   const [search, setSearch] = useState("");
 
@@ -168,6 +170,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
             <Tile
               key={cat}
               iconName={cat}
+              iconId={iconForCat[cat]}
               label={tc(cat)}
               onOrder={catProg[cat]?.onOrder || 0}
               total={catProg[cat]?.total || 0}
@@ -187,7 +190,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
               <div key={cat} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
                   <span className="text-teal-600">
-                    <CategoryIcon name={cat} size={16} />
+                    <CategoryIcon name={cat} icon={iconForCat[cat]} size={16} />
                   </span>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     {tc(cat)}
@@ -292,6 +295,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
               <Tile
                 key={sub}
                 iconName={sub}
+                iconId={iconForSub[sub]}
                 label={ts(sub)}
                 onOrder={subProg[cat]?.[sub]?.onOrder || 0}
                 total={subProg[cat]?.[sub]?.total || 0}

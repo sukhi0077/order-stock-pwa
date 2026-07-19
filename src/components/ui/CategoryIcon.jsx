@@ -433,7 +433,30 @@ const FALLBACK = (
   </>
 );
 
-export default function CategoryIcon({ name, size = 20, className = "" }) {
+// Glyphs keyed by a stable icon_id (the value stored on categories/sub_categories
+// in the DB). Rendering by icon_id means a rename never changes the icon.
+const GLYPHS = {
+  chefHat, martini, sliders, bucket, pencil, pkg, grid,
+  beerMug, snowflake, cupSoda, sodaBottle, straws, pumpBottle, coffee, droplet, wineGlass,
+  trash, sprayBottle, brush, roll, droplets,
+  bread, milkEgg, carrot, pot, beans, fish, oilBottle, wheat, tinCan, peanut, spice, salt, cupcake,
+  shirt, printer, megaphone, piggyBank, wrench, truck, briefcase, house, wallet, landmark, zap,
+  shoppingBag, cutlery, curryBox,
+};
+
+// Canonical display name -> icon_id, derived from the ICONS map above. Used to
+// seed icon_id for newly-created categories/sub-categories (see ItemRepository).
+const ICON_KEY_BY_NAME = (() => {
+  const byGlyph = new Map(Object.entries(GLYPHS).map(([k, g]) => [g, k]));
+  const out = {};
+  for (const [nm, g] of Object.entries(ICONS)) out[nm] = byGlyph.get(g);
+  return out;
+})();
+export { ICON_KEY_BY_NAME };
+
+// `icon` is the stable icon_id (preferred); `name` is the legacy fallback for
+// rows/values that don't carry an icon_id yet.
+export default function CategoryIcon({ name, icon, size = 20, className = "" }) {
   return (
     <svg
       width={size}
@@ -447,7 +470,7 @@ export default function CategoryIcon({ name, size = 20, className = "" }) {
       className={className}
       aria-hidden="true"
     >
-      {ICONS[name] || FALLBACK}
+      {GLYPHS[icon] || ICONS[name] || FALLBACK}
     </svg>
   );
 }

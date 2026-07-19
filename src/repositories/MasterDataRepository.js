@@ -8,7 +8,7 @@ export class MasterDataRepository {
       await withTimeout(
         supabase
           .from("categories")
-          .select("id,name,sort_order,active")
+          .select("id,name,sort_order,active,icon_id")
           .order("sort_order", { ascending: true })
           .order("name", { ascending: true }),
         15000,
@@ -24,7 +24,7 @@ export class MasterDataRepository {
       await withTimeout(
         supabase
           .from("sub_categories")
-          .select("id,category_id,name,sort_order,active")
+          .select("id,category_id,name,sort_order,active,icon_id")
           .order("sort_order", { ascending: true })
           .order("name", { ascending: true }),
         15000,
