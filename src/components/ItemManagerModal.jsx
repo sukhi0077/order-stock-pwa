@@ -1,13 +1,7 @@
 // src/components/ItemManagerModal.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  useAddItem,
-  useSetItemActive,
-  useUpdateItem,
-  useResyncItems,
-} from "../hooks/useItems.js";
+import { useSetItemActive, useUpdateItem } from "../hooks/useItems.js";
 import { useMasterData } from "../hooks/useMasterData.js";
-import { SEED_COUNT } from "../data/seedItems.js";
 import { useT } from "../i18n/i18n.jsx";
 
 // A small filter chip.
@@ -24,117 +18,6 @@ function Chip({ active, onClick, children }) {
     >
       {children}
     </button>
-  );
-}
-
-// Inline full editor for one item (name, category, sub-category, unit, supplier).
-// category / sub-category / unit options come from the master-data tables.
-function EditRow({ item, onSave, onCancel, categories, subByCategory, units }) {
-  const { t, tc, ts } = useT();
-  const [f, setF] = useState({
-    name: item.name || "",
-    nameHi: item.nameHi || "",
-    category: item.category || categories[0] || "",
-    subCategory: item.subCategory || "",
-    unit: item.unit || units[0] || "",
-    supplier: item.supplier || "",
-  });
-  const subs = subByCategory[f.category] || [];
-  const sel =
-    "p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-teal-500";
-
-  const save = () => {
-    if (!f.name.trim()) return;
-    onSave({
-      name: f.name.trim(),
-      nameHi: f.nameHi.trim(),
-      category: f.category,
-      subCategory: f.subCategory,
-      unit: f.unit,
-      supplier: f.supplier.trim(),
-    });
-  };
-
-  return (
-    <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 space-y-2">
-      <input
-        value={f.name}
-        onChange={(e) => setF((v) => ({ ...v, name: e.target.value }))}
-        className="w-full p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500"
-      />
-      <input
-        value={f.nameHi}
-        onChange={(e) => setF((v) => ({ ...v, nameHi: e.target.value }))}
-        placeholder={t("hindiName")}
-        lang="hi"
-        className="w-full p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500"
-      />
-      <div className="grid grid-cols-3 gap-2">
-        <select
-          value={f.category}
-          onChange={(e) => {
-            const cat = e.target.value;
-            const list = subByCategory[cat] || [];
-            setF((v) => ({
-              ...v,
-              category: cat,
-              subCategory: list.includes(v.subCategory) ? v.subCategory : list[0] || "",
-            }));
-          }}
-          className={sel}
-        >
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {tc(c)}
-            </option>
-          ))}
-        </select>
-        <select
-          value={f.subCategory}
-          onChange={(e) => setF((v) => ({ ...v, subCategory: e.target.value }))}
-          className={sel}
-        >
-          {subs.map((s) => (
-            <option key={s} value={s}>
-              {ts(s)}
-            </option>
-          ))}
-        </select>
-        <select
-          value={f.unit}
-          onChange={(e) => setF((v) => ({ ...v, unit: e.target.value }))}
-          className={sel}
-        >
-          {units.map((u) => (
-            <option key={u}>{u}</option>
-          ))}
-        </select>
-      </div>
-      <input
-        list="supplier-options"
-        value={f.supplier}
-        onChange={(e) => setF((v) => ({ ...v, supplier: e.target.value }))}
-        placeholder={t("supplierOptional")}
-        className="w-full p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500"
-      />
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 py-2 rounded-lg bg-white border border-slate-300 text-slate-600 font-semibold text-sm hover:bg-slate-50"
-        >
-          {t("cancel")}
-        </button>
-        <button
-          type="button"
-          onClick={save}
-          disabled={!f.name.trim()}
-          className="flex-1 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm disabled:opacity-50"
-        >
-          {t("save")}
-        </button>
-      </div>
-    </div>
   );
 }
 
@@ -159,44 +42,21 @@ function SupplierField({ item, listId, onSave }) {
   );
 }
 
-// Admin page: add a new item, filter/search, toggle active, edit supplier, or
-// reload from the master list. Items are never hard-deleted so historical
-// months keep their references.
+// Admin page: browse/filter the catalogue and adjust the three things managed
+// here — enable/disable, supplier, and order unit. Items are created and renamed
+// upstream (master data); nothing is hard-deleted, so historical months keep
+// their references.
 export default function ItemManagerModal({ items, onBack }) {
   const { t, tc, ts, ti } = useT();
-  const addItem = useAddItem();
   const setActive = useSetItemActive();
   const updateItem = useUpdateItem();
-  const resync = useResyncItems();
   // Category / sub-category / unit options from the master-data tables
   // (falls back to the bundled seed lists if those tables are empty).
-  const { categories, subByCategory, units } = useMasterData();
-
-  const handleResync = async () => {
-    if (!window.confirm(t("reloadConfirm", { n: SEED_COUNT }))) return;
-    try {
-      const r = await resync.mutateAsync();
-      window.alert(t("reloadDone", r));
-    } catch (e) {
-      window.alert(e?.message || "Failed to reload items.");
-    }
-  };
+  const { categories, subByCategory } = useMasterData();
 
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState(null);
   const [filterSub, setFilterSub] = useState(null);
-  const [showAdd, setShowAdd] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({
-    name: "",
-    category: categories[0] || "",
-    subCategory: (subByCategory[categories[0]] || [])[0] || "",
-    unit: units[0] || "",
-    supplier: "",
-  });
-
-  const subOptions = subByCategory[form.category] || [];
-
   // Distinct suppliers already in use — powers the autocomplete datalist.
   const suppliers = useMemo(() => {
     const set = new Set();
@@ -219,28 +79,6 @@ export default function ItemManagerModal({ items, onBack }) {
     return [...list].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }, [items, search, filterCat, filterSub, ti]);
 
-  const maxSort = useMemo(
-    () => items.reduce((m, i) => Math.max(m, i.sortOrder ?? 0), 0),
-    [items],
-  );
-
-  const handleAdd = async (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) return;
-    await addItem.mutateAsync({
-      name: form.name.trim(),
-      category: form.category,
-      subCategory: form.subCategory,
-      unit: form.unit,
-      supplier: form.supplier.trim(),
-      sortOrder: maxSort + 1,
-    });
-    setForm((f) => ({ ...f, name: "" }));
-  };
-
-  const sel =
-    "p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-teal-500";
-
   return (
     <div className="max-w-2xl mx-auto p-4 pb-16">
       <div className="flex items-center gap-3 mb-3">
@@ -255,103 +93,11 @@ export default function ItemManagerModal({ items, onBack }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl">
-        {/* Add new item — a clearly separate, collapsible area */}
-        <div className="px-4 pt-3 pb-2 border-b border-slate-200">
-          <button
-            type="button"
-            onClick={() => setShowAdd((v) => !v)}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 font-semibold text-sm hover:bg-teal-100 transition"
-          >
-            <span className="flex items-center gap-2">
-              <span className="text-base leading-none">＋</span>
-              {t("addNewItem")}
-            </span>
-            <span className="text-lg leading-none">{showAdd ? "−" : "+"}</span>
-          </button>
-
-          {showAdd && (
-            <form
-              onSubmit={handleAdd}
-              className="mt-2 p-3 rounded-xl bg-teal-50/60 border border-teal-200 space-y-2"
-            >
-              <input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder={t("newItemName")}
-                className="w-full p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500"
-              />
-              <div className="grid grid-cols-3 gap-2">
-            <select
-              value={form.category}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  category: e.target.value,
-                  subCategory: (subByCategory[e.target.value] || [])[0] || "",
-                }))
-              }
-              className={sel}
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {tc(c)}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.subCategory}
-              onChange={(e) => setForm((f) => ({ ...f, subCategory: e.target.value }))}
-              className={sel}
-            >
-              {subOptions.map((s) => (
-                <option key={s} value={s}>
-                  {ts(s)}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.unit}
-              onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-              className={sel}
-            >
-              {units.map((u) => (
-                <option key={u}>{u}</option>
-              ))}
-            </select>
-          </div>
-          <input
-            list="supplier-options"
-            value={form.supplier}
-            onChange={(e) => setForm((f) => ({ ...f, supplier: e.target.value }))}
-            placeholder={t("supplierOptional")}
-            className="w-full p-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500"
-          />
-              <button
-                type="submit"
-                disabled={addItem.isPending || !form.name.trim()}
-                className="w-full py-2.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold disabled:opacity-50 transition"
-              >
-                {addItem.isPending ? t("adding") : t("addItem")}
-              </button>
-            </form>
-          )}
-        </div>
-
         <datalist id="supplier-options">
           {suppliers.map((s) => (
             <option key={s} value={s} />
           ))}
         </datalist>
-
-        <div className="px-4 py-2 border-b border-slate-200">
-          <button
-            onClick={handleResync}
-            disabled={resync.isPending}
-            className="w-full py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-50"
-          >
-            {resync.isPending ? t("reloading") : `${t("reloadMaster")} (${SEED_COUNT})`}
-          </button>
-        </div>
 
         <div className="px-4 py-2 border-b border-slate-200 space-y-2 sticky top-14 bg-white z-10">
           <input
@@ -406,23 +152,6 @@ export default function ItemManagerModal({ items, onBack }) {
             const localOff = item.ospActive === false; // disabled here only
             const inactive = localOff; // the toggle reflects the LOCAL switch
             const unavailable = localOff || masterOff;
-            if (editingId === item.id) {
-              return (
-                <div key={item.id} className="py-2">
-                  <EditRow
-                    item={item}
-                    categories={categories}
-                    subByCategory={subByCategory}
-                    units={units}
-                    onCancel={() => setEditingId(null)}
-                    onSave={(patch) => {
-                      updateItem.mutate({ id: item.id, patch });
-                      setEditingId(null);
-                    }}
-                  />
-                </div>
-              );
-            }
             return (
               <div key={item.id} className={`py-2 ${unavailable ? "opacity-60" : ""}`}>
                 <div className="flex items-center gap-2">
@@ -434,17 +163,6 @@ export default function ItemManagerModal({ items, onBack }) {
                       {tc(item.category)} · {ts(item.subCategory)} · {item.unit}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(item.id)}
-                    className="h-7 w-7 grid place-items-center rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 shrink-0"
-                    aria-label={t("edit")}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
-                  </button>
                   {masterOff && (
                     <span
                       title="Disabled in SupplyTracker (master). Re-enable it there."
