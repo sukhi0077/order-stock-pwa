@@ -1,0 +1,1081 @@
+// src/components/DailyReportForm.jsx
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import Card from "./ui/DsrCard.jsx";
+import Input from "./ui/Input.jsx";
+import RadioGroup from "./ui/RadioGroup.jsx";
+import { useDailyReport } from "../../hooks/useDailyReport.js";
+import { DailyReportModel } from "../../models/DailyReportModel.js";
+import { useEmployees } from "../../hooks/useEmployees.js";
+import { useMonthlyCouponCounts } from "../../hooks/useMonthlyCouponCounts.js";
+import { todayStr } from "../../utils/dateUtils.js";
+
+const getOrdinal = (n) =>
+  ["", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh"][n] ||
+  `${n}th`;
+
+export default function DailyReportForm({
+  initialData,
+  createOptions,
+  onSaved,
+}) {
+  // Pass initialData to the hook (it will be null for normal users, but populated for admins)
+  const {
+    data,
+    // Delivery portals come from public.delivery_platforms now, not a
+    // hardcoded array, so a new portal is a row insert rather than a redeploy.
+    platforms,
+    errors,
+    hasSubmitted,
+    isSaving,
+    isLoadingPrevData,
+    yesterdayDate,
+    autoCalculatedCash,
+    autoCalculatedOnlineSale,
+    cashMismatch,
+    mismatchDiff,
+    prevDataError,
+    isCommentRequired,
+    commentReasons,
+    handleChange,
+    handleDeliveryChange,
+    handleCouponGivenChange,
+    handleSubmit,
+    handleSaveDraft,
+    resetForm,
+    allowBackdate,
+    reportDate,
+    setReportDate,
+  } = useDailyReport(initialData, { ...createOptions, onSaved });
+
+  const isEditMode = !!initialData;
+
+  // After a failed submit, jump to the first field that has an error so the
+  // user is taken straight to the problem (instead of just scrolling to top).
+  const formRef = useRef(null);
+  const errorCount = Object.keys(errors).length;
+  useEffect(() => {
+    if (!hasSubmitted || errorCount === 0) return;
+    // Wait a tick for the error styles/markers to render.
+    const t = setTimeout(() => {
+      const el = formRef.current?.querySelector('[data-error="true"]');
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.querySelector("input, textarea")?.focus({ preventScroll: true });
+      }
+    }, 50);
+    return () => clearTimeout(t);
+  }, [hasSubmitted, errorCount]);
+
+  // Warn staff the moment they flag a mismatch, so they don't miss the
+  // required justification in the Comments box at the bottom.
+  const warnIfMismatch = (value, label) => {
+    if (value === "No") {
+      window.alert(
+        `⚠️ ${label} does not match!\n\nPlease explain the reason in the Comments box at the bottom of the form. A justification is required before you can submit.`,
+      );
+    }
+  };
+
+  // Per-column delivery totals. Memoized on the delivery object so typing in
+  // unrelated fields doesn't re-run these reductions every keystroke.
+  const { deliveryOnlineSum, deliveryCashSum, deliveryCardSum } = useMemo(() => {
+    let online = 0;
+    let cash = 0;
+    let card = 0;
+    for (const p of platforms) {
+      const d = data.delivery[p] || {};
+      online += Number(d.online) || 0;
+      cash += Number(d.cash) || 0;
+      card += Number(d.card) || 0;
+    }
+    return {
+      deliveryOnlineSum: online,
+      deliveryCashSum: cash,
+      deliveryCardSum: card,
+    };
+  }, [data.delivery, platforms]);
+
+  // Only the Online total is cross-checked against card 1's "Online Sale".
+  const onlineEntered = String(data.onlineSalePOS).trim();
+  const onlineSaleMismatch =
+    onlineEntered !== "" &&
+    Math.abs(Number(data.onlineSalePOS) - deliveryOnlineSum) > 0.01;
+
+  // Delivery cash is part of card 1's Cash Sale, so it can never exceed it.
+  const cashSaleEntered = String(data.cashSalePOS).trim();
+  const deliveryCashOverflow =
+    cashSaleEntered !== "" &&
+    deliveryCashSum - Number(data.cashSalePOS) > 0.01;
+
+  // --- Google-review coupons, per employee (card 4) ---
+  // The admin maintains the roster; staff just tap −/+ to set each person's
+  // count. Counts are now persisted as one ROW PER EMPLOYEE in dsr_coupons
+  // (kind = 'given'), keyed by employee_id — the old free-text
+  // "Anna - 4, Marek - 5" string is gone, so a rename can't orphan a total.
+  const { employees: couponStaff } = useEmployees({ activeOnly: true });
+  const MAX_COUPON_COUNT = 999;
+  // Collapsed by default on the staff screen (the summary line stays visible);
+  // expanded by default when an admin opens a report to edit.
+  const [showCouponEditor, setShowCouponEditor] = useState(isEditMode);
+
+  // Coupon counts may only be added/edited on the report's OWN day (today).
+  // - New staff report  -> dated today        -> editable.
+  // - Editing a report  -> its saved date.
+  // - Admin backdated   -> the chosen past date -> locked.
+  // Staff can't reach a non-today report anyway (rules + read window), so this
+  // is mainly a clear UI guard; the rules are the real enforcement.
+  const couponReportDate = isEditMode
+    ? initialData?.dateString || data.dateString || ""
+    : allowBackdate
+      ? reportDate
+      : todayStr();
+  const couponsEditable = DailyReportModel.canEditCoupons(
+    couponReportDate,
+    todayStr(),
+  );
+
+  // Build the rows shown in card 4: every ACTIVE employee (default 0), plus
+  // anyone already saved on this report who has since been deactivated (so an
+  // admin edit never silently drops historical counts).
+  const couponRows = useMemo(() => {
+    const saved = new Map();
+    for (const e of data.couponsGiven || []) {
+      saved.set(e.employeeId, e);
+    }
+    const rows = [];
+    const used = new Set();
+    for (const emp of couponStaff) {
+      used.add(emp.id);
+      rows.push({
+        id: emp.id,
+        name: emp.name,
+        count: saved.get(emp.id)?.count || 0,
+        isExtra: false,
+      });
+    }
+    for (const [id, e] of saved) {
+      if (!used.has(id)) {
+        rows.push({ id, name: e.name, count: e.count, isExtra: true });
+      }
+    }
+    return rows;
+  }, [data.couponsGiven, couponStaff]);
+
+  // Month-to-date per-staff totals (resets on the 1st). The server figure
+  // covers SUBMITTED reports this month; for a brand-new report we add the
+  // current in-progress entry on top so the staff see it move live.
+  const { monthlyCoupons } = useMonthlyCouponCounts();
+  const monthlyDisplay = useMemo(() => {
+    const totals = {};
+    for (const e of monthlyCoupons) {
+      totals[e.name] = (totals[e.name] || 0) + (Number(e.count) || 0);
+    }
+    if (!isEditMode) {
+      for (const r of couponRows) {
+        const c = Number(r.count) || 0;
+        if (c > 0) totals[r.name] = (totals[r.name] || 0) + c;
+      }
+    }
+    return Object.entries(totals)
+      .map(([name, count]) => ({ name, count }))
+      .filter((e) => e.count > 0)
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [monthlyCoupons, couponRows, isEditMode]);
+
+  // Summary line shows EVERY employee (roster order), even at 0, then any
+  // extra (deactivated) person who still has a count this month.
+  // v_coupon_counts returns names, so this still matches on name.
+  const monthlySummary = useMemo(() => {
+    const counts = {};
+    for (const e of monthlyDisplay) counts[e.name.toLowerCase()] = e;
+    const rows = [];
+    const used = new Set();
+    for (const emp of couponStaff) {
+      const key = emp.name.toLowerCase();
+      used.add(key);
+      rows.push({ name: emp.name, count: counts[key]?.count || 0 });
+    }
+    for (const key of Object.keys(counts)) {
+      if (!used.has(key)) {
+        rows.push({ name: counts[key].name, count: counts[key].count });
+      }
+    }
+    return rows;
+  }, [monthlyDisplay, couponStaff]);
+
+  // Apply a +1 / −1 (clamped) to one employee's count for today.
+  const changeCouponCount = (row, delta) => {
+    if (!couponsEditable) return; // only today's report can change coupons
+    const next = Math.min(
+      MAX_COUPON_COUNT,
+      Math.max(0, (Number(row.count) || 0) + delta),
+    );
+    handleCouponGivenChange({ id: row.id, name: row.name }, next);
+  };
+
+  // --- Cash adjustments: one merged list of taken (−) and added (+),
+  //     one inline draft box (the open button picks the type). ---
+  const MAX_ADJUST = 5; // per kind
+  const cashTaken = data.cashTakenList || [];
+  const cashAdded = data.cashAddedList || [];
+  // null | "taken" | "added"
+  const [adjustType, setAdjustType] = useState(null);
+  const [draftAdjust, setDraftAdjust] = useState({ amount: "", reason: "" });
+
+  // Merged display list, ordered by the time each entry was added.
+  const adjustments = [
+    ...cashTaken.map((e, idx) => ({ ...e, kind: "taken", idx })),
+    ...cashAdded.map((e, idx) => ({ ...e, kind: "added", idx })),
+  ].sort((a, b) => (a.ts || 0) - (b.ts || 0));
+
+  const openAdjust = (kind) => {
+    const list = kind === "taken" ? cashTaken : cashAdded;
+    if (list.length >= MAX_ADJUST) {
+      window.alert(
+        `You can add at most ${MAX_ADJUST} "cash ${kind}" entries per day.`,
+      );
+      return;
+    }
+    setDraftAdjust({ amount: "", reason: "" });
+    setAdjustType(kind);
+  };
+
+  const confirmAdjust = () => {
+    const amt = Number(draftAdjust.amount);
+    const reason = String(draftAdjust.reason).trim();
+    if (!String(draftAdjust.amount).trim() || isNaN(amt) || amt <= 0) {
+      window.alert("Please enter an amount greater than zero. 😅");
+      return;
+    }
+    if (reason === "") {
+      window.alert(
+        adjustType === "taken"
+          ? "Please say what the cash was taken for. ☕"
+          : "Please say where this extra cash came from. ☕",
+      );
+      return;
+    }
+    const field = adjustType === "taken" ? "cashTakenList" : "cashAddedList";
+    const list = adjustType === "taken" ? cashTaken : cashAdded;
+    // Monotonic order key (one above the current max) so the merged list keeps
+    // add-order without an impure Date.now() call.
+    const maxTs = [...cashTaken, ...cashAdded].reduce(
+      (m, e) => Math.max(m, e.ts || 0),
+      0,
+    );
+    const next = [...list, { amount: amt, reason, ts: maxTs + 1 }];
+    handleChange(field, next);
+    setDraftAdjust({ amount: "", reason: "" });
+    if (next.length >= MAX_ADJUST) setAdjustType(null);
+  };
+
+  const cancelAdjust = () => {
+    setDraftAdjust({ amount: "", reason: "" });
+    setAdjustType(null);
+  };
+
+  const removeAdjust = (kind, idx) => {
+    const field = kind === "taken" ? "cashTakenList" : "cashAddedList";
+    const list = kind === "taken" ? cashTaken : cashAdded;
+    handleChange(
+      field,
+      list.filter((_, i) => i !== idx),
+    );
+  };
+
+  // --- Coupon add-flow (same draft-box pattern as cash payouts) ---
+  const [isAddingCoupon, setIsAddingCoupon] = useState(false);
+  const [draftCoupon, setDraftCoupon] = useState({
+    percentage: "",
+    posOrderNumber: "",
+  });
+
+  const openCouponBox = () => {
+    setDraftCoupon({ percentage: "", posOrderNumber: "" });
+    setIsAddingCoupon(true);
+  };
+
+  const confirmCoupon = () => {
+    const pct = Number(draftCoupon.percentage);
+    const order = String(draftCoupon.posOrderNumber).trim();
+    if (!String(draftCoupon.percentage).trim() || isNaN(pct) || pct <= 0 || pct > 100) {
+      window.alert("Coupon % must be a number between 1 and 100. 🌌");
+      return;
+    }
+    if (order === "") {
+      window.alert("Please enter the POS Order Number for this coupon. 👻");
+      return;
+    }
+    const next = [
+      ...data.couponsDetails,
+      { percentage: pct, posOrderNumber: order },
+    ];
+    handleChange("couponsDetails", next);
+    handleChange("discountCoupons", next.length);
+    // Clear the box for the next coupon (stays open)
+    setDraftCoupon({ percentage: "", posOrderNumber: "" });
+  };
+
+  const cancelCoupon = () => {
+    setDraftCoupon({ percentage: "", posOrderNumber: "" });
+    setIsAddingCoupon(false);
+  };
+
+  const removeCoupon = (idx) => {
+    const next = data.couponsDetails.filter((_, i) => i !== idx);
+    handleChange("couponsDetails", next);
+    handleChange("discountCoupons", next.length);
+  };
+
+  // Clear every field + validation and reset the local payout/coupon boxes.
+  const handleCleanForm = async () => {
+    if (!window.confirm("Clear all fields and start fresh? This can't be undone.")) {
+      return;
+    }
+    setAdjustType(null);
+    setDraftAdjust({ amount: "", reason: "" });
+    setIsAddingCoupon(false);
+    setDraftCoupon({ percentage: "", posOrderNumber: "" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Resets fields and refreshes "Cash From Yesterday" straight from Firebase.
+    await resetForm();
+  };
+
+  return (
+    <div className="pb-24">
+      {hasSubmitted && Object.keys(errors).length > 0 && (
+        <div className="bg-red-500/20 border border-red-500 text-red-200 p-4 rounded-xl mb-6 text-center font-bold animate-bounce">
+          Oops! Missing some required info. Check the red boxes below! 👇
+        </div>
+      )}
+
+      <form ref={formRef} onSubmit={handleSubmit} noValidate>
+        {allowBackdate && (
+          <Card title="Report Date (Admin)" color="purple">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Pick the date this report is for
+            </label>
+            <input
+              type="date"
+              value={reportDate}
+              max={todayStr()}
+              onChange={(e) => setReportDate(e.target.value)}
+              className="w-full p-2 rounded-lg bg-slate-900 border border-slate-600 text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-slate-400 mt-2">
+              Enter “Cash From Yesterday” manually below — it is not auto-filled
+              for past-day entries.
+            </p>
+          </Card>
+        )}
+        <Card title="1. Report Finansowy" color="blue">
+          {/* Total Sale */}
+          <Input
+            label="Total Sale"
+            value={data.totalSalePOS}
+            onChange={(v) => handleChange("totalSalePOS", v)}
+            required
+            error={errors.totalSalePOS}
+          />
+          {(() => {
+            // Only validate once all four amounts have been entered.
+            const allFilled =
+              String(data.totalSalePOS).trim() !== "" &&
+              String(data.onlineSalePOS).trim() !== "" &&
+              String(data.cardSalePOS).trim() !== "" &&
+              String(data.cashSalePOS).trim() !== "";
+            if (!allFilled) return null;
+
+            const parts =
+              Number(data.onlineSalePOS || 0) +
+              Number(data.cardSalePOS || 0) +
+              Number(data.cashSalePOS || 0);
+            const mismatch = Math.abs(Number(data.totalSalePOS) - parts) > 0.01;
+            if (!mismatch) return null;
+            return (
+              <div className="-mt-2 mb-2 flex items-center justify-between text-xs text-red-400">
+                <span>Cash + Card + Online</span>
+                <span className="font-bold">
+                  {parts.toFixed(2)} — must equal Total Sale
+                </span>
+              </div>
+            );
+          })()}
+          <RadioGroup
+            label="Matching with Fiskalne?"
+            value={data.isMatchingFiskalne}
+            onChange={(v) => {
+              handleChange("isMatchingFiskalne", v);
+              warnIfMismatch(v, "Fiskalne");
+            }}
+            error={errors.isMatchingFiskalne}
+          />
+
+          {/* Cash Sale */}
+          <div className="mt-4 pt-4 border-t border-slate-700">
+            <Input
+              label="By Cash"
+              value={data.cashSalePOS}
+              onChange={(v) => handleChange("cashSalePOS", v)}
+              required
+              error={errors.cashSalePOS}
+            />
+          </div>
+
+          {/* Card Sale — same behaviour as the old "Card POS" card */}
+          <div className="mt-4 pt-4 border-t border-slate-700">
+            <Input
+              label="By Card"
+              value={data.cardSalePOS}
+              onChange={(v) => handleChange("cardSalePOS", v)}
+              required
+              error={errors.cardSalePOS}
+            />
+            <RadioGroup
+              label="Matching with ING?"
+              value={data.isMatchingING}
+              onChange={(v) => {
+                handleChange("isMatchingING", v);
+                warnIfMismatch(v, "ING");
+              }}
+              error={errors.isMatchingING}
+            />
+          </div>
+
+          {/* Online Sale — typed from the POS, cross-checked against the
+              Delivery Breakdown "Total" in the Online Sales card below. */}
+          <div className="mt-4 pt-4 border-t border-slate-700">
+            <Input
+              label="By Bank Transfer"
+              value={data.onlineSalePOS}
+              onChange={(v) => handleChange("onlineSalePOS", v)}
+              required
+              error={errors.onlineSalePOS}
+            />
+          </div>
+        </Card>
+
+        <Card title="2. Portal Sales" color="green">
+          <div className="grid grid-cols-4 gap-2 text-xs font-bold text-slate-400 mb-2 px-1">
+            <div>Platform</div>
+            <div>Online</div>
+            <div>Cash</div>
+            <div>Card</div>
+          </div>
+          {platforms.map((platform) => {
+            const d = data.delivery[platform] || {};
+            const rowTotal =
+              (Number(d.online) || 0) +
+              (Number(d.cash) || 0) +
+              (Number(d.card) || 0);
+            return (
+              <div
+                key={platform}
+                className="grid grid-cols-4 gap-2 items-center mb-2"
+              >
+                <div className="pl-1 min-w-0">
+                  <span className="text-slate-300 font-medium block truncate">
+                    {platform}
+                  </span>
+                  <span className="text-xs font-bold text-slate-400">
+                    Σ {rowTotal.toFixed(2)}
+                  </span>
+                </div>
+                <Input
+                  label=""
+                  value={data.delivery[platform]?.online ?? ""}
+                  onChange={(v) => handleDeliveryChange(platform, "online", v)}
+                />
+                <Input
+                  label=""
+                  value={data.delivery[platform]?.cash ?? ""}
+                  onChange={(v) => handleDeliveryChange(platform, "cash", v)}
+                />
+                <Input
+                  label=""
+                  value={data.delivery[platform]?.card ?? ""}
+                  onChange={(v) => handleDeliveryChange(platform, "card", v)}
+                />
+              </div>
+            );
+          })}
+
+          {/* Auto-calculated breakdown totals — Online and Cash shown
+              separately under their columns. Cross-checked (combined) vs
+              card 1's "Online Sale": green when matching, red when not. */}
+          <div
+            className={`mt-3 pt-3 border-t grid grid-cols-4 gap-2 items-center ${
+              onlineSaleMismatch ? "border-red-500/50" : "border-slate-700"
+            }`}
+          >
+            <span
+              className={`text-sm font-bold uppercase tracking-wider ${
+                onlineSaleMismatch ? "text-red-400" : "text-emerald-400"
+              }`}
+            >
+              Total
+            </span>
+            <span
+              className={`text-base font-bold pl-1 ${
+                onlineSaleMismatch ? "text-red-400" : "text-emerald-400"
+              }`}
+            >
+              {deliveryOnlineSum.toFixed(2)}
+            </span>
+            <span
+              className={`text-base font-bold pl-1 ${
+                deliveryCashOverflow ? "text-red-400" : "text-emerald-400"
+              }`}
+            >
+              {deliveryCashSum.toFixed(2)}
+            </span>
+            <span className="text-base font-bold pl-1 text-emerald-400">
+              {deliveryCardSum.toFixed(2)}
+            </span>
+          </div>
+
+          {/* Combined total (Online + Cash + Card) — informational only */}
+          <div className="flex items-center justify-between mt-1 text-xs">
+            <span className="text-slate-400 uppercase tracking-wider">
+              Combined (Online + Cash + Card)
+            </span>
+            <span className="text-slate-300 font-bold">
+              {Number(autoCalculatedOnlineSale).toFixed(2)}
+            </span>
+          </div>
+
+          {deliveryCashOverflow && (
+            <p className="text-red-500 text-xs mt-1 font-semibold animate-pulse text-right">
+              Delivery cash ({deliveryCashSum.toFixed(2)}) can't exceed Cash Sale
+              ({Number(data.cashSalePOS).toFixed(2)})
+            </p>
+          )}
+
+          {onlineSaleMismatch && (
+            <p className="text-red-500 text-xs mt-1 font-semibold animate-pulse text-right">
+              Recheck online sale for portals — off by{" "}
+              {Math.abs(
+                Number(data.onlineSalePOS) - deliveryOnlineSum,
+              ).toFixed(2)}{" "}
+              (Online Sale {Number(data.onlineSalePOS).toFixed(2)} vs Total{" "}
+              {deliveryOnlineSum.toFixed(2)})
+            </p>
+          )}
+        </Card>
+
+        <Card title="3. Cash Calculations" color="amber">
+          {/* Manual-entry notice only applies to NEW reports */}
+          {!isEditMode && prevDataError && (
+            <div className="bg-amber-900/50 border border-amber-500 text-amber-200 p-3 rounded-lg mb-4 text-sm">
+              ⚠️ Last day data not available. Please enter cash from yesterday
+              manually.
+            </div>
+          )}
+
+          {/* Summary panel: always shows BOTH rows. "Cash From Yesterday"
+              becomes editable for admin backdate or when no previous report
+              was found; "Today's Cash Sale" always mirrors card 1's Cash Sale. */}
+          <div className="bg-slate-900/40 rounded-lg border border-slate-700 divide-y divide-slate-700">
+            {/* Cash From Yesterday */}
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <span className="text-sm font-medium text-slate-300">
+                {isLoadingPrevData
+                  ? "Fetching Yesterday's Cash..."
+                  : isEditMode
+                    ? "Cash From Yesterday (locked)"
+                    : "Cash From Yesterday"}
+                {!isLoadingPrevData && !isEditMode && yesterdayDate && (
+                  <span className="block text-xs text-slate-500 mt-0.5">
+                    {yesterdayDate}
+                  </span>
+                )}
+              </span>
+              {allowBackdate || (!isEditMode && prevDataError) ? (
+                <input
+                  type="number"
+                  value={data.cashFromYesterday}
+                  onChange={(e) =>
+                    handleChange("cashFromYesterday", e.target.value)
+                  }
+                  placeholder="0.00"
+                  className="w-28 text-right p-1.5 rounded-lg bg-slate-900 border border-amber-600/50 text-amber-300 font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <span className="text-base font-bold text-amber-300">
+                  {isLoadingPrevData
+                    ? "…"
+                    : Number(data.cashFromYesterday || 0).toFixed(2)}
+                </span>
+              )}
+            </div>
+
+            {/* Today's Cash Sale — mirrors the Cash Sale entered in card 1 */}
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <span className="text-sm font-medium text-slate-300">
+                Today's Cash Sale
+                <span className="block text-xs text-slate-500 mt-0.5">
+                  {todayStr()}
+                </span>
+              </span>
+              <span className="text-base font-bold text-amber-300">
+                {Number(data.cashSalePOS || 0).toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          {isEditMode && (
+            <p className="text-xs text-amber-300/80 mt-1 mb-1">
+              🔒 Opening cash stays locked while editing so the day-to-day cash
+              chain isn't broken. Adjust the figures below if a sale or payout
+              was entered incorrectly.
+            </p>
+          )}
+
+          {/* Cash adjustments — one merged list of taken (−) and added (+) */}
+          <div className="mt-6 mb-2 border-t border-slate-700 pt-4">
+            <h3 className="text-sm font-semibold text-slate-400 mb-3 tracking-wide">
+              Manual Cash Entries
+            </h3>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <button
+                type="button"
+                onClick={() => openAdjust("taken")}
+                className="flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-red-300 border border-red-500/40 rounded-xl text-sm font-bold transition"
+              >
+                <span className="text-lg leading-none">−</span> Cash Taken
+              </button>
+              <button
+                type="button"
+                onClick={() => openAdjust("added")}
+                className="flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-green-300 border border-green-500/40 rounded-xl text-sm font-bold transition"
+              >
+                <span className="text-lg leading-none">+</span> Cash Added
+              </button>
+            </div>
+
+            {/* Inline draft entry box — strongly themed so taken vs added is
+                unmistakable (tinted bg, accent border, coloured header). */}
+            {adjustType && (
+              <div
+                className={`mb-3 rounded-lg border bg-slate-800 ${adjustType === "taken" ? "border-red-500/40" : "border-green-500/40"}`}
+              >
+                <div
+                  className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border-b ${adjustType === "taken" ? "text-red-300 border-red-500/30" : "text-green-300 border-green-500/30"}`}
+                >
+                  <span className="text-base leading-none">
+                    {adjustType === "taken" ? "−" : "+"}
+                  </span>
+                  {adjustType === "taken"
+                    ? "Adding a Cash Taken (money out)"
+                    : "Adding a Cash Added (money in)"}
+                </div>
+                <div className="flex gap-2 items-end p-3">
+                  <div className="w-[34%]">
+                    <Input
+                      label="Amount"
+                      value={draftAdjust.amount}
+                      onChange={(v) =>
+                        setDraftAdjust((p) => ({ ...p, amount: v }))
+                      }
+                    />
+                  </div>
+                  <div className="w-[50%]">
+                    <Input
+                      label="Reason"
+                      type="text"
+                      value={draftAdjust.reason}
+                      onChange={(v) =>
+                        setDraftAdjust((p) => ({ ...p, reason: v }))
+                      }
+                    />
+                  </div>
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={confirmAdjust}
+                      aria-label="Confirm entry"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600/20 hover:bg-green-600/40 text-green-400 border border-green-600/50 font-bold text-lg transition"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelAdjust}
+                      aria-label="Discard entry"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-600/50 font-bold text-lg transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Merged entry list: sign chip · reason · amount · delete */}
+            <div className="space-y-2">
+              {adjustments.map((item) => {
+                const taken = item.kind === "taken";
+                // Full static class strings (Tailwind can't see dynamic ones).
+                const chip = taken
+                  ? "text-red-300 bg-red-600/20 border-red-600/40"
+                  : "text-green-300 bg-green-600/20 border-green-600/40";
+                const amtColor = taken ? "text-red-300" : "text-green-300";
+                return (
+                  <div
+                    key={`${item.kind}-${item.idx}`}
+                    className="flex items-center gap-2 bg-slate-900 px-2.5 py-2 rounded-lg border border-slate-700"
+                  >
+                    <span
+                      className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full font-bold border ${chip}`}
+                    >
+                      {taken ? "−" : "+"}
+                    </span>
+                    <span className="flex-1 min-w-0 text-sm text-slate-300 truncate">
+                      {item.reason}
+                    </span>
+                    <span className={`font-bold font-mono ${amtColor}`}>
+                      {taken ? "−" : "+"}
+                      {Number(item.amount).toFixed(2)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAdjust(item.kind, item.idx)}
+                      aria-label="Delete entry"
+                      className="shrink-0 text-red-500 hover:text-red-400 font-bold text-lg hover:scale-110 transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6 border-t border-slate-700 pt-4">
+            <div className="flex items-center justify-between py-2 mb-1">
+              <span className="text-sm font-medium text-slate-300">
+                Total Cash Expected
+              </span>
+              <span className="text-base font-bold text-amber-300">
+                {Number(autoCalculatedCash || 0).toFixed(2)}
+              </span>
+            </div>
+            <Input
+              label="Total Cash In Box (Actual)"
+              value={data.totalCashInBox}
+              onChange={(v) => handleChange("totalCashInBox", v)}
+              required
+              error={errors.totalCashInBox}
+            />
+
+            {cashMismatch && (
+              <div className="bg-red-900/50 border border-red-500 text-red-200 p-3 rounded-lg mt-2 text-sm font-semibold text-center">
+                Amount mismatch! Difference: {mismatchDiff.toFixed(2)}
+              </div>
+            )}
+          </div>
+        </Card>
+
+        <Card title="4. Discount Coupons" color="pink">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Coupons given for Google Review
+            </label>
+
+            {couponStaff.length === 0 && couponRows.length === 0 ? (
+              <p className="text-sm text-slate-500 italic bg-slate-900 border border-slate-700 rounded-lg px-3 py-3">
+                No staff members yet. An admin can add them from the dashboard
+                (“Manage Staff”).
+              </p>
+            ) : (
+              <>
+                {/* Always-visible summary line (month-to-date per member,
+                    resets on the 1st) + expand/collapse toggle. */}
+                <div className="flex items-start justify-between gap-3">
+                  <p className="flex-1 min-w-0 text-xs text-slate-400 break-words">
+                    <span className="text-pink-300/80 uppercase tracking-wider text-[10px] mr-1">
+                      This month
+                    </span>
+                    {monthlySummary.map((r, i) => (
+                      <span key={r.name}>
+                        {i > 0 && <span className="text-slate-600"> · </span>}
+                        <span className="text-slate-300">{r.name}</span>{" "}
+                        <span className="font-mono text-slate-200">
+                          {r.count}
+                        </span>
+                      </span>
+                    ))}
+                  </p>
+                  {couponsEditable && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCouponEditor((v) => !v)}
+                      aria-expanded={showCouponEditor}
+                      className="shrink-0 flex items-center gap-1 text-xs font-semibold text-pink-300 hover:text-pink-200 transition"
+                    >
+                      {showCouponEditor ? "Done" : "Edit counts"}
+                      <span
+                        className={`transition-transform ${showCouponEditor ? "rotate-180" : ""}`}
+                      >
+                        ▾
+                      </span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Editable per-member steppers — TODAY's report only. */}
+                {couponsEditable && showCouponEditor && (
+                  <div className="space-y-2 mt-3">
+                    {couponRows.map((row) => (
+                      <div
+                        key={row.id ?? row.name}
+                        className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700"
+                      >
+                        <span className="flex-1 min-w-0 text-sm text-slate-200 truncate">
+                          {row.name}
+                          {row.isExtra && (
+                            <span className="ml-1 text-[10px] uppercase tracking-wide text-slate-500">
+                              (removed)
+                            </span>
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => changeCouponCount(row.name, -1)}
+                          aria-label={`Decrease ${row.name}`}
+                          disabled={(Number(row.count) || 0) <= 0}
+                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center font-bold font-mono text-pink-300">
+                          {Number(row.count) || 0}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => changeCouponCount(row.name, 1)}
+                          aria-label={`Increase ${row.name}`}
+                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-pink-600/50 text-pink-300 hover:bg-pink-600/20 transition"
+                        >
+                          +
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Locked: not today's report. Show this report's saved counts
+                    read-only, plus why editing is disabled. */}
+                {!couponsEditable && (
+                  <div className="mt-3">
+                    {couponRows.some((r) => (Number(r.count) || 0) > 0) && (
+                      <div className="space-y-1 mb-2">
+                        {couponRows
+                          .filter((r) => (Number(r.count) || 0) > 0)
+                          .map((row) => (
+                            <div
+                              key={row.id ?? row.name}
+                              className="flex items-center justify-between gap-3 text-sm bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700"
+                            >
+                              <span className="text-slate-300 truncate">
+                                {row.name}
+                              </span>
+                              <span className="font-mono text-slate-200">
+                                {Number(row.count) || 0}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                    <p className="text-[11px] text-slate-500 italic">
+                      Coupon counts can only be added or changed on the report’s
+                      own day.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-slate-700">
+            <RadioGroup
+              label="Coupon received / Discount given to customer?"
+              value={data.receivedCoupons}
+              onChange={(v) => {
+                handleChange("receivedCoupons", v);
+                if (v === "No") {
+                  handleChange("discountCoupons", "");
+                  handleChange("couponsDetails", []);
+                  setIsAddingCoupon(false);
+                  setDraftCoupon({ percentage: "", posOrderNumber: "" });
+                }
+              }}
+              error={errors.receivedCoupons}
+            />
+
+          {data.receivedCoupons === "Yes" && (
+            <div className="mt-4 pt-4 border-t border-slate-700">
+              {/* Confirmed coupons shown as compact labels with delete */}
+              {data.couponsDetails.map((coupon, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between gap-2 mb-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700"
+                >
+                  <span className="text-sm text-slate-200 min-w-0">
+                    <span className="font-bold text-pink-300">
+                      {getOrdinal(idx + 1)}:
+                    </span>{" "}
+                    <span className="font-bold">{coupon.percentage}%</span>
+                    <span className="text-slate-400"> — Order </span>
+                    <span className="break-words">{coupon.posOrderNumber}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeCoupon(idx)}
+                    aria-label="Delete coupon"
+                    className="shrink-0 text-red-500 hover:text-red-400 font-bold text-lg hover:scale-110 transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
+              {/* Draft coupon box: confirm (green ✓) or discard (red ✕) */}
+              {isAddingCoupon && (
+                <div className="flex gap-2 items-end mb-2 bg-slate-900 p-3 rounded-lg border border-pink-600/40">
+                  <div className="w-[42%]">
+                    <Input
+                      label="POS Order Number"
+                      type="text"
+                      value={draftCoupon.posOrderNumber}
+                      onChange={(v) =>
+                        setDraftCoupon((p) => ({ ...p, posOrderNumber: v }))
+                      }
+                    />
+                  </div>
+                  <div className="w-[42%]">
+                    <Input
+                      label="Discount %"
+                      value={draftCoupon.percentage}
+                      onChange={(v) =>
+                        setDraftCoupon((p) => ({ ...p, percentage: v }))
+                      }
+                    />
+                  </div>
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={confirmCoupon}
+                      aria-label="Confirm coupon"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600/20 hover:bg-green-600/40 text-green-400 border border-green-600/50 font-bold text-lg transition"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelCoupon}
+                      aria-label="Discard coupon"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-600/50 font-bold text-lg transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!isAddingCoupon && (
+                <button
+                  type="button"
+                  onClick={openCouponBox}
+                  className="mt-1 py-2 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-semibold text-blue-400 transition w-full"
+                >
+                  + Add Coupon
+                </button>
+              )}
+
+              {errors.discountCoupons && data.couponsDetails.length === 0 && (
+                <span className="text-red-500 text-xs mt-1 block font-semibold animate-pulse">
+                  {errors.discountCoupons}
+                </span>
+              )}
+            </div>
+          )}
+          </div>
+        </Card>
+
+        <Card title="5. Comments & Reporter" color="cyan">
+          <div
+            className="mb-3 w-full"
+            data-error={errors.comments ? "true" : undefined}
+          >
+            <label className="block text-sm font-medium text-slate-300 mb-2 flex flex-col md:flex-row md:items-center gap-2">
+              <span>Comments</span>
+              {isCommentRequired && (
+                <span className="text-red-400 font-bold text-xs bg-red-900/40 px-2 py-1 rounded border border-red-500/50">
+                  * Required: {commentReasons.join(", ")}
+                </span>
+              )}
+            </label>
+            <textarea
+              value={data.comments}
+              onChange={(e) => handleChange("comments", e.target.value)}
+              required={isCommentRequired}
+              className={`w-full p-2 rounded-lg bg-slate-900 border outline-none transition min-h-[100px] ${errors.comments ? "border-red-500 ring-1 ring-red-500 text-slate-100 placeholder-red-400/50" : "border-slate-600 text-slate-100 focus:ring-2 focus:ring-blue-500"}`}
+            />
+            {errors.comments && (
+              <span className="text-red-500 text-xs mt-1 block font-semibold animate-pulse">
+                {errors.comments}
+              </span>
+            )}
+          </div>
+          <Input
+            label="Reporter Name"
+            type="text"
+            value={data.reporter}
+            onChange={(v) => handleChange("reporter", v)}
+            required
+            error={errors.reporter}
+          />
+        </Card>
+
+        <div className="fixed bottom-0 left-0 w-full p-4 bg-slate-900 border-t border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.3)] z-50">
+          <div className="max-w-2xl mx-auto flex gap-3">
+            {/* Clean / Draft are hidden when an Admin is editing an existing record */}
+            {!isEditMode && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCleanForm}
+                  disabled={isSaving}
+                  className="w-1/4 py-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 border border-red-600/40 text-red-300 font-bold rounded-xl shadow-lg transition duration-200"
+                >
+                  🧹 Clean
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  disabled={isSaving}
+                  className="w-1/4 py-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 border border-slate-600 text-slate-200 font-bold rounded-xl shadow-lg transition duration-200"
+                >
+                  📝 Draft
+                </button>
+              </>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSaving}
+              className={`${isEditMode ? "w-full" : "flex-1"} py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold rounded-xl shadow-lg transition duration-200`}
+            >
+              {isSaving
+                ? "Saving..."
+                : isEditMode
+                  ? "🔄 Update Record"
+                  : "🚀 Submit Report"}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}

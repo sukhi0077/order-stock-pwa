@@ -31,7 +31,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding }) {
         <span className="text-[11px] text-slate-400 shrink-0">{item.unit}</span>
       </div>
 
-      <div className="flex items-end gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 w-16 shrink-0">
           <span className="text-[10px] uppercase tracking-wide text-slate-400">{t("quantity")}</span>
           <input
@@ -44,13 +44,15 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding }) {
             className="h-10 text-center rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-blue-500"
           />
         </label>
-        <label className="flex flex-col gap-1 flex-1 min-w-0">
+        <label className="flex flex-col gap-1 flex-1 basis-32 min-w-0">
           <span className="text-[10px] uppercase tracking-wide text-slate-400">{t("expiryDate")}</span>
+          {/* min-w-0 is required: a native date input has an intrinsic width and
+              would otherwise overflow the flex row and run into the Add button. */}
           <input
             type="date"
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="h-10 w-full rounded-lg bg-white border border-slate-300 text-slate-900 text-base px-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-10 w-full min-w-0 rounded-lg bg-white border border-slate-300 text-slate-900 text-base px-2 outline-none focus:ring-2 focus:ring-blue-500"
           />
         </label>
         <button

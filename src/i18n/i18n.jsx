@@ -10,7 +10,7 @@ import { ITEM_HI } from "./itemNames.js";
 // ---- UI strings ------------------------------------------------------------
 const STR = {
   en: {
-    appName: "Stock Tracker",
+    appName: "myRestro",
     signOut: "Sign out",
     admin: "Admin",
     countApp: "Count app",
@@ -23,7 +23,7 @@ const STR = {
     language: "Language",
 
     // Login
-    login_title: "Monthly Stock Tracker",
+    login_title: "myRestro",
     login_subtitle: "Sign in to continue",
     email: "Email",
     password: "Password",
@@ -46,6 +46,8 @@ const STR = {
     monthStock_desc: "Record the closing count for each item",
     receive: "Receive order",
     receive_desc: "Log items received and their expiry dates",
+    dsr: "Daily sale report",
+    dsr_desc: "Close the day: POS totals, cash box and coupons",
 
     // Receiving
     findItem: "Search or browse for an item",
@@ -189,7 +191,7 @@ const STR = {
   },
 
   hi: {
-    appName: "स्टॉक ट्रैकर",
+    appName: "myRestro",
     signOut: "साइन आउट",
     admin: "एडमिन",
     countApp: "गिनती ऐप",
@@ -201,7 +203,7 @@ const STR = {
     retry: "फिर से कोशिश करें",
     language: "भाषा",
 
-    login_title: "मासिक स्टॉक ट्रैकर",
+    login_title: "myRestro",
     login_subtitle: "जारी रखने के लिए साइन इन करें",
     email: "ईमेल",
     password: "पासवर्ड",
@@ -223,6 +225,8 @@ const STR = {
     monthStock_desc: "हर आइटम की क्लोज़िंग गिनती दर्ज करें",
     receive: "ऑर्डर प्राप्ति",
     receive_desc: "प्राप्त आइटम और उनकी एक्सपायरी तारीख़ दर्ज करें",
+    dsr: "दैनिक बिक्री रिपोर्ट",
+    dsr_desc: "दिन बंद करें: POS कुल, कैश बॉक्स और कूपन",
 
     findItem: "आइटम खोजें या ब्राउज़ करें",
     addBatch: "जोड़ें",
