@@ -1,7 +1,8 @@
 // src/components/ItemManagerModal.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useSetItemActive, useUpdateItem } from "../hooks/useItems.js";
 import { useMasterData } from "../hooks/useMasterData.js";
+import { ORDER_TYPES } from "../data/orderTypes.js";
 import { useT } from "../i18n/i18n.jsx";
 
 // A small filter chip.
@@ -21,29 +22,33 @@ function Chip({ active, onClick, children }) {
   );
 }
 
-// Inline editable supplier for one item — saves on blur when changed.
-function SupplierField({ item, listId, onSave }) {
+// Order type picker for one item — a fixed dropdown (ORDER_TYPES), saved on change.
+// If the item already carries a value that is no longer in ORDER_TYPES it is kept
+// as an extra option so selecting another type is a deliberate act, not a silent wipe.
+function OrderTypeField({ item, options, onSave }) {
   const { t } = useT();
-  const [val, setVal] = useState(item.supplier || "");
-  useEffect(() => setVal(item.supplier || ""), [item.supplier]);
-  const commit = () => {
-    const v = val.trim();
-    if (v !== (item.supplier || "")) onSave(item.id, v);
-  };
+  const val = item.orderType || "";
   return (
-    <input
-      list={listId}
+    <select
       value={val}
-      onChange={(e) => setVal(e.target.value)}
-      onBlur={commit}
-      placeholder={t("supplier")}
+      onChange={(e) => {
+        if (e.target.value !== val) onSave(item.id, e.target.value);
+      }}
+      aria-label={t("orderType")}
       className="flex-1 min-w-0 text-xs px-2 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 outline-none focus:ring-2 focus:ring-teal-500"
-    />
+    >
+      <option value="">{t("orderTypeNone")}</option>
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </select>
   );
 }
 
 // Admin page: browse/filter the catalogue and adjust the three things managed
-// here — enable/disable, supplier, and order unit. Items are created and renamed
+// here — enable/disable, order type, and order unit. Items are created and renamed
 // upstream (master data); nothing is hard-deleted, so historical months keep
 // their references.
 export default function ItemManagerModal({ items, onBack }) {
@@ -57,13 +62,14 @@ export default function ItemManagerModal({ items, onBack }) {
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState(null);
   const [filterSub, setFilterSub] = useState(null);
-  // Distinct suppliers already in use — powers the autocomplete datalist.
-  const suppliers = useMemo(() => {
-    const set = new Set();
-    for (const i of items) if (i.supplier) set.add(i.supplier);
-    return [...set].sort((a, b) => a.localeCompare(b));
+  // Fixed order-type list, plus any legacy value still stored on an item so
+  // nothing silently disappears from the dropdown.
+  const orderTypeOptions = useMemo(() => {
+    const extra = new Set();
+    for (const i of items) if (i.orderType && !ORDER_TYPES.includes(i.orderType)) extra.add(i.orderType);
+    return [...ORDER_TYPES, ...[...extra].sort((a, b) => a.localeCompare(b))];
   }, [items]);
-  const saveSupplier = (id, supplier) => updateItem.mutate({ id, patch: { supplier } });
+  const saveOrderType = (id, orderType) => updateItem.mutate({ id, patch: { orderType } });
   const saveOrderUnit = (id, orderUnit) => updateItem.mutate({ id, patch: { orderUnit } });
 
   const filtered = useMemo(() => {
@@ -93,12 +99,6 @@ export default function ItemManagerModal({ items, onBack }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl">
-        <datalist id="supplier-options">
-          {suppliers.map((s) => (
-            <option key={s} value={s} />
-          ))}
-        </datalist>
-
         <div className="px-4 py-2 border-b border-slate-200 space-y-2 sticky top-14 bg-white z-10">
           <input
             type="search"
@@ -197,8 +197,8 @@ export default function ItemManagerModal({ items, onBack }) {
                   </button>
                 </div>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 shrink-0">{t("supplier")}</span>
-                  <SupplierField item={item} listId="supplier-options" onSave={saveSupplier} />
+                  <span className="text-[11px] text-slate-400 shrink-0">{t("orderType")}</span>
+                  <OrderTypeField item={item} options={orderTypeOptions} onSave={saveOrderType} />
                 </div>
                 <div className="mt-1.5 flex items-center gap-2">
                   <span className="text-[11px] text-slate-400 shrink-0">{t("orderUnit")}</span>

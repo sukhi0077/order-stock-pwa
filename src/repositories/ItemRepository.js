@@ -23,6 +23,7 @@ function fromRow(r) {
     subCategory: r.sub_categories?.name || "",
     unit: r.units?.code || "",
     orderUnit: r.order_unit || "",
+    orderType: r.order_type || "",
     supplier: r.suppliers?.name || "",
     supplierId: r.primary_supplier_id || null,
     sortOrder: r.sort_order ?? 0,
@@ -44,6 +45,7 @@ function baseRow(obj = {}) {
     name: "name",
     nameHi: "name_hi",
     orderUnit: "order_unit",
+    orderType: "order_type",
     sortOrder: "sort_order",
     active: "active",
   };

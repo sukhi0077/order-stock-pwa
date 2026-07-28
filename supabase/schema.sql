@@ -104,6 +104,10 @@ create table if not exists public.items (
   -- (category_id / sub_category_id / unit_id FKs are added in the MASTER DATA
   -- section below). order_unit stays a per-item text preference.
   order_unit  text,
+  -- order_type is a per-item text tag chosen from a FIXED list in the app
+  -- (Manage Items). Deliberately NOT normalised into a master table — the
+  -- option list lives in the client (ORDER_TYPES), so the column is plain text.
+  order_type  text,
   -- supplier is NORMALISED: items reference a supplier row via
   -- primary_supplier_id (added in the MASTER DATA section). The old free-text
   -- `supplier` column is migrated into suppliers + that FK, then DROPPED (see
@@ -124,6 +128,8 @@ create index if not exists items_sort_idx on public.items (sort_order);
 create index if not exists items_name_lower_idx on public.items (lower(name));
 -- For existing databases (create table above is a no-op once items exists):
 alter table public.items add column if not exists osp_active boolean not null default true;
+alter table public.items add column if not exists order_type text;
+create index if not exists items_order_type_idx on public.items (order_type);
 
 -- -----------------------------------------------------------------------------
 -- 3. STOCK_COUNTS  (one HEADER row per month, id = "YYYY-MM")

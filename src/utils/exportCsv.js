@@ -46,11 +46,11 @@ export function buildMonthCsv(monthId, items, counts) {
 
 // ---------------------------------------------------------------------------
 // ORDER CSV
-// Columns: Item, Quantity, Unit, Note, Category, Sub-category, Order ref, Status
-// Only items on the order (qty > 0) are exported.
+// Columns: Order type, Item, Quantity, Unit, Note, Category, Sub-category,
+// Order ref, Status. Only items on the order (qty > 0) are exported.
 export function buildOrderCsv(order, items, lines) {
   const header = [
-    "Supplier",
+    "Order type",
     "Item",
     "Quantity",
     "Unit",
@@ -63,25 +63,25 @@ export function buildOrderCsv(order, items, lines) {
   const ref = orderRef(order);
   const status = order?.status || "draft";
 
-  // Only ordered items, sorted by supplier -> category -> sub-category
+  // Only ordered items, sorted by order type -> category -> sub-category
   // (-> name as a final tiebreaker) so the owner sees clearly what to order
-  // from each supplier.
+  // under each order type.
   const ordered = items
     .filter((item) => isOrdered(lines?.[item.id]))
-    .map((item) => ({ item, supplier: (item.supplier || "").trim() || "Unassigned" }))
+    .map((item) => ({ item, orderType: (item.orderType || "").trim() || "Unassigned" }))
     .sort(
       (a, b) =>
-        a.supplier.localeCompare(b.supplier) ||
+        a.orderType.localeCompare(b.orderType) ||
         (a.item.category || "").localeCompare(b.item.category || "") ||
         (a.item.subCategory || "").localeCompare(b.item.subCategory || "") ||
         a.item.name.localeCompare(b.item.name),
     );
 
   const rows = [header];
-  for (const { item, supplier } of ordered) {
+  for (const { item, orderType } of ordered) {
     const line = lines[item.id];
     rows.push([
-      supplier,
+      orderType,
       item.name,
       orderNum(line.qty),
       orderUnitOf(item),
