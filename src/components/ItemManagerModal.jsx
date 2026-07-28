@@ -27,12 +27,25 @@ function Chip({ active, onClick, children }) {
 // as an extra option so selecting another type is a deliberate act, not a silent wipe.
 function OrderTypeField({ item, options, onSave }) {
   const { t } = useT();
-  const val = item.orderType || "";
+  // Local mirror so the pick sticks on screen while the save is in flight —
+  // a fully controlled select bound to item.orderType would snap back to the
+  // old value on every re-render until the query refetches.
+  const saved = item.orderType || "";
+  const [val, setVal] = useState(saved);
+  const [seen, setSeen] = useState(saved);
+  // Adjust during render (React's recommended alternative to a sync effect):
+  // when the server value actually changes, re-sync the local mirror to it.
+  if (saved !== seen) {
+    setSeen(saved);
+    setVal(saved);
+  }
   return (
     <select
       value={val}
       onChange={(e) => {
-        if (e.target.value !== val) onSave(item.id, e.target.value);
+        const v = e.target.value;
+        setVal(v);
+        if (v !== saved) onSave(item.id, v);
       }}
       aria-label={t("orderType")}
       className="flex-1 min-w-0 text-xs px-2 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 outline-none focus:ring-2 focus:ring-teal-500"
@@ -97,6 +110,14 @@ export default function ItemManagerModal({ items, onBack }) {
         </button>
         <h1 className="text-xl font-bold text-slate-900 tracking-tight">{t("manageItems")}</h1>
       </div>
+
+      {/* A failed save (e.g. the order_type column is missing in Supabase)
+          would otherwise just look like the dropdown refusing to change. */}
+      {updateItem.isError && (
+        <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {updateItem.error?.message || "Could not save the change."}
+        </div>
+      )}
 
       <div className="bg-white border border-slate-200 rounded-2xl">
         <div className="px-4 py-2 border-b border-slate-200 space-y-2 sticky top-14 bg-white z-10">
