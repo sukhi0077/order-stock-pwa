@@ -161,17 +161,17 @@ function tableOptions(doc, rows, startY) {
 
 // Build the order-sheet document. Exported so it can be unit-tested, or embedded
 // / inspected by a caller instead of downloaded.
-export function buildOrderPdf(order, items, lines, selected = null) {
+export function buildOrderPdf(order, items, lines, selected = null, excludedIds = null) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   registerUnicodeFont(doc);
 
   const pageH = doc.internal.pageSize.getHeight();
-  const groups = groupByOrderType(selectOrderRows(items, lines, selected));
+  const groups = groupByOrderType(selectOrderRows(items, lines, selected, excludedIds));
   let y = drawLetterhead(doc, order);
 
   if (groups.length === 0) {
     doc.setFont(FONT, "normal").setFontSize(10).setTextColor(...MUTED);
-    doc.text("No items match the selected order types.", MARGIN, y + 6);
+    doc.text("Nothing selected for export.", MARGIN, y + 6);
     return doc;
   }
 
@@ -191,7 +191,7 @@ export function buildOrderPdf(order, items, lines, selected = null) {
 }
 
 // Build + download the order sheet as a .pdf file.
-export async function downloadOrderPdf(order, items, lines, selected = null) {
-  const doc = buildOrderPdf(order, items, lines, selected);
+export async function downloadOrderPdf(order, items, lines, selected = null, excludedIds = null) {
+  const doc = buildOrderPdf(order, items, lines, selected, excludedIds);
   doc.save(`${orderRef(order)}.pdf`);
 }

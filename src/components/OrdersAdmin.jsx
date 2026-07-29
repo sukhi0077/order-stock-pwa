@@ -5,8 +5,14 @@ import OrderNavigator from "./OrderNavigator.jsx";
 import { useItems } from "../hooks/useItems.js";
 import { useOrders } from "../hooks/useOrders.js";
 import { useOrder } from "../hooks/useOrder.js";
-import { downloadOrderCsv, orderRef, orderTypesOnOrder } from "../utils/exportCsv.js";
+import {
+  downloadOrderCsv,
+  orderRef,
+  orderTypesOnOrder,
+  selectOrderRows,
+} from "../utils/exportCsv.js";
 import { downloadOrderPdf } from "../utils/exportPdf.js";
+import { orderUnitOf } from "../models/OrderModel.js";
 import { formatDateTime } from "../utils/monthUtils.js";
 import { useT } from "../i18n/i18n.jsx";
 
@@ -24,9 +30,14 @@ function StatusPill({ status }) {
   );
 }
 
-// Export controls: pick which order types to include, then take CSV or PDF.
-// The type list comes from the order itself, so it never offers a type that
-// would produce an empty file.
+// Export controls: pick which order types to include, optionally untick single
+// items, then take CSV or PDF. The type list comes from the order itself, so it
+// never offers a type that would produce an empty file.
+//
+// IMPORTANT: every choice here lives in local component state and is passed to
+// the export builders as a filter. Nothing is written back to the order — no
+// mutation is called, `lines` is never modified — so unticking an item changes
+// the file only. Reopening the order restores the full selection.
 function ExportBar({ order, items, lines }) {
   const { t } = useT();
   const types = useMemo(() => orderTypesOnOrder(items, lines), [items, lines]);
@@ -35,12 +46,36 @@ function ExportBar({ order, items, lines }) {
   const selected = picked ?? types;
   const allOn = selected.length === types.length;
 
-  const toggle = (ty) =>
+  // Item ids explicitly unticked for this export. Excluding (rather than
+  // listing what's included) means items stay selected by default, including
+  // any that appear after a refetch.
+  const [excluded, setExcluded] = useState(() => new Set());
+  const [showItems, setShowItems] = useState(false);
+
+  const toggleType = (ty) =>
     setPicked(
       selected.includes(ty) ? selected.filter((x) => x !== ty) : [...selected, ty],
     );
 
-  const none = selected.length === 0;
+  const toggleItem = (id) =>
+    setExcluded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // Rows currently in scope: order-type filter applied, exclusions NOT — the
+  // checklist has to show unticked items so they can be ticked back on.
+  const rows = useMemo(
+    () => selectOrderRows(items, lines, selected),
+    [items, lines, selected],
+  );
+  const includedCount = rows.filter((r) => !excluded.has(r.item.id)).length;
+  const none = includedCount === 0;
+
+  const setAllItems = (on) =>
+    setExcluded(on ? new Set() : new Set(rows.map((r) => r.item.id)));
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2.5">
@@ -65,7 +100,7 @@ function ExportBar({ order, items, lines }) {
               key={ty}
               type="button"
               aria-pressed={on}
-              onClick={() => toggle(ty)}
+              onClick={() => toggleType(ty)}
               className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
                 on
                   ? "bg-teal-600 border-teal-600 text-white"
@@ -81,23 +116,91 @@ function ExportBar({ order, items, lines }) {
         )}
       </div>
 
+      {rows.length > 0 && (
+        <div className="rounded-xl border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setShowItems((v) => !v)}
+            aria-expanded={showItems}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-600"
+          >
+            <span>{t("chooseItems", { n: includedCount, total: rows.length })}</span>
+            <span className="text-slate-400">{showItems ? "▴" : "▾"}</span>
+          </button>
+
+          {showItems && (
+            <div className="border-t border-slate-200">
+              <div className="flex gap-3 px-3 py-1.5 border-b border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAllItems(true)}
+                  className="text-[11px] font-semibold text-teal-700 hover:underline"
+                >
+                  {t("selectAll")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAllItems(false)}
+                  className="text-[11px] font-semibold text-slate-500 hover:underline"
+                >
+                  {t("selectNone")}
+                </button>
+              </div>
+              <ul className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                {rows.map(({ item, orderType, line }, i) => {
+                  const on = !excluded.has(item.id);
+                  const newGroup = i === 0 || rows[i - 1].orderType !== orderType;
+                  return (
+                    <li key={item.id}>
+                      {newGroup && (
+                        <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                          {orderType}
+                        </div>
+                      )}
+                      <label className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => toggleItem(item.id)}
+                          className="h-4 w-4 shrink-0 accent-teal-600"
+                        />
+                        <span
+                          className={`flex-1 min-w-0 truncate text-xs ${
+                            on ? "text-slate-700" : "text-slate-400 line-through"
+                          }`}
+                        >
+                          {item.name}
+                        </span>
+                        <span className="shrink-0 text-[11px] font-semibold text-slate-500">
+                          {line.qty} {orderUnitOf(item)}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
         <button
           disabled={none}
-          onClick={() => downloadOrderCsv(order, items, lines, selected)}
+          onClick={() => downloadOrderCsv(order, items, lines, selected, excluded)}
           className="py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-semibold hover:text-slate-900 disabled:opacity-40 disabled:hover:text-slate-600"
         >
           {t("exportCsv")}
         </button>
         <button
           disabled={none}
-          onClick={() => downloadOrderPdf(order, items, lines, selected)}
+          onClick={() => downloadOrderPdf(order, items, lines, selected, excluded)}
           className="py-2.5 rounded-xl bg-teal-600 border border-teal-600 text-white font-semibold hover:bg-teal-700 disabled:opacity-40"
         >
           {t("exportPdf")}
         </button>
       </div>
-      <p className="text-[11px] text-slate-400 text-center">{t("exportPdfHint")}</p>
+      <p className="text-[11px] text-slate-400 text-center">{t("exportSelectionHint")}</p>
     </div>
   );
 }

@@ -61,17 +61,26 @@ export function orderTypesOnOrder(items, lines) {
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
-// Ordered items, optionally narrowed to a selection of order types, sorted by
-// order type -> item name. Category / sub-category are deliberately NOT part of
-// the sort: the exports no longer show them, so grouping by an invisible key
-// would make the row order look arbitrary. `selected` may be an array or a Set;
-// null/undefined means "no filter, export everything".
-export function selectOrderRows(items, lines, selected) {
+// Ordered items, optionally narrowed to a selection of order types and with
+// individual items excluded, sorted by order type -> item name. Category /
+// sub-category are deliberately NOT part of the sort: the exports no longer
+// show them, so grouping by an invisible key would make the row order look
+// arbitrary.
+//
+// `selected`   — order types to include; array or Set. null/undefined = all.
+// `excludedIds`— item ids to leave OUT of this export; array or Set.
+//
+// Both are EXPORT-TIME filters only. They never touch `lines`, so unticking an
+// item here changes the file and nothing else — the submitted order is
+// unaffected.
+export function selectOrderRows(items, lines, selected, excludedIds) {
   const only = selected == null ? null : new Set(selected);
+  const skip = excludedIds == null ? null : new Set(excludedIds);
   return items
     .filter((item) => isOrdered(lines?.[item.id]))
     .map((item) => ({ item, orderType: orderTypeOf(item), line: lines[item.id] }))
     .filter((r) => !only || only.has(r.orderType))
+    .filter((r) => !skip || !skip.has(r.item.id))
     .sort(
       (a, b) =>
         a.orderType.localeCompare(b.orderType) || a.item.name.localeCompare(b.item.name),
@@ -84,14 +93,14 @@ export function selectOrderRows(items, lines, selected) {
 // Category / sub-category, order ref and status are intentionally omitted — the
 // sheet is for placing orders, not for browsing the catalogue, and the order ref
 // is already in the filename. Only items on the order (qty > 0) are exported,
-// and only those whose order type is in `selected` (null = all).
+// and only those whose order type is in `selected` (null = all), minus any id
+// in `excludedIds`.
 // `order` is unused by the body but kept in the signature so callers stay
 // uniform with downloadOrderCsv / the PDF builder.
-// eslint-disable-next-line no-unused-vars
-export function buildOrderCsv(order, items, lines, selected = null) {
+export function buildOrderCsv(order, items, lines, selected = null, excludedIds = null) {
   const header = ["Order type", "Item", "Quantity", "Unit", "Note"];
 
-  const ordered = selectOrderRows(items, lines, selected);
+  const ordered = selectOrderRows(items, lines, selected, excludedIds);
 
   const rows = [header];
   for (const { item, orderType, line } of ordered) {
@@ -134,9 +143,10 @@ export async function downloadMonthCsv(monthId, items, counts) {
   await shareOrDownload(csv, `closing-stock-${monthId}.csv`, `Closing stock ${monthId}`);
 }
 
-// Download / share an order CSV, optionally limited to selected order types.
-export async function downloadOrderCsv(order, items, lines, selected = null) {
+// Download / share an order CSV, optionally limited to selected order types
+// and with individual items excluded.
+export async function downloadOrderCsv(order, items, lines, selected = null, excludedIds = null) {
   const ref = orderRef(order);
-  const csv = buildOrderCsv(order, items, lines, selected);
+  const csv = buildOrderCsv(order, items, lines, selected, excludedIds);
   await shareOrDownload(csv, `${ref}.csv`, `Order ${ref}`);
 }
