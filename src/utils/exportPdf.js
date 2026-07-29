@@ -53,17 +53,35 @@ function groupByOrderType(rows) {
   return groups;
 }
 
+// The order's own date — when it was submitted, else when it was created,
+// else today. That is the date the order was actually placed, which is what a
+// supplier or a later audit cares about; it is not the date the file was made.
+function orderDate(order) {
+  const ts = order?.submittedAt?.seconds || order?.createdAt?.seconds;
+  const d = ts ? new Date(ts * 1000) : new Date();
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 // Draw the letterhead; returns the y content should start at.
-function drawLetterhead(doc) {
+// Business details sit left, the order reference and date right, on the same
+// two lines so the block stays compact.
+function drawLetterhead(doc, order) {
+  const right = doc.internal.pageSize.getWidth() - MARGIN;
   let y = MARGIN;
+
   doc.setFont(FONT, "bold").setFontSize(15).setTextColor(...INK);
   doc.text(BUSINESS.name, MARGIN, y);
+  doc.setFontSize(10);
+  doc.text(orderRef(order), right, y, { align: "right" });
+
   y += 5;
   doc.setFont(FONT, "normal").setFontSize(9).setTextColor(...MUTED);
   doc.text(`${BUSINESS.address} · ${BUSINESS.nip}`, MARGIN, y);
+  doc.text(orderDate(order), right, y, { align: "right" });
+
   y += 3;
   doc.setDrawColor(...INK).setLineWidth(0.5);
-  doc.line(MARGIN, y, doc.internal.pageSize.getWidth() - MARGIN, y);
+  doc.line(MARGIN, y, right, y);
   return y + 6;
 }
 
@@ -149,7 +167,7 @@ export function buildOrderPdf(order, items, lines, selected = null) {
 
   const pageH = doc.internal.pageSize.getHeight();
   const groups = groupByOrderType(selectOrderRows(items, lines, selected));
-  let y = drawLetterhead(doc);
+  let y = drawLetterhead(doc, order);
 
   if (groups.length === 0) {
     doc.setFont(FONT, "normal").setFontSize(10).setTextColor(...MUTED);
