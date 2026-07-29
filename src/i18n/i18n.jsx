@@ -19,6 +19,11 @@ const STR = {
     send: "Send",
     export: "Export",
     exportCsv: "Export CSV",
+    exportPdf: "Export PDF",
+    exportPdfHint: "Opens the print sheet — choose “Save as PDF”.",
+    selectAll: "Select all",
+    selectNone: "Clear",
+    noItemsOnOrder: "No items on this order yet.",
     retry: "Retry",
     language: "Language",
 
@@ -200,6 +205,11 @@ const STR = {
     send: "भेजें",
     export: "एक्सपोर्ट",
     exportCsv: "CSV एक्सपोर्ट",
+    exportPdf: "PDF एक्सपोर्ट",
+    exportPdfHint: "प्रिंट शीट खुलेगी — “Save as PDF” चुनें।",
+    selectAll: "सभी चुनें",
+    selectNone: "हटाएँ",
+    noItemsOnOrder: "इस ऑर्डर में अभी कोई आइटम नहीं है।",
     retry: "फिर से कोशिश करें",
     language: "भाषा",
 

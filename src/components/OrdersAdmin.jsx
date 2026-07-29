@@ -5,7 +5,8 @@ import OrderNavigator from "./OrderNavigator.jsx";
 import { useItems } from "../hooks/useItems.js";
 import { useOrders } from "../hooks/useOrders.js";
 import { useOrder } from "../hooks/useOrder.js";
-import { downloadOrderCsv, orderRef } from "../utils/exportCsv.js";
+import { downloadOrderCsv, orderRef, orderTypesOnOrder } from "../utils/exportCsv.js";
+import { downloadOrderPdf } from "../utils/exportPdf.js";
 import { formatDateTime } from "../utils/monthUtils.js";
 import { useT } from "../i18n/i18n.jsx";
 
@@ -20,6 +21,84 @@ function StatusPill({ status }) {
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${s.cls}`}>
       {s.text}
     </span>
+  );
+}
+
+// Export controls: pick which order types to include, then take CSV or PDF.
+// The type list comes from the order itself, so it never offers a type that
+// would produce an empty file.
+function ExportBar({ order, items, lines }) {
+  const { t } = useT();
+  const types = useMemo(() => orderTypesOnOrder(items, lines), [items, lines]);
+  // null = "not touched yet" -> everything is selected.
+  const [picked, setPicked] = useState(null);
+  const selected = picked ?? types;
+  const allOn = selected.length === types.length;
+
+  const toggle = (ty) =>
+    setPicked(
+      selected.includes(ty) ? selected.filter((x) => x !== ty) : [...selected, ty],
+    );
+
+  const none = selected.length === 0;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          {t("orderType")}
+        </span>
+        <button
+          type="button"
+          onClick={() => setPicked(allOn ? [] : types)}
+          className="text-[11px] font-semibold text-teal-700 hover:underline"
+        >
+          {allOn ? t("selectNone") : t("selectAll")}
+        </button>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {types.map((ty) => {
+          const on = selected.includes(ty);
+          return (
+            <button
+              key={ty}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggle(ty)}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
+                on
+                  ? "bg-teal-600 border-teal-600 text-white"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-teal-300"
+              }`}
+            >
+              {ty}
+            </button>
+          );
+        })}
+        {types.length === 0 && (
+          <span className="text-xs text-slate-400">{t("noItemsOnOrder")}</span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          disabled={none}
+          onClick={() => downloadOrderCsv(order, items, lines, selected)}
+          className="py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-semibold hover:text-slate-900 disabled:opacity-40 disabled:hover:text-slate-600"
+        >
+          {t("exportCsv")}
+        </button>
+        <button
+          disabled={none}
+          onClick={() => downloadOrderPdf(order, items, lines, selected)}
+          className="py-2.5 rounded-xl bg-teal-600 border border-teal-600 text-white font-semibold hover:bg-teal-700 disabled:opacity-40"
+        >
+          {t("exportPdf")}
+        </button>
+      </div>
+      <p className="text-[11px] text-slate-400 text-center">{t("exportPdfHint")}</p>
+    </div>
   );
 }
 
@@ -53,12 +132,7 @@ function OrderEditor({ orderId, items, reporter, onBack }) {
         </div>
       ) : (
         <>
-          <button
-            onClick={() => downloadOrderCsv(oc.order, items, oc.lines)}
-            className="w-full py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-semibold hover:text-slate-900"
-          >
-            {t("exportCsv")}
-          </button>
+          <ExportBar order={oc.order} items={items} lines={oc.lines} />
           {oc.saveError && <p className="text-rose-600 text-sm text-center">{oc.saveError}</p>}
           <OrderNavigator
             items={items}
