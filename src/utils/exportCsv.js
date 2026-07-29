@@ -62,8 +62,10 @@ export function orderTypesOnOrder(items, lines) {
 }
 
 // Ordered items, optionally narrowed to a selection of order types, sorted by
-// order type -> category -> sub-category -> name. `selected` may be an array or
-// a Set; null/undefined means "no filter, export everything".
+// order type -> item name. Category / sub-category are deliberately NOT part of
+// the sort: the exports no longer show them, so grouping by an invisible key
+// would make the row order look arbitrary. `selected` may be an array or a Set;
+// null/undefined means "no filter, export everything".
 export function selectOrderRows(items, lines, selected) {
   const only = selected == null ? null : new Set(selected);
   return items
@@ -72,18 +74,17 @@ export function selectOrderRows(items, lines, selected) {
     .filter((r) => !only || only.has(r.orderType))
     .sort(
       (a, b) =>
-        a.orderType.localeCompare(b.orderType) ||
-        (a.item.category || "").localeCompare(b.item.category || "") ||
-        (a.item.subCategory || "").localeCompare(b.item.subCategory || "") ||
-        a.item.name.localeCompare(b.item.name),
+        a.orderType.localeCompare(b.orderType) || a.item.name.localeCompare(b.item.name),
     );
 }
 
 // ---------------------------------------------------------------------------
 // ORDER CSV
-// Columns: Order type, Item, Quantity, Unit, Note, Category, Sub-category,
-// Order ref, Status. Only items on the order (qty > 0) are exported, and only
-// those whose order type is in `selected` (null = all).
+// Columns: Order type, Item, Quantity, Unit, Note, Order ref, Status.
+// Category / sub-category are intentionally omitted — the order sheet is for
+// placing orders, not for browsing the catalogue. Only items on the order
+// (qty > 0) are exported, and only those whose order type is in `selected`
+// (null = all).
 export function buildOrderCsv(order, items, lines, selected = null) {
   const header = [
     "Order type",
@@ -91,8 +92,6 @@ export function buildOrderCsv(order, items, lines, selected = null) {
     "Quantity",
     "Unit",
     "Note",
-    "Category",
-    "Sub-category",
     "Order ref",
     "Status",
   ];
@@ -109,8 +108,6 @@ export function buildOrderCsv(order, items, lines, selected = null) {
       orderNum(line.qty),
       orderUnitOf(item),
       line.note || "",
-      item.category || "",
-      item.subCategory || "",
       ref,
       status,
     ]);

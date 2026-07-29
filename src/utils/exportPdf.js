@@ -63,9 +63,7 @@ export function buildOrderPrintHtml(order, items, lines, selected = null) {
             .map(
               ({ item, line }) => `
           <tr>
-            <td>${esc(item.name)}<div class="sub">${esc(item.category || "")}${
-              item.subCategory ? ` · ${esc(item.subCategory)}` : ""
-            }</div></td>
+            <td>${esc(item.name)}</td>
             <td class="num">${esc(orderNum(line.qty))}</td>
             <td>${esc(orderUnitOf(item))}</td>
             <td>${esc(line.note || "")}</td>
@@ -104,9 +102,8 @@ export function buildOrderPrintHtml(order, items, lines, selected = null) {
   th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
   th { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: #64748b;
        border-bottom: 1px solid #94a3b8; }
-  .sub { color: #94a3b8; font-size: 10px; }
   .num { font-weight: 700; text-align: right; }
-  .w-item { width: 42%; } .w-qty { width: 10%; } .w-unit { width: 10%; } .w-tick { width: 8%; }
+  .w-item { width: 46%; } .w-qty { width: 10%; } .w-unit { width: 12%; } .w-tick { width: 8%; }
   .tick { border: 1px solid #cbd5e1; height: 14px; }
   /* Keep a group's heading with at least the start of its table. */
   thead { display: table-header-group; }
