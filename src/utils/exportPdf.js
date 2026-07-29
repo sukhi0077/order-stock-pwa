@@ -1,15 +1,18 @@
 // src/utils/exportPdf.js
-// Printable order sheet -> PDF.
+// Order sheet -> a REAL .pdf file, built with jsPDF + autoTable.
 //
-// Deliberately NO pdf library. We build a small self-contained HTML document
-// and hand it to the browser's print dialog, where every platform offers
-// "Save as PDF" (iOS/Android share sheet included). That keeps the PWA bundle
-// small and gives the user native control over paper size and margins.
+// This deliberately does NOT go through the browser's print dialog. Printing
+// stamps the page URL and a timestamp into the paper margins (the browser's own
+// header/footer, which no CSS can remove) and costs an extra "Save as PDF" tap.
+// Generating the file directly gives a clean sheet and a one-tap download.
 //
-// The sheet groups items by ORDER TYPE — one section per type, each with its
-// own item count — because that is how the owner actually places the orders.
+// The sheet groups items by ORDER TYPE — one banded section per type — because
+// that is how the orders are actually placed.
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import { orderRef, selectOrderRows } from "./exportCsv.js";
 import { num as orderNum, orderUnitOf } from "../models/OrderModel.js";
+import { LIBERATION_SANS_REGULAR, LIBERATION_SANS_BOLD } from "../fonts/liberationSans.js";
 
 // Business letterhead printed at the top of every order sheet.
 const BUSINESS = {
@@ -18,12 +21,22 @@ const BUSINESS = {
   nip: "NIP 9241799529",
 };
 
-function esc(v) {
-  return String(v ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+const FONT = "LiberationSans";
+const TEAL = [13, 148, 136];
+const INK = [15, 23, 42];
+const MUTED = [71, 85, 105];
+const FAINT = [148, 163, 184];
+const LINE = [226, 232, 240];
+const MARGIN = 14; // mm
+
+// jsPDF's built-in fonts are WinAnsi-only, so Polish characters would come out
+// as garbage. Register the bundled Unicode subset once per document.
+function registerUnicodeFont(doc) {
+  doc.addFileToVFS("LiberationSans-Regular.ttf", LIBERATION_SANS_REGULAR);
+  doc.addFont("LiberationSans-Regular.ttf", FONT, "normal");
+  doc.addFileToVFS("LiberationSans-Bold.ttf", LIBERATION_SANS_BOLD);
+  doc.addFont("LiberationSans-Bold.ttf", FONT, "bold");
+  doc.setFont(FONT, "normal");
 }
 
 // Group the selected rows into [{ orderType, rows }] preserving sort order.
@@ -40,123 +53,127 @@ function groupByOrderType(rows) {
   return groups;
 }
 
-// Build the full print document. Exported separately from the download so it
-// can be unit-tested without a browser.
-export function buildOrderPrintHtml(order, items, lines, selected = null) {
-  const ref = orderRef(order);
-  const status = order?.status || "draft";
-  const groups = groupByOrderType(selectOrderRows(items, lines, selected));
-  const total = groups.reduce((n, g) => n + g.rows.length, 0);
-  const printed = new Date().toLocaleString();
-
-  const sections = groups
-    .map(
-      (g) => `
-    <section>
-      <h2>${esc(g.orderType)} <span class="count">${g.rows.length}</span></h2>
-      <table>
-        <thead>
-          <tr><th class="w-item">Item</th><th class="w-qty">Qty</th><th class="w-unit">Unit</th><th>Note</th><th class="w-tick">✓</th></tr>
-        </thead>
-        <tbody>
-          ${g.rows
-            .map(
-              ({ item, line }) => `
-          <tr>
-            <td>${esc(item.name)}</td>
-            <td class="num">${esc(orderNum(line.qty))}</td>
-            <td>${esc(orderUnitOf(item))}</td>
-            <td>${esc(line.note || "")}</td>
-            <td class="tick"></td>
-          </tr>`,
-            )
-            .join("")}
-        </tbody>
-      </table>
-    </section>`,
-    )
-    .join("");
-
-  return `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(ref)}</title>
-<style>
-  @page { size: A4; margin: 14mm; }
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-         color: #0f172a; margin: 0; padding: 16px; font-size: 12px; }
-  header { border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 14px; }
-  .brand { font-size: 17px; font-weight: 800; letter-spacing: .01em; }
-  .brand-sub { color: #475569; font-size: 11px; margin-top: 1px; }
-  .rule { border-top: 1px solid #e2e8f0; margin: 7px 0 6px; }
-  h1 { font-size: 14px; margin: 0 0 2px; font-weight: 700; }
-  .meta { color: #475569; font-size: 11px; }
-  section { margin-bottom: 16px; page-break-inside: auto; }
-  h2 { font-size: 13px; margin: 0 0 6px; padding: 4px 8px; background: #f1f5f9;
-       border-left: 3px solid #0d9488; text-transform: uppercase; letter-spacing: .04em; }
-  h2 .count { float: right; color: #64748b; font-weight: 600; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
-  th { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: #64748b;
-       border-bottom: 1px solid #94a3b8; }
-  .num { font-weight: 700; text-align: right; }
-  .w-item { width: 46%; } .w-qty { width: 10%; } .w-unit { width: 12%; } .w-tick { width: 8%; }
-  .tick { border: 1px solid #cbd5e1; height: 14px; }
-  /* Keep a group's heading with at least the start of its table. */
-  thead { display: table-header-group; }
-  tr { page-break-inside: avoid; }
-  .empty { color: #64748b; padding: 24px 0; text-align: center; }
-  @media print { body { padding: 0; } .noprint { display: none; } }
-</style>
-</head>
-<body>
-<header>
-  <div class="brand">${esc(BUSINESS.name)}</div>
-  <div class="brand-sub">${esc(BUSINESS.address)} · ${esc(BUSINESS.nip)}</div>
-  <div class="rule"></div>
-  <h1>Order ${esc(ref)}</h1>
-  <div class="meta">${esc(status)} · ${total} item${total === 1 ? "" : "s"} · printed ${esc(printed)}</div>
-</header>
-${sections || '<p class="empty">No items match the selected order types.</p>'}
-</body>
-</html>`;
+// Draw the letterhead; returns the y content should start at.
+function drawLetterhead(doc) {
+  let y = MARGIN;
+  doc.setFont(FONT, "bold").setFontSize(15).setTextColor(...INK);
+  doc.text(BUSINESS.name, MARGIN, y);
+  y += 5;
+  doc.setFont(FONT, "normal").setFontSize(9).setTextColor(...MUTED);
+  doc.text(`${BUSINESS.address} · ${BUSINESS.nip}`, MARGIN, y);
+  y += 3;
+  doc.setDrawColor(...INK).setLineWidth(0.5);
+  doc.line(MARGIN, y, doc.internal.pageSize.getWidth() - MARGIN, y);
+  return y + 6;
 }
 
-// Open the print sheet and trigger the browser's print dialog ("Save as PDF").
-// Uses a hidden same-origin iframe rather than window.open: popup blockers and
-// iOS standalone PWAs routinely swallow new windows, and the iframe prints
-// without ever navigating the user away from the app.
-export async function downloadOrderPdf(order, items, lines, selected = null) {
-  const html = buildOrderPrintHtml(order, items, lines, selected);
+// The order-type band that sits above each table; returns the next y.
+function drawSectionHeading(doc, label, count, y) {
+  const pageW = doc.internal.pageSize.getWidth();
+  const h = 6.5;
+  doc.setFillColor(241, 245, 249);
+  doc.rect(MARGIN, y, pageW - MARGIN * 2, h, "F");
+  doc.setFillColor(...TEAL);
+  doc.rect(MARGIN, y, 1.2, h, "F");
+  doc.setFont(FONT, "bold").setFontSize(9).setTextColor(...INK);
+  doc.text(String(label).toUpperCase(), MARGIN + 3.5, y + 4.5);
+  doc.setFont(FONT, "normal").setTextColor(...MUTED);
+  doc.text(String(count), pageW - MARGIN - 3, y + 4.5, { align: "right" });
+  return y + h + 2;
+}
 
-  const frame = document.createElement("iframe");
-  frame.setAttribute("aria-hidden", "true");
-  frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
-  document.body.appendChild(frame);
-
-  const cleanup = () => {
-    // Delay removal: Safari tears down the print job if the frame goes early.
-    setTimeout(() => frame.remove(), 1000);
+// Shared autoTable config. Row padding is tight so the sheet stays compact.
+function tableOptions(doc, rows, startY) {
+  return {
+    startY,
+    margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
+    // Last column is the tick box; its header stays blank because Liberation
+    // Sans has no U+2713 glyph and a missing glyph renders as a box in some
+    // viewers. The empty column reads fine as a checklist gutter.
+    head: [["#", "Item", "Qty", "Unit", "Note", ""]],
+    body: rows.map(({ item, line }, i) => [
+      String(i + 1),
+      item.name,
+      String(orderNum(line.qty)),
+      orderUnitOf(item),
+      line.note || "",
+      "",
+    ]),
+    styles: {
+      font: FONT,
+      fontSize: 9,
+      cellPadding: { top: 1.4, bottom: 1.4, left: 1.8, right: 1.8 },
+      lineColor: LINE,
+      lineWidth: 0.1,
+      textColor: INK,
+      overflow: "linebreak",
+    },
+    headStyles: {
+      font: FONT,
+      fontStyle: "bold",
+      fontSize: 8,
+      textColor: MUTED,
+      fillColor: [248, 250, 252],
+      lineColor: FAINT,
+    },
+    // Item narrowed, Note left on "auto" so it takes all the slack — notes are
+    // written on and read off the sheet, item names rarely need the room.
+    columnStyles: {
+      0: { cellWidth: 10, halign: "right", textColor: FAINT },
+      1: { cellWidth: 58 },
+      2: { cellWidth: 15, halign: "right", fontStyle: "bold" },
+      3: { cellWidth: 18 },
+      4: { cellWidth: "auto" },
+      5: { cellWidth: 12 },
+    },
+    didParseCell: (data) => {
+      if (data.column.index === 5) data.cell.styles.halign = "center";
+    },
+    // Empty tick box for checking items off on delivery.
+    didDrawCell: (data) => {
+      if (data.section !== "body" || data.column.index !== 5) return;
+      const s = 3.4;
+      const x = data.cell.x + (data.cell.width - s) / 2;
+      const cy = data.cell.y + (data.cell.height - s) / 2;
+      doc.setDrawColor(203, 213, 225).setLineWidth(0.2);
+      doc.rect(x, cy, s, s);
+    },
   };
+}
 
-  frame.onload = () => {
-    try {
-      const win = frame.contentWindow;
-      win.focus();
-      win.onafterprint = cleanup;
-      win.print();
-      // onafterprint is unreliable on iOS — fall back to a timed cleanup.
-      setTimeout(cleanup, 60000);
-    } catch {
-      cleanup();
+// Build the order-sheet document. Exported so it can be unit-tested, or embedded
+// / inspected by a caller instead of downloaded.
+export function buildOrderPdf(order, items, lines, selected = null) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  registerUnicodeFont(doc);
+
+  const pageH = doc.internal.pageSize.getHeight();
+  const groups = groupByOrderType(selectOrderRows(items, lines, selected));
+  let y = drawLetterhead(doc);
+
+  if (groups.length === 0) {
+    doc.setFont(FONT, "normal").setFontSize(10).setTextColor(...MUTED);
+    doc.text("No items match the selected order types.", MARGIN, y + 6);
+    return doc;
+  }
+
+  for (const g of groups) {
+    // Keep a heading with at least a couple of its rows: if there isn't room,
+    // start the section on a fresh page rather than orphan the band.
+    if (y + 22 > pageH - MARGIN) {
+      doc.addPage();
+      y = MARGIN;
     }
-  };
+    y = drawSectionHeading(doc, g.orderType, g.rows.length, y);
+    autoTable(doc, tableOptions(doc, g.rows, y));
+    y = doc.lastAutoTable.finalY + 6;
+  }
 
-  const doc = frame.contentDocument;
-  doc.open();
-  doc.write(html);
-  doc.close();
+  return doc;
+}
+
+// Build + download the order sheet as a .pdf file.
+export async function downloadOrderPdf(order, items, lines, selected = null) {
+  const doc = buildOrderPdf(order, items, lines, selected);
+  doc.save(`${orderRef(order)}.pdf`);
 }

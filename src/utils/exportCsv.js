@@ -80,23 +80,16 @@ export function selectOrderRows(items, lines, selected) {
 
 // ---------------------------------------------------------------------------
 // ORDER CSV
-// Columns: Order type, Item, Quantity, Unit, Note, Order ref, Status.
-// Category / sub-category are intentionally omitted — the order sheet is for
-// placing orders, not for browsing the catalogue. Only items on the order
-// (qty > 0) are exported, and only those whose order type is in `selected`
-// (null = all).
+// Columns: Order type, Item, Quantity, Unit, Note.
+// Category / sub-category, order ref and status are intentionally omitted — the
+// sheet is for placing orders, not for browsing the catalogue, and the order ref
+// is already in the filename. Only items on the order (qty > 0) are exported,
+// and only those whose order type is in `selected` (null = all).
+// `order` is unused by the body but kept in the signature so callers stay
+// uniform with downloadOrderCsv / the PDF builder.
+// eslint-disable-next-line no-unused-vars
 export function buildOrderCsv(order, items, lines, selected = null) {
-  const header = [
-    "Order type",
-    "Item",
-    "Quantity",
-    "Unit",
-    "Note",
-    "Order ref",
-    "Status",
-  ];
-  const ref = orderRef(order);
-  const status = order?.status || "draft";
+  const header = ["Order type", "Item", "Quantity", "Unit", "Note"];
 
   const ordered = selectOrderRows(items, lines, selected);
 
@@ -108,8 +101,6 @@ export function buildOrderCsv(order, items, lines, selected = null) {
       orderNum(line.qty),
       orderUnitOf(item),
       line.note || "",
-      ref,
-      status,
     ]);
   }
   return rows.map((r) => r.map(csvEscape).join(",")).join("\r\n");
