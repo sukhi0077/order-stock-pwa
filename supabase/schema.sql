@@ -897,3 +897,13 @@ grant select on public.merge_receipts        to authenticated;
 -- promote your admin:  update public.profiles set role='admin' where email='...';
 -- Sign in as admin in the app and click "Load items" to seed the master list.
 -- =============================================================================
+
+-- =============================================================================
+-- RELOAD THE API SCHEMA CACHE
+-- PostgREST caches the schema, so a table or column added above stays invisible
+-- to the app for up to a minute — surfacing as
+--   "Could not find the table 'public.x' in the schema cache"
+-- even though the object exists. This forces an immediate reload; keep it as
+-- the last statement in the file.
+-- =============================================================================
+notify pgrst, 'reload schema';

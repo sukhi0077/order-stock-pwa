@@ -449,3 +449,13 @@ grant execute on function public.get_last_closing_cash() to authenticated;
 --   app_settings/coupon_staff, plus every distinct `reporter` string in the
 --   Firestore reports — both have to resolve to an employee row.
 -- =============================================================================
+
+-- =============================================================================
+-- RELOAD THE API SCHEMA CACHE
+-- PostgREST caches the schema, so a table or column added above stays invisible
+-- to the app for up to a minute — surfacing as
+--   "Could not find the table 'public.x' in the schema cache"
+-- even though the object exists. This forces an immediate reload; keep it as
+-- the last statement in the file.
+-- =============================================================================
+notify pgrst, 'reload schema';
