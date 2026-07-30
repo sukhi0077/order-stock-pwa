@@ -27,7 +27,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
   const has = batches && batches.length > 0;
 
   return (
-    <div className={`rounded-xl border p-3 ${has ? "bg-blue-50/60 border-blue-200" : "bg-white border-slate-200"}`}>
+    <div className={`rounded-xl border p-3 ${has ? "bg-accent-50/60 border-accent-200" : "bg-white border-slate-200"}`}>
       <div className="flex items-baseline justify-between gap-2 mb-2">
         <span className="text-base font-medium text-slate-800 leading-tight break-words min-w-0">
           {ti(item.name, item)}
@@ -37,7 +37,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
 
       {ordered && (
         <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="rounded-md bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold text-blue-800">
+          <span className="rounded-md bg-accent-100 px-1.5 py-0.5 text-[11px] font-semibold text-accent-800">
             {t("orderedQty", { qty: ordered.qty, unit: ordered.unit })}
           </span>
           {ordered.note && (
@@ -62,7 +62,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
             step="any"
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="h-10 w-full text-center rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-10 w-full text-center rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
           />
         </label>
         <label className="flex flex-col gap-1 min-w-0">
@@ -74,14 +74,14 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
             type="date"
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="h-10 w-full min-w-0 rounded-lg bg-white border border-slate-300 text-slate-900 text-base px-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-10 w-full min-w-0 rounded-lg bg-white border border-slate-300 text-slate-900 text-base px-2 outline-none focus:ring-2 focus:ring-accent-500"
           />
         </label>
         <button
           type="button"
           onClick={add}
           disabled={!valid || adding}
-          className="col-span-2 sm:col-span-1 h-10 px-4 rounded-lg bg-blue-500 hover:bg-blue-400 text-white font-bold text-sm disabled:opacity-40"
+          className="col-span-2 sm:col-span-1 h-10 px-4 rounded-lg bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm disabled:opacity-40"
         >
           {t("addBatch")}
         </button>

@@ -17,7 +17,7 @@ function ProgressBar({ done, total, className = "" }) {
   return (
     <div className={`h-1.5 rounded-full bg-slate-700/70 overflow-hidden ${className}`}>
       <div
-        className={`h-full rounded-full transition-all ${done === total && total ? "bg-emerald-500" : "bg-sky-500"}`}
+        className={`h-full rounded-full transition-all ${done === total && total ? "bg-emerald-500" : "bg-accent-500"}`}
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -88,14 +88,14 @@ export default function StockCountForm({
           value={searchRaw}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search items…"
-          className="w-full p-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-100 outline-none focus:ring-2 focus:ring-sky-500 transition"
+          className="w-full p-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-100 outline-none focus:ring-2 focus:ring-accent-500 transition"
         />
         <label className="flex items-center gap-2 text-xs text-slate-300 select-none cursor-pointer">
           <input
             type="checkbox"
             checked={onlyRemaining}
             onChange={(e) => setOnlyRemaining(e.target.checked)}
-            className="h-4 w-4 accent-sky-500"
+            className="h-4 w-4 accent-accent-500"
           />
           Show only items not yet counted
         </label>
@@ -138,7 +138,7 @@ export default function StockCountForm({
                     done === total
                       ? "bg-emerald-500/20 text-emerald-300"
                       : done > 0
-                        ? "bg-sky-500/20 text-sky-300"
+                        ? "bg-accent-500/20 text-accent-300"
                         : "bg-slate-700 text-slate-400"
                   }`}
                 >
@@ -152,7 +152,7 @@ export default function StockCountForm({
               <div className="px-3 pb-3">
                 {subs.map((sub) => (
                   <div key={sub} className="mt-2">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-sky-300/70 mt-3 mb-1.5 px-1">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-accent-300/70 mt-3 mb-1.5 px-1">
                       {sub}
                     </h4>
                     <div className="space-y-1.5">

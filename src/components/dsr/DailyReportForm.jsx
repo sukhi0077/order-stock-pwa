@@ -360,7 +360,7 @@ export default function DailyReportForm({
               value={reportDate}
               max={todayStr()}
               onChange={(e) => setReportDate(e.target.value)}
-              className="w-full p-2 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-accent-500"
             />
             <p className="text-xs text-slate-500 mt-2">
               Enter “Cash From Yesterday” manually below — it is not auto-filled
@@ -598,10 +598,10 @@ export default function DailyReportForm({
                     handleChange("cashFromYesterday", e.target.value)
                   }
                   placeholder="0.00"
-                  className="w-28 text-right p-1.5 rounded-lg bg-white border border-teal-200 text-teal-700 font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-28 text-right p-1.5 rounded-lg bg-white border border-accent-200 text-accent-700 font-bold outline-none focus:ring-2 focus:ring-accent-500"
                 />
               ) : (
-                <span className="text-base font-bold text-teal-700">
+                <span className="text-base font-bold text-accent-700">
                   {isLoadingPrevData
                     ? "…"
                     : Number(data.cashFromYesterday || 0).toFixed(2)}
@@ -617,7 +617,7 @@ export default function DailyReportForm({
                   {todayStr()}
                 </span>
               </span>
-              <span className="text-base font-bold text-teal-700">
+              <span className="text-base font-bold text-accent-700">
                 {Number(data.cashSalePOS || 0).toFixed(2)}
               </span>
             </div>
@@ -756,7 +756,7 @@ export default function DailyReportForm({
               <span className="text-sm font-medium text-slate-700">
                 Total Cash Expected
               </span>
-              <span className="text-base font-bold text-teal-700">
+              <span className="text-base font-bold text-accent-700">
                 {Number(autoCalculatedCash || 0).toFixed(2)}
               </span>
             </div>
@@ -793,7 +793,7 @@ export default function DailyReportForm({
                     resets on the 1st) + expand/collapse toggle. */}
                 <div className="flex items-start justify-between gap-3">
                   <p className="flex-1 min-w-0 text-xs text-slate-500 break-words">
-                    <span className="text-indigo-700/80 uppercase tracking-wider text-[10px] mr-1">
+                    <span className="text-accent-700/80 uppercase tracking-wider text-[10px] mr-1">
                       This month
                     </span>
                     {monthlySummary.map((r, i) => (
@@ -811,7 +811,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={() => setShowCouponEditor((v) => !v)}
                       aria-expanded={showCouponEditor}
-                      className="shrink-0 flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-700 transition"
+                      className="shrink-0 flex items-center gap-1 text-xs font-semibold text-accent-700 hover:text-accent-700 transition"
                     >
                       {showCouponEditor ? "Done" : "Edit counts"}
                       <span
@@ -848,14 +848,14 @@ export default function DailyReportForm({
                         >
                           −
                         </button>
-                        <span className="w-8 text-center font-bold font-mono text-indigo-700">
+                        <span className="w-8 text-center font-bold font-mono text-accent-700">
                           {Number(row.count) || 0}
                         </span>
                         <button
                           type="button"
                           onClick={() => changeCouponCount(row, 1)}
                           aria-label={`Increase ${row.name}`}
-                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition"
+                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-accent-200 text-accent-700 hover:bg-accent-50 transition"
                         >
                           +
                         </button>
@@ -922,7 +922,7 @@ export default function DailyReportForm({
                   className="flex items-center justify-between gap-2 mb-2 bg-white px-3 py-2 rounded-lg border border-slate-200"
                 >
                   <span className="text-sm text-slate-800 min-w-0">
-                    <span className="font-bold text-indigo-700">
+                    <span className="font-bold text-accent-700">
                       {getOrdinal(idx + 1)}:
                     </span>{" "}
                     <span className="font-bold">{coupon.percentage}%</span>
@@ -942,7 +942,7 @@ export default function DailyReportForm({
 
               {/* Draft coupon box: confirm (green ✓) or discard (red ✕) */}
               {isAddingCoupon && (
-                <div className="flex gap-2 items-end mb-2 bg-white p-3 rounded-lg border border-indigo-200">
+                <div className="flex gap-2 items-end mb-2 bg-white p-3 rounded-lg border border-accent-200">
                   <div className="w-[42%]">
                     <Input
                       label="POS Order Number"
@@ -987,7 +987,7 @@ export default function DailyReportForm({
                 <button
                   type="button"
                   onClick={openCouponBox}
-                  className="mt-1 py-2 px-4 bg-slate-100 hover:bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-blue-700 transition w-full"
+                  className="mt-1 py-2 px-4 bg-slate-100 hover:bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-accent-700 transition w-full"
                 >
                   + Add Coupon
                 </button>
@@ -1020,7 +1020,7 @@ export default function DailyReportForm({
               value={data.comments}
               onChange={(e) => handleChange("comments", e.target.value)}
               required={isCommentRequired}
-              className={`w-full p-2 rounded-lg bg-white border outline-none transition min-h-[100px] ${errors.comments ? "border-red-500 ring-1 ring-red-500 text-slate-900 placeholder-red-400/50" : "border-slate-300 text-slate-900 focus:ring-2 focus:ring-blue-500"}`}
+              className={`w-full p-2 rounded-lg bg-white border outline-none transition min-h-[100px] ${errors.comments ? "border-red-500 ring-1 ring-red-500 text-slate-900 placeholder-red-400/50" : "border-slate-300 text-slate-900 focus:ring-2 focus:ring-accent-500"}`}
             />
             {errors.comments && (
               <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">
@@ -1040,7 +1040,7 @@ export default function DailyReportForm({
               className={`w-full p-2 rounded-lg bg-white border transition outline-none focus:ring-2 ${
                 errors.reporterId
                   ? "border-red-500 ring-1 ring-red-500 text-slate-900"
-                  : "border-slate-300 text-slate-900 focus:ring-blue-500"
+                  : "border-slate-300 text-slate-900 focus:ring-accent-500"
               }`}
             >
               <option value="">Select your name…</option>
@@ -1100,7 +1100,7 @@ export default function DailyReportForm({
             <button
               type="submit"
               disabled={isSaving}
-              className={`${isEditMode ? "w-full" : "flex-1"} py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl shadow-lg transition duration-200`}
+              className={`${isEditMode ? "w-full" : "flex-1"} py-4 bg-accent-600 hover:bg-accent-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl shadow-lg transition duration-200`}
             >
               {isSaving
                 ? "Saving..."

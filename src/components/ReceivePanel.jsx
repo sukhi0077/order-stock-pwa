@@ -54,7 +54,7 @@ export default function ReceivePanel({ reporter }) {
   return (
     <div className="space-y-4 pb-10">
       <div className="flex items-center gap-2">
-        <span className="h-9 w-9 grid place-items-center rounded-xl bg-blue-500 text-white shrink-0">
+        <span className="h-9 w-9 grid place-items-center rounded-xl bg-accent-500 text-white shrink-0">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16v6H4z" />
             <path d="M4 10v10h16V10" />
@@ -79,8 +79,8 @@ export default function ReceivePanel({ reporter }) {
             onClick={() => setMode(key)}
             className={`py-2 rounded-xl border text-sm font-semibold transition ${
               mode === key
-                ? "bg-blue-500 border-blue-500 text-white"
-                : "bg-white border-slate-200 text-slate-600 hover:border-blue-300"
+                ? "bg-accent-500 border-accent-500 text-white"
+                : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
             }`}
           >
             {label}

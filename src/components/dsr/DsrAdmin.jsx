@@ -506,7 +506,7 @@ export default function AdminDashboard() {
             : `${fmtUTC(startDate)} to ${fmtUTC(endDate)}`;
 
   const pickerInputClass =
-    "bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-sky-500";
+    "bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-accent-500";
 
   return (
     <div className="px-4 md:px-8 pb-8 pt-28 max-w-6xl mx-auto text-slate-900">
@@ -571,7 +571,7 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium">
             <button
               onClick={() => setIsAddingNew(true)}
-              className="text-sky-700 hover:text-sky-700 transition"
+              className="text-accent-700 hover:text-accent-700 transition"
             >
               + Add
             </button>
@@ -617,15 +617,15 @@ export default function AdminDashboard() {
           {
             label: "Cash in Box",
             value: currentCashInBox,
-            dot: "bg-teal-500",
-            text: "text-teal-700",
+            dot: "bg-accent-500",
+            text: "text-accent-700",
             isSnapshot: true,
           },
           {
             label: "Total Sale",
             value: totalSale,
-            dot: "bg-sky-500",
-            text: "text-sky-700",
+            dot: "bg-accent-500",
+            text: "text-accent-700",
           },
           {
             label: "Cash Sales",
@@ -636,21 +636,21 @@ export default function AdminDashboard() {
           {
             label: "Online Sales",
             value: totalOnline,
-            dot: "bg-blue-500",
-            text: "text-blue-700",
+            dot: "bg-accent-500",
+            text: "text-accent-700",
           },
           {
             label: "Card Sales",
             value: totalCard,
-            dot: "bg-violet-500",
-            text: "text-violet-700",
+            dot: "bg-accent-500",
+            text: "text-accent-700",
           },
           {
             label: "Coupons",
-            dot: "bg-indigo-500",
-            text: "text-indigo-700",
+            dot: "bg-accent-500",
+            text: "text-accent-700",
             custom: (
-              <span className="text-indigo-700">
+              <span className="text-accent-700">
                 {totalCouponsGiven}
                 <span className="text-xs font-medium text-slate-500">
                   {" "}
@@ -693,7 +693,7 @@ export default function AdminDashboard() {
             </h3>
             <span className="text-xs text-slate-400">
               {viewMode} total ·{" "}
-              <span className="text-indigo-700 font-mono">
+              <span className="text-accent-700 font-mono">
                 {couponsByStaff.reduce((s, e) => s + e.count, 0)}
               </span>
             </span>
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
                 <span className="text-sm text-slate-700 truncate">
                   {e.name}
                 </span>
-                <span className="text-sm font-bold font-mono text-indigo-700">
+                <span className="text-sm font-bold font-mono text-accent-700">
                   {e.count}
                 </span>
               </div>
@@ -748,16 +748,16 @@ export default function AdminDashboard() {
                   <th className="p-4 font-semibold text-slate-700 text-green-700">
                     Cash
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-blue-700">
+                  <th className="p-4 font-semibold text-slate-700 text-accent-700">
                     Card
                   </th>
                   <th className="p-4 font-semibold text-slate-700 text-emerald-700">
                     Bank Transfer
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-indigo-700">
+                  <th className="p-4 font-semibold text-slate-700 text-accent-700">
                     Coupons given
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-teal-700">
+                  <th className="p-4 font-semibold text-slate-700 text-accent-700">
                     Coupons Rcvd
                   </th>
                   <th className="p-4 font-semibold text-slate-700">
@@ -785,18 +785,18 @@ export default function AdminDashboard() {
                     <td className="p-4 text-green-700">
                       {money(report.cashSalePOS)}
                     </td>
-                    <td className="p-4 text-blue-700">
+                    <td className="p-4 text-accent-700">
                       {money(report.cardSalePOS)}
                     </td>
                     <td className="p-4 text-emerald-700">
                       {money(report.onlineSalePOS)}
                     </td>
-                    <td className="p-4 text-indigo-700">
+                    <td className="p-4 text-accent-700">
                       {(report.couponsGiven || [])
                         .map((e) => `${e.name} - ${e.count}`)
                         .join(", ") || "—"}
                     </td>
-                    <td className="p-4 text-teal-700">
+                    <td className="p-4 text-accent-700">
                       {report.receivedCoupons || 0}
                     </td>
                     <td className="p-4 font-bold text-green-700">
@@ -842,7 +842,7 @@ export default function AdminDashboard() {
                     <td className="p-4 flex items-center justify-center gap-2">
                       <button
                         onClick={() => setViewingRecord(report)}
-                        className="px-3 py-1 bg-blue-50 hover:bg-blue-50 text-blue-700 border border-blue-200 rounded transition text-sm"
+                        className="px-3 py-1 bg-accent-50 hover:bg-accent-50 text-accent-700 border border-accent-200 rounded transition text-sm"
                       >
                         👁️ View
                       </button>

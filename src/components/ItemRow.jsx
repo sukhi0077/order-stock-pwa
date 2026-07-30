@@ -24,13 +24,13 @@ function ItemRow({ item, value, prev, disabled, onCommit }) {
   return (
     <div
       className={`flex items-center gap-3 py-2.5 pl-3 pr-2 rounded-xl border transition ${
-        counted ? "bg-amber-50 border-amber-200" : "bg-white border-slate-200"
+        counted ? "bg-accent-50 border-accent-200" : "bg-white border-slate-200"
       }`}
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           {counted && (
-            <span className="text-amber-600 text-xs shrink-0" aria-hidden>
+            <span className="text-accent-600 text-xs shrink-0" aria-hidden>
               ✓
             </span>
           )}
@@ -48,7 +48,7 @@ function ItemRow({ item, value, prev, disabled, onCommit }) {
                 setVal(String(num(prev)));
                 commit(String(num(prev)));
               }}
-              className="text-[11px] text-amber-600 hover:text-amber-700 disabled:opacity-40"
+              className="text-[11px] text-accent-600 hover:text-accent-700 disabled:opacity-40"
               title="Tap to use last month's closing"
             >
               {t("last", { v: num(prev) })}
@@ -77,8 +77,8 @@ function ItemRow({ item, value, prev, disabled, onCommit }) {
           onChange={(e) => setVal(e.target.value)}
           onBlur={() => commit(val)}
           placeholder="—"
-          className={`h-9 w-16 text-center rounded-lg bg-white border text-slate-900 outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 transition ${
-            counted ? "border-amber-400 font-semibold" : "border-slate-300"
+          className={`h-9 w-16 text-center rounded-lg bg-white border text-slate-900 outline-none focus:ring-2 focus:ring-accent-500 disabled:opacity-50 transition ${
+            counted ? "border-accent-400 font-semibold" : "border-slate-300"
           }`}
         />
         <button

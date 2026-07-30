@@ -13,8 +13,8 @@ function Chip({ active, onClick, children }) {
       onClick={onClick}
       className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
         active
-          ? "bg-teal-600 border-teal-600 text-white"
-          : "bg-white border-slate-200 text-slate-600 hover:border-teal-300"
+          ? "bg-accent-600 border-accent-600 text-white"
+          : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
       }`}
     >
       {children}
@@ -48,7 +48,7 @@ function OrderTypeField({ item, options, onSave }) {
         if (v !== saved) onSave(item.id, v);
       }}
       aria-label={t("orderType")}
-      className="flex-1 min-w-0 text-xs px-2 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 outline-none focus:ring-2 focus:ring-teal-500"
+      className="flex-1 min-w-0 text-xs px-2 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 outline-none focus:ring-2 focus:ring-accent-500"
     >
       <option value="">{t("orderTypeNone")}</option>
       {options.map((o) => (
@@ -126,7 +126,7 @@ export default function ItemManagerModal({ items, onBack }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("searchItems")}
-            className="w-full p-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full p-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-sm outline-none focus:ring-2 focus:ring-accent-500"
           />
           {/* Quick category filter */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
@@ -194,7 +194,7 @@ export default function ItemManagerModal({ items, onBack }) {
                   )}
                   <span
                     className={`text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
-                      inactive ? "text-slate-400" : "text-teal-600"
+                      inactive ? "text-slate-400" : "text-accent-600"
                     }`}
                   >
                     {inactive ? t("off") : t("on")}
@@ -207,7 +207,7 @@ export default function ItemManagerModal({ items, onBack }) {
                     aria-label={inactive ? t("reactivate") : t("deactivate")}
                     onClick={() => setActive.mutate({ id: item.id, active: inactive })}
                     className={`relative h-6 w-11 rounded-full shrink-0 transition ${
-                      masterOff ? "cursor-not-allowed bg-slate-200" : inactive ? "bg-slate-300" : "bg-teal-500"
+                      masterOff ? "cursor-not-allowed bg-slate-200" : inactive ? "bg-slate-300" : "bg-accent-500"
                     }`}
                   >
                     <span
@@ -229,7 +229,7 @@ export default function ItemManagerModal({ items, onBack }) {
                     if (base === "pack")
                       return <span className="text-[11px] text-slate-500">pack</span>;
                     return (
-                      <div className="inline-flex rounded-lg border border-teal-200 overflow-hidden">
+                      <div className="inline-flex rounded-lg border border-accent-200 overflow-hidden">
                         {[base, "pack"].map((u) => (
                           <button
                             key={u}
@@ -237,7 +237,7 @@ export default function ItemManagerModal({ items, onBack }) {
                             onClick={() => saveOrderUnit(item.id, u)}
                             aria-pressed={ou === u}
                             className={`text-[11px] font-semibold px-2.5 py-1 transition ${
-                              ou === u ? "bg-teal-600 text-white" : "bg-white text-slate-500"
+                              ou === u ? "bg-accent-600 text-white" : "bg-white text-slate-500"
                             }`}
                           >
                             {u}

@@ -2,7 +2,7 @@
 import React from "react";
 import { useT } from "../i18n/i18n.jsx";
 import { useTheme } from "../theme/ThemeContext.jsx";
-import { THEMES } from "../theme/themes.js";
+import { THEMES, swatchesFor, accentVars } from "../theme/themes.js";
 
 const ICONS = {
   dsr: (
@@ -35,15 +35,16 @@ const ICONS = {
   ),
 };
 
-function Tile({ mode, title, desc, onChoose, sec }) {
+// Each tile wears ITS OWN section's hue, not the home screen's, so the four
+// colours you see here are the four you will meet inside the app.
+function Tile({ mode, title, desc, onChoose, hue }) {
   return (
     <button
       onClick={() => onChoose(mode)}
-      className={`w-full bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-4 transition text-left ${sec.hoverBorder} ${sec.hoverBg}`}
+      style={accentVars(hue)}
+      className="w-full bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-4 transition text-left hover:border-accent-300 hover:bg-accent-50"
     >
-      <span
-        className={`h-14 w-14 shrink-0 grid place-items-center rounded-2xl text-white ${sec.tile}`}
-      >
+      <span className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl text-white bg-accent-600">
         <svg
           width="28"
           height="28"
@@ -91,8 +92,12 @@ function ThemePicker() {
               }`}
             >
               <span className="flex justify-center gap-1 mb-1.5">
-                {th.swatches.map((sw, i) => (
-                  <span key={i} className={`h-3.5 w-3.5 rounded-full ${sw}`} />
+                {swatchesFor(th).map((hex, i) => (
+                  <span
+                    key={i}
+                    className="h-3.5 w-3.5 rounded-full"
+                    style={{ backgroundColor: hex }}
+                  />
                 ))}
               </span>
               <span
@@ -136,7 +141,7 @@ export default function HomeChooser({ onChoose }) {
             title={title}
             desc={desc}
             onChoose={onChoose}
-            sec={theme[mode]}
+            hue={theme[mode].hue}
           />
         ))}
       </div>

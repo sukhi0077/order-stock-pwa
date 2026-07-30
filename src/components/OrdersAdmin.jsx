@@ -20,7 +20,7 @@ function StatusPill({ status }) {
   const { t } = useT();
   const map = {
     draft: { text: t("status_draft"), cls: "bg-slate-100 text-slate-600" },
-    submitted: { text: t("status_submitted"), cls: "bg-teal-50 text-teal-700" },
+    submitted: { text: t("status_submitted"), cls: "bg-accent-50 text-accent-700" },
   };
   const s = map[status] || map.draft;
   return (
@@ -86,7 +86,7 @@ function ExportBar({ order, items, lines }) {
         <button
           type="button"
           onClick={() => setPicked(allOn ? [] : types)}
-          className="text-[11px] font-semibold text-teal-700 hover:underline"
+          className="text-[11px] font-semibold text-accent-700 hover:underline"
         >
           {allOn ? t("selectNone") : t("selectAll")}
         </button>
@@ -103,8 +103,8 @@ function ExportBar({ order, items, lines }) {
               onClick={() => toggleType(ty)}
               className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
                 on
-                  ? "bg-teal-600 border-teal-600 text-white"
-                  : "bg-white border-slate-200 text-slate-600 hover:border-teal-300"
+                  ? "bg-accent-600 border-accent-600 text-white"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
               }`}
             >
               {ty}
@@ -134,7 +134,7 @@ function ExportBar({ order, items, lines }) {
                 <button
                   type="button"
                   onClick={() => setAllItems(true)}
-                  className="text-[11px] font-semibold text-teal-700 hover:underline"
+                  className="text-[11px] font-semibold text-accent-700 hover:underline"
                 >
                   {t("selectAll")}
                 </button>
@@ -162,7 +162,7 @@ function ExportBar({ order, items, lines }) {
                           type="checkbox"
                           checked={on}
                           onChange={() => toggleItem(item.id)}
-                          className="h-4 w-4 shrink-0 accent-teal-600"
+                          className="h-4 w-4 shrink-0 accent-accent-600"
                         />
                         <span
                           className={`flex-1 min-w-0 truncate text-xs ${
@@ -195,7 +195,7 @@ function ExportBar({ order, items, lines }) {
         <button
           disabled={none}
           onClick={() => downloadOrderPdf(order, items, lines, selected, excluded)}
-          className="py-2.5 rounded-xl bg-teal-600 border border-teal-600 text-white font-semibold hover:bg-teal-700 disabled:opacity-40"
+          className="py-2.5 rounded-xl bg-accent-600 border border-accent-600 text-white font-semibold hover:bg-accent-700 disabled:opacity-40"
         >
           {t("exportPdf")}
         </button>
@@ -295,7 +295,7 @@ export default function OrdersAdmin({ reporter }) {
           <button
             key={o.id}
             onClick={() => setOpenId(o.id)}
-            className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-teal-300 hover:bg-teal-50/40 transition"
+            className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
           >
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">{orderRef(o)}</span>

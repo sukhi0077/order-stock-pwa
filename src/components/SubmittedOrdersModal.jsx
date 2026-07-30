@@ -60,14 +60,14 @@ function OrderView({ order, itemsById, onBack }) {
         {cats.map((cat) => (
           <div key={cat} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
             <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
-              <span className="text-teal-600">
+              <span className="text-accent-600">
                 <CategoryIcon name={cat} size={16} />
               </span>
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{tc(cat)}</span>
             </div>
             {orderedKeys(Object.keys(groups[cat]), SUBCATEGORY_ORDER[cat] || []).map((sub) => (
               <div key={sub}>
-                <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-teal-600/80">
+                <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-accent-600/80">
                   {ts(sub)}
                 </div>
                 <div className="divide-y divide-slate-100">
@@ -77,7 +77,7 @@ function OrderView({ order, itemsById, onBack }) {
                         <div className="text-sm font-medium text-slate-800 break-words">{ti(it.name, it)}</div>
                         {line.note && <div className="text-[11px] text-slate-400 truncate">{line.note}</div>}
                       </div>
-                      <span className="text-sm font-semibold text-teal-700 shrink-0 whitespace-nowrap">
+                      <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
                         {num(line.qty)}{" "}
                         <span className="text-[11px] text-slate-400 font-normal">{orderUnitOf(it)}</span>
                       </span>
@@ -142,11 +142,11 @@ export default function SubmittedOrdersModal({ items, onClose }) {
                     <button
                       key={o.id}
                       onClick={() => setOpenId(o.id)}
-                      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-teal-300 hover:bg-teal-50/40 transition"
+                      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-slate-900">{orderRef(o)}</span>
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-50 text-accent-700">
                           {t("status_submitted")}
                         </span>
                       </div>

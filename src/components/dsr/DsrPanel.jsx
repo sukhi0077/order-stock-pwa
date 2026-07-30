@@ -144,7 +144,7 @@ export default function StaffPanel() {
             </div>
             <button
               onClick={() => setViewing(r)}
-              className="shrink-0 px-3 py-1.5 bg-blue-50 hover:bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-semibold text-sm transition"
+              className="shrink-0 px-3 py-1.5 bg-accent-50 hover:bg-accent-50 text-accent-700 border border-accent-200 rounded-lg font-semibold text-sm transition"
             >
               👁️ View
             </button>
@@ -166,7 +166,7 @@ export default function StaffPanel() {
             {historySection}
             <div className="flex items-center gap-3 mt-8 mb-4">
               <span className="text-base">📝</span>
-              <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wider">
+              <h3 className="text-sm font-bold text-accent-700 uppercase tracking-wider">
                 Today's Report
               </h3>
               <div className="flex-1 border-t border-slate-200" />
@@ -201,7 +201,7 @@ export default function StaffPanel() {
           {historySection}
           <div className="flex items-center gap-3 mt-8 mb-4">
             <span className="text-base">📝</span>
-            <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wider">
+            <h3 className="text-sm font-bold text-accent-700 uppercase tracking-wider">
               Today's Report
             </h3>
             <div className="flex-1 border-t border-slate-200" />

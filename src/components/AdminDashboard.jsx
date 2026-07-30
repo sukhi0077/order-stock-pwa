@@ -88,7 +88,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
         <button
           onClick={() => seed.mutate()}
           disabled={seed.isPending}
-          className="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold disabled:opacity-50"
+          className="px-6 py-3 rounded-xl bg-accent-600 hover:bg-accent-500 text-white font-bold disabled:opacity-50"
         >
           {seed.isPending ? t("loadingItems") : t("load260", { n: SEED_COUNT })}
         </button>

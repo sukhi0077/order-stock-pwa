@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   THEME ACCENT
+   The colour scheme picked on the home screen sets --accent-* on the app root
+   (see src/theme/ThemeContext.jsx). Registering them here as a Tailwind colour
+   means every accent-* utility — bg-accent-600, hover:bg-accent-500,
+   text-accent-700, border-accent-200, and the opacity variants — is generated
+   normally and recoloured at runtime by swapping the variables.
+
+   Components use accent-* instead of a hard-coded hue, so one set of markup
+   serves every scheme. Status colours (red / rose = error, amber = warning,
+   emerald = success) are deliberately NOT themed: they must mean the same
+   thing whichever scheme is on.
+
+   The :root values below are the Classic scheme's teal, used before the app
+   mounts and by anything rendered outside the provider (e.g. the login page).
+--------------------------------------------------------------------------- */
+:root {
+  --accent-50: #f0fdfa;
+  --accent-100: #ccfbf1;
+  --accent-200: #99f6e4;
+  --accent-300: #5eead4;
+  --accent-400: #2dd4bf;
+  --accent-500: #14b8a6;
+  --accent-600: #0d9488;
+  --accent-700: #0f766e;
+  --accent-800: #115e59;
+  --accent-900: #134e4a;
+}
+
+@theme {
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-200: var(--accent-200);
+  --color-accent-300: var(--accent-300);
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
+  --color-accent-600: var(--accent-600);
+  --color-accent-700: var(--accent-700);
+  --color-accent-800: var(--accent-800);
+  --color-accent-900: var(--accent-900);
+}
+
 html,
 body,
 #root {

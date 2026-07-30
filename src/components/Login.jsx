@@ -70,7 +70,7 @@ export default function Login({ onLogin }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
-            className="w-full p-3 mb-4 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500 transition"
+            className="w-full p-3 mb-4 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-accent-500 transition"
             placeholder="staff@yourshop.com"
           />
 
@@ -82,7 +82,7 @@ export default function Login({ onLogin }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
-            className="w-full p-3 mb-3 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-teal-500 transition"
+            className="w-full p-3 mb-3 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-accent-500 transition"
             placeholder="••••••••"
           />
 
@@ -91,7 +91,7 @@ export default function Login({ onLogin }) {
               type="checkbox"
               checked={showPassword}
               onChange={(e) => setShowPassword(e.target.checked)}
-              className="h-4 w-4 accent-teal-600"
+              className="h-4 w-4 accent-accent-600"
             />
             {t("showPassword")}
           </label>
@@ -99,7 +99,7 @@ export default function Login({ onLogin }) {
           <button
             type="submit"
             disabled={isBusy}
-            className="w-full py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl transition"
+            className="w-full py-3 bg-accent-600 hover:bg-accent-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl transition"
           >
             {isBusy ? t("signingIn") : t("signIn")}
           </button>

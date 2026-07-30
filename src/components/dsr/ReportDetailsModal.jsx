@@ -27,11 +27,11 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
             <h2 className="text-2xl font-bold text-slate-900">Report Details</h2>
             <p className="text-slate-500 text-sm mt-1">
               Date:{" "}
-              <span className="text-blue-700 font-bold">
+              <span className="text-accent-700 font-bold">
                 {report.dateString}
               </span>{" "}
               | Reporter:{" "}
-              <span className="text-blue-700 font-bold ml-1">
+              <span className="text-accent-700 font-bold ml-1">
                 {report.reporter || "Unknown"}
               </span>
             </p>
@@ -66,7 +66,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                 <p className="text-xs text-slate-500 uppercase tracking-wider">
                   Card Sale
                 </p>
-                <p className="text-xl font-bold text-blue-700">
+                <p className="text-xl font-bold text-accent-700">
                   {money(report.cardSalePOS)}
                 </p>
               </div>
@@ -212,7 +212,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                       </p>
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Online:</span>
-                        <span className="text-blue-700 font-mono">
+                        <span className="text-accent-700 font-mono">
                           {money(data.online)}
                         </span>
                       </div>
@@ -224,7 +224,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Card:</span>
-                        <span className="text-violet-700 font-mono">
+                        <span className="text-accent-700 font-mono">
                           {money(data.card)}
                         </span>
                       </div>
@@ -272,7 +272,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                       ))}
                       <div className="flex items-center justify-between gap-3 text-sm border-t border-slate-200 mt-1 pt-1">
                         <span className="text-slate-500">Total</span>
-                        <span className="font-mono text-indigo-700 font-bold">
+                        <span className="font-mono text-accent-700 font-bold">
                           {total}
                         </span>
                       </div>
@@ -293,7 +293,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                         key={idx}
                         className="flex justify-between items-center bg-slate-100 px-2 py-1.5 rounded text-sm"
                       >
-                        <span className="text-indigo-700 font-bold">
+                        <span className="text-accent-700 font-bold">
                           {c.percentage}%
                         </span>
                         <span className="text-slate-500">

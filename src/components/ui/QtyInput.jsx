@@ -6,8 +6,8 @@ import React from "react";
 export default function QtyInput({ value, onChange, disabled, label, accent }) {
   const display = value === 0 || value === "0" ? "" : value;
   const ring = accent
-    ? "focus:ring-sky-500 border-slate-600"
-    : "focus:ring-sky-500 border-slate-600";
+    ? "focus:ring-accent-500 border-slate-600"
+    : "focus:ring-accent-500 border-slate-600";
   return (
     <label className="flex flex-col gap-1">
       {label && (

@@ -16,7 +16,7 @@ export default function RadioGroup({ label, value, onChange, error }) {
                 value={opt} 
                 checked={value === opt} 
                 onChange={(e) => onChange(e.target.value)}
-                className="w-4 h-4 text-blue-600 bg-white border-slate-300 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                className="w-4 h-4 text-accent-600 bg-white border-slate-300 focus:ring-accent-500 focus:ring-2 cursor-pointer"
               />
               <span className="text-sm text-slate-800">{opt}</span>
             </label>

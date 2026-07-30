@@ -33,7 +33,7 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
 
   return (
     <div
-      className={`rounded-xl border transition ${on ? "bg-teal-50/70 border-teal-200" : "bg-white border-slate-200"}`}
+      className={`rounded-xl border transition ${on ? "bg-accent-50/70 border-accent-200" : "bg-white border-slate-200"}`}
     >
       <div className="flex items-center gap-3 py-2.5 pl-3 pr-2">
         <div className="min-w-0 flex-1">
@@ -61,8 +61,8 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
             onChange={(e) => setQty(e.target.value)}
             onBlur={() => commit(qty, note)}
             placeholder="0"
-            className={`h-10 w-14 text-center rounded-lg bg-white border text-slate-900 text-base outline-none focus:ring-2 focus:ring-teal-500 ${
-              on ? "border-teal-400 font-semibold" : "border-slate-300"
+            className={`h-10 w-14 text-center rounded-lg bg-white border text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500 ${
+              on ? "border-accent-400 font-semibold" : "border-slate-300"
             }`}
           />
           <button
@@ -85,7 +85,7 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
             onChange={(e) => setNote(e.target.value)}
             onBlur={() => commit(qty, note)}
             placeholder={t("notePlaceholder")}
-            className="w-full text-sm px-3 py-2 rounded-lg bg-white border border-teal-200 text-slate-700 outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full text-sm px-3 py-2 rounded-lg bg-white border border-accent-200 text-slate-700 outline-none focus:ring-2 focus:ring-accent-500"
           />
         </div>
       )}

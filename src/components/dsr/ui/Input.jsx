@@ -17,7 +17,7 @@ export default function Input({ label, type = "number", value, onChange, require
             ? 'border-red-500 ring-1 ring-red-500 text-slate-900 placeholder-red-400/50' 
             : readOnly 
               ? 'border-slate-200 text-slate-400 focus:ring-transparent cursor-not-allowed' 
-              : 'border-slate-300 text-slate-900 focus:ring-blue-500'
+              : 'border-slate-300 text-slate-900 focus:ring-accent-500'
           }`}
       />
       {error && <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">{error}</span>}

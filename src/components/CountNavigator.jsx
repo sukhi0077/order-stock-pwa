@@ -33,10 +33,10 @@ function Tile({ iconName, iconId, label, done, total, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-amber-300 hover:bg-amber-50/40 transition"
+      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
     >
       <div className="flex items-center gap-2">
-        <span className={complete ? "text-emerald-600" : "text-amber-600"}>
+        <span className={complete ? "text-emerald-600" : "text-accent-600"}>
           <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
         <span className="flex-1 min-w-0 text-base font-medium text-slate-800 leading-tight">
@@ -48,7 +48,7 @@ function Tile({ iconName, iconId, label, done, total, onClick }) {
       </div>
       <div className="mt-2.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${complete ? "bg-emerald-500" : "bg-amber-500"}`}
+          className={`h-full rounded-full transition-all ${complete ? "bg-emerald-500" : "bg-accent-500"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -141,7 +141,7 @@ export default function CountNavigator({
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       placeholder={t("searchItems")}
-      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-amber-500"
+      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
     />
   );
   const ResultRows = (
@@ -210,7 +210,7 @@ export default function CountNavigator({
               .map((cat) => (
                 <div key={cat} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                   <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
-                    <span className="text-amber-600">
+                    <span className="text-accent-600">
                       <CategoryIcon name={cat} icon={iconForCat[cat]} size={16} />
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -222,7 +222,7 @@ export default function CountNavigator({
                     .filter((sub) => (subProg[cat]?.[sub]?.done || 0) > 0)
                     .map((sub) => (
                       <div key={sub}>
-                        <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-amber-600/80">
+                        <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-accent-600/80">
                           {ts(sub)}
                         </div>
                         <div className="divide-y divide-slate-100">
@@ -237,7 +237,7 @@ export default function CountNavigator({
                                 >
                                   {ti(it.name, it)}
                                 </button>
-                                <span className="text-sm font-semibold text-amber-700 shrink-0 whitespace-nowrap">
+                                <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
                                   {num(counts[it.id])}{" "}
                                   <span className="text-[11px] text-slate-400 font-normal">{it.unit}</span>
                                 </span>
@@ -265,7 +265,7 @@ export default function CountNavigator({
           <button
             type="button"
             onClick={onSubmit}
-            className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold transition"
+            className="w-full py-3 rounded-xl bg-accent-500 hover:bg-accent-400 text-white font-bold transition"
           >
             {t("submitStock")}
           </button>
@@ -352,7 +352,7 @@ export default function CountNavigator({
         </div>
         <span
           className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-            sp.done === sp.total ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+            sp.done === sp.total ? "bg-emerald-100 text-emerald-700" : "bg-accent-100 text-accent-700"
           }`}
         >
           {sp.done}/{sp.total}
@@ -360,7 +360,7 @@ export default function CountNavigator({
       </div>
       <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${pct === 100 ? "bg-emerald-500" : "bg-amber-500"}`}
+          className={`h-full rounded-full transition-all ${pct === 100 ? "bg-emerald-500" : "bg-accent-500"}`}
           style={{ width: `${pct}%` }}
         />
       </div>

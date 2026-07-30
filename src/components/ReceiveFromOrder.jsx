@@ -35,8 +35,8 @@ function FilterChip({ active, onClick, small = false, children }) {
         small ? "text-[11px] px-2.5 py-1" : "text-xs font-semibold px-3 py-1.5"
       } ${
         active
-          ? "bg-blue-500 border-blue-500 text-white"
-          : "bg-white border-slate-200 text-slate-600 hover:border-blue-300"
+          ? "bg-accent-500 border-accent-500 text-white"
+          : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
       }`}
     >
       {children}
@@ -257,7 +257,7 @@ export default function ReceiveFromOrder({ items, batchesByItem, onAdd, onDelete
             key={o.id}
             type="button"
             onClick={() => setOpenId(o.id)}
-            className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-blue-300 hover:bg-blue-50/40 transition"
+            className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
           >
             <div className="flex items-center gap-2">
               <span className="flex-1 min-w-0 font-semibold text-slate-900 truncate">
@@ -265,7 +265,7 @@ export default function ReceiveFromOrder({ items, batchesByItem, onAdd, onDelete
               </span>
               <span
                 className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  complete ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-600"
+                  complete ? "bg-accent-100 text-accent-800" : "bg-slate-100 text-slate-600"
                 }`}
               >
                 {t("receivedOfOrdered", { done, total: ids.length })}

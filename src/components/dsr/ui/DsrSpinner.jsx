@@ -8,7 +8,7 @@ export default function Spinner({ label = "Loading…", className = "" }) {
       className={`flex flex-col items-center justify-center gap-3 text-slate-500 ${className}`}
     >
       <svg
-        className="w-10 h-10 animate-spin text-sky-700"
+        className="w-10 h-10 animate-spin text-accent-700"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

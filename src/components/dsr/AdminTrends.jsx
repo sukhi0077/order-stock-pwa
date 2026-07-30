@@ -126,7 +126,7 @@ function AdminTrends({ reports }) {
           </h3>
           <div className="text-xs text-slate-500">
             Total{" "}
-            <span className="text-sky-700 font-bold">{money(periodTotal)}</span>
+            <span className="text-accent-700 font-bold">{money(periodTotal)}</span>
             <span className="mx-1.5 text-slate-400">·</span>
             Avg/day <span className="text-slate-800 font-semibold">
               {money(avgDay)}
@@ -141,7 +141,7 @@ function AdminTrends({ reports }) {
         </div>
 
         {days.length === 1 ? (
-          <p className="text-3xl font-bold text-sky-700">
+          <p className="text-3xl font-bold text-accent-700">
             {money(days[0].total)}
             <span className="text-sm text-slate-500 font-medium ml-2">
               on {days[0].date}
@@ -153,10 +153,10 @@ function AdminTrends({ reports }) {
             <div className="relative flex items-end gap-1 h-44">
               {/* Average reference line (90% scale leaves headroom for labels) */}
               <div
-                className="absolute left-0 right-0 border-t border-dashed border-teal-200 z-10 pointer-events-none"
+                className="absolute left-0 right-0 border-t border-dashed border-accent-200 z-10 pointer-events-none"
                 style={{ bottom: `${(avgDay / maxDay) * 90}%` }}
               >
-                <span className="absolute -top-4 right-0 text-[9px] text-teal-700/80 font-semibold">
+                <span className="absolute -top-4 right-0 text-[9px] text-accent-700/80 font-semibold">
                   avg {money(avgDay)}
                 </span>
               </div>
@@ -174,7 +174,7 @@ function AdminTrends({ reports }) {
                     </span>
                   )}
                   <div
-                    className="w-full bg-sky-50 hover:bg-sky-400 rounded-t transition-colors"
+                    className="w-full bg-accent-50 hover:bg-accent-400 rounded-t transition-colors"
                     style={{
                       height: `${Math.max(2, (d.total / maxDay) * 90)}%`,
                     }}
@@ -205,7 +205,7 @@ function AdminTrends({ reports }) {
         <div className="space-y-3">
           {[
             { label: "Cash", value: pay.cash, bar: "bg-green-500" },
-            { label: "Card", value: pay.card, bar: "bg-blue-500" },
+            { label: "Card", value: pay.card, bar: "bg-accent-500" },
             { label: "Online", value: pay.online, bar: "bg-emerald-500" },
           ]
             .sort((a, b) => b.value - a.value)

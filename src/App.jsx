@@ -12,6 +12,7 @@ import { useBusinessDay } from "./hooks/useBusinessDay.js";
 import { useT } from "./i18n/i18n.jsx";
 import LangToggle from "./components/ui/LangToggle.jsx";
 import { useTheme } from "./theme/ThemeContext.jsx";
+import { accentVars } from "./theme/themes.js";
 
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
 // The Daily Sale Report is a big, self-contained screen — load it only when
@@ -41,6 +42,10 @@ export default function App() {
     const next = !isAdminView;
     setIsAdminView(next);
     sessionStorage.setItem("isAdminView", next);
+    // Leaving admin always lands on the staff home screen. Staying on whatever
+    // tile you were last on was disorienting — you tap StaffMode to step back
+    // out, not to resume a half-finished task.
+    if (!next) chooseMode("home");
   };
 
   if (isAuthLoading) {
@@ -61,7 +66,10 @@ export default function App() {
   // header, hence coloredHeader.
   const section = showAdmin ? "admin" : mode === "home" ? "orders" : mode;
   const sec = theme[section] || theme.orders;
-  const coloredHeader = showAdmin || ["receive", "stock", "dsr"].includes(mode);
+  // Every accent-* utility in the app resolves through these variables, so one
+  // assignment here recolours every page for the chosen scheme.
+  const accent = accentVars(sec.hue);
+  const coloredHeader = !sec.plainHeader;
   const showHomeBtn = !showAdmin && mode !== "home";
   const colBtn = coloredHeader
     ? "bg-white/20 border-white/30 text-white hover:bg-white/30"
@@ -81,12 +89,15 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans text-slate-900 ${sec.surface}`}
+      className={`min-h-screen font-sans text-slate-900 ${
+        sec.plainHeader ? "bg-slate-50" : "bg-accent-50"
+      }`}
+      style={accent}
     >
       {(!isOnline || pending > 0) && (
         <div
           className={`fixed top-0 left-0 w-full z-[60] text-center text-xs font-semibold py-1.5 ${
-            !isOnline ? "bg-amber-500 text-white" : "bg-teal-600 text-white"
+            !isOnline ? "bg-amber-500 text-white" : "bg-accent-600 text-white"
           }`}
         >
           {!isOnline
@@ -96,7 +107,9 @@ export default function App() {
       )}
 
       <header
-        className={`sticky top-0 z-50 backdrop-blur border-b ${sec.header}`}
+        className={`sticky top-0 z-50 backdrop-blur border-b ${
+          sec.plainHeader ? "bg-white/90 border-slate-200" : "bg-accent-600 border-accent-700"
+        }`}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-2 min-w-0">

@@ -2,65 +2,79 @@
 //
 // Three colour schemes the user can pick from on the home screen.
 //
-// Each scheme gives every SECTION of the app (orders / receive / stock / dsr /
-// admin) a hue, expressed as complete Tailwind class strings rather than a
-// colour name. That is deliberate: Tailwind compiles by scanning source text,
-// so `bg-${hue}-600` would never be generated. Every class below appears
-// literally, so it survives the build.
+// A scheme assigns a HUE to each section of the app (orders / receive / stock /
+// dsr / admin). At runtime the active section's hue is written to the
+// --accent-* CSS variables on the app root, and every component styles itself
+// with Tailwind's accent-* utilities (see the @theme block in index.css). That
+// is why switching scheme recolours every page rather than just the header:
+// nothing downstream names a hue.
 //
-// Amber, orange, red and pink are reserved for warning / error states and are
-// used here only where the section itself is amber in the Classic scheme.
+// Status colours are NOT part of a scheme. red / rose mean error, amber means
+// warning, emerald means success — those stay fixed so they keep their meaning.
 
-// One section's chrome: solid header, tinted page background, home-tile icon.
-const make = (header, headerBorder, surface, tile, hoverBorder, hoverBg) => ({
-  header: `${header} ${headerBorder}`,
-  surface,
-  tile,
-  hoverBorder,
-  hoverBg,
-});
+// Tailwind palette ramps, as plain hex so they can go straight into a style
+// attribute. Only the hues the schemes actually use are listed.
+const RAMPS = {
+  teal:   ["#f0fdfa","#ccfbf1","#99f6e4","#5eead4","#2dd4bf","#14b8a6","#0d9488","#0f766e","#115e59","#134e4a"],
+  blue:   ["#eff6ff","#dbeafe","#bfdbfe","#93c5fd","#60a5fa","#3b82f6","#2563eb","#1d4ed8","#1e40af","#1e3a8a"],
+  amber:  ["#fffbeb","#fef3c7","#fde68a","#fcd34d","#fbbf24","#f59e0b","#d97706","#b45309","#92400e","#78350f"],
+  violet: ["#f5f3ff","#ede9fe","#ddd6fe","#c4b5fd","#a78bfa","#8b5cf6","#7c3aed","#6d28d9","#5b21b6","#4c1d95"],
+  indigo: ["#eef2ff","#e0e7ff","#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5","#4338ca","#3730a3","#312e81"],
+  sky:    ["#f0f9ff","#e0f2fe","#bae6fd","#7dd3fc","#38bdf8","#0ea5e9","#0284c7","#0369a1","#075985","#0c4a6e"],
+  cyan:   ["#ecfeff","#cffafe","#a5f3fc","#67e8f9","#22d3ee","#06b6d4","#0891b2","#0e7490","#155e75","#164e63"],
+  slate:  ["#f8fafc","#f1f5f9","#e2e8f0","#cbd5e1","#94a3b8","#64748b","#475569","#334155","#1e293b","#0f172a"],
+};
+const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+
+// The --accent-* custom properties for one hue, ready for a style attribute.
+export function accentVars(hue) {
+  const ramp = RAMPS[hue] || RAMPS.teal;
+  return Object.fromEntries(SHADES.map((s, i) => [`--accent-${s}`, ramp[i]]));
+}
+
+// `plainHeader` keeps the white header on the two screens that have always had
+// it (home and the order builder); everywhere else the header takes the accent.
+const S = (hue, plainHeader = false) => ({ hue, plainHeader });
 
 export const THEMES = {
   classic: {
     id: "classic",
     label: "Classic",
-    // Swatches shown in the picker, in section order.
-    swatches: ["bg-teal-600", "bg-blue-600", "bg-amber-500", "bg-violet-600"],
-    orders: make("bg-white/90", "border-slate-200", "bg-slate-50", "bg-teal-600", "hover:border-teal-300", "hover:bg-teal-50/40"),
-    receive: make("bg-blue-600", "border-blue-700", "bg-blue-50", "bg-blue-600", "hover:border-blue-300", "hover:bg-blue-50/40"),
-    stock: make("bg-amber-500", "border-amber-600", "bg-amber-50", "bg-amber-500", "hover:border-amber-300", "hover:bg-amber-50/40"),
-    dsr: make("bg-violet-600", "border-violet-700", "bg-violet-50", "bg-violet-600", "hover:border-violet-300", "hover:bg-violet-50/40"),
-    admin: make("bg-indigo-600", "border-indigo-700", "bg-indigo-50", "bg-indigo-600", "hover:border-indigo-300", "hover:bg-indigo-50/40"),
+    orders: S("teal", true),
+    receive: S("blue"),
+    stock: S("amber"),
+    dsr: S("violet"),
+    admin: S("indigo"),
   },
-
   ocean: {
     id: "ocean",
     label: "Ocean",
-    swatches: ["bg-teal-600", "bg-sky-600", "bg-cyan-700", "bg-indigo-600"],
-    orders: make("bg-white/90", "border-slate-200", "bg-slate-50", "bg-teal-600", "hover:border-teal-300", "hover:bg-teal-50/40"),
-    receive: make("bg-sky-600", "border-sky-700", "bg-sky-50", "bg-sky-600", "hover:border-sky-300", "hover:bg-sky-50/40"),
-    stock: make("bg-cyan-700", "border-cyan-800", "bg-cyan-50", "bg-cyan-700", "hover:border-cyan-300", "hover:bg-cyan-50/40"),
-    dsr: make("bg-indigo-600", "border-indigo-700", "bg-indigo-50", "bg-indigo-600", "hover:border-indigo-300", "hover:bg-indigo-50/40"),
-    admin: make("bg-slate-700", "border-slate-800", "bg-slate-100", "bg-slate-700", "hover:border-slate-400", "hover:bg-slate-100"),
+    orders: S("teal", true),
+    receive: S("sky"),
+    stock: S("cyan"),
+    dsr: S("indigo"),
+    admin: S("slate"),
   },
-
-  // Monochrome: one hue, sections separated by weight rather than colour.
-  // Nothing here can be mistaken for a status colour.
+  // Monochrome: sections separated by weight rather than hue. Nothing in this
+  // scheme can be mistaken for a status colour.
   graphite: {
     id: "graphite",
     label: "Graphite",
-    swatches: ["bg-slate-900", "bg-slate-700", "bg-slate-500", "bg-slate-400"],
-    orders: make("bg-white/90", "border-slate-200", "bg-slate-50", "bg-slate-900", "hover:border-slate-400", "hover:bg-slate-100"),
-    receive: make("bg-slate-700", "border-slate-800", "bg-slate-100", "bg-slate-700", "hover:border-slate-400", "hover:bg-slate-100"),
-    stock: make("bg-slate-500", "border-slate-600", "bg-slate-100", "bg-slate-500", "hover:border-slate-400", "hover:bg-slate-100"),
-    dsr: make("bg-slate-800", "border-slate-900", "bg-slate-100", "bg-slate-800", "hover:border-slate-400", "hover:bg-slate-100"),
-    admin: make("bg-slate-900", "border-black", "bg-slate-100", "bg-slate-900", "hover:border-slate-400", "hover:bg-slate-100"),
+    orders: S("slate", true),
+    receive: S("slate"),
+    stock: S("slate"),
+    dsr: S("slate"),
+    admin: S("slate"),
   },
 };
 
-export const THEME_IDS = Object.keys(THEMES);
-export const DEFAULT_THEME = "classic";
+// Swatches for the picker: one dot per section, in home-tile order.
+export const SECTIONS = ["dsr", "orders", "receive", "stock"];
+export function swatchesFor(theme) {
+  return SECTIONS.map((s) => (RAMPS[theme[s].hue] || RAMPS.teal)[6]);
+}
 
+export const DEFAULT_THEME = "classic";
 export function getTheme(id) {
   return THEMES[id] || THEMES[DEFAULT_THEME];
 }

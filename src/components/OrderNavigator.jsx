@@ -24,10 +24,10 @@ function Tile({ iconName, iconId, label, onOrder, total, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-teal-300 hover:bg-teal-50/40 transition"
+      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
     >
       <div className="flex items-center gap-2">
-        <span className="text-teal-600">
+        <span className="text-accent-600">
           <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
         <span className="flex-1 min-w-0 text-base font-medium text-slate-800 leading-tight">
@@ -38,9 +38,9 @@ function Tile({ iconName, iconId, label, onOrder, total, onClick }) {
         </span>
       </div>
       <div className="mt-2.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-        <div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-accent-500 transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <div className={`mt-1.5 text-[11px] font-medium ${has ? "text-teal-600" : "text-slate-400"}`}>
+      <div className={`mt-1.5 text-[11px] font-medium ${has ? "text-accent-600" : "text-slate-400"}`}>
         {has ? t("onOrderN", { n: onOrder }) : t("noneYet")}
       </div>
     </button>
@@ -73,7 +73,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       placeholder={t("searchItems")}
-      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-teal-500"
+      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
     />
   );
 
@@ -189,7 +189,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
             {orderedKeys(Object.keys(orderedByCat), CATEGORY_ORDER).map((cat) => (
               <div key={cat} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
-                  <span className="text-teal-600">
+                  <span className="text-accent-600">
                     <CategoryIcon name={cat} icon={iconForCat[cat]} size={16} />
                   </span>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -199,7 +199,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
                 </div>
                 {orderedKeys(Object.keys(orderedByCat[cat]), SUBCATEGORY_ORDER[cat] || []).map((sub) => (
                   <div key={sub}>
-                    <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-teal-600/80">
+                    <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-accent-600/80">
                       {ts(sub)}
                     </div>
                     <div className="divide-y divide-slate-100">
@@ -225,7 +225,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
                                 <div className="text-[11px] text-slate-400 truncate">{line.note}</div>
                               )}
                             </button>
-                            <span className="text-sm font-semibold text-teal-700 shrink-0 whitespace-nowrap">
+                            <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
                               {num(line.qty)}{" "}
                               <span className="text-[11px] text-slate-400 font-normal">
                                 {orderUnitOf(item)}
@@ -255,7 +255,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
             type="button"
             onClick={onSubmit}
             disabled={busy}
-            className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold disabled:opacity-50 transition"
+            className="w-full py-3 rounded-xl bg-accent-600 hover:bg-accent-500 text-white font-bold disabled:opacity-50 transition"
           >
             {t("submitOrder")}
           </button>
@@ -327,7 +327,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
           <div className="text-[11px] text-slate-400 truncate">{tc(cat)}</div>
           <div className="text-base font-bold text-slate-900 leading-tight truncate">{ts(sub)}</div>
         </div>
-        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
+        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700">
           {t("onOrderN", { n: sp.onOrder })}
         </span>
       </div>

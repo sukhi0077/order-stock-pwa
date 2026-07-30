@@ -26,10 +26,10 @@ function Tile({ iconName, iconId, label, count, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-blue-300 hover:bg-blue-50/40 transition"
+      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
     >
       <div className="flex items-center gap-2">
-        <span className="text-blue-600">
+        <span className="text-accent-600">
           <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
         <span className="flex-1 min-w-0 text-base font-medium text-slate-800 leading-tight">
@@ -39,7 +39,7 @@ function Tile({ iconName, iconId, label, count, onClick }) {
           ›
         </span>
       </div>
-      <div className={`mt-2 text-[11px] font-medium ${has ? "text-blue-700" : "text-slate-400"}`}>
+      <div className={`mt-2 text-[11px] font-medium ${has ? "text-accent-700" : "text-slate-400"}`}>
         {has ? t("receivedCount", { n: count }) : t("noneYet")}
       </div>
     </button>
@@ -134,7 +134,7 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       placeholder={t("searchItems")}
-      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-blue-500"
+      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
     />
   );
   const ResultRows = (
