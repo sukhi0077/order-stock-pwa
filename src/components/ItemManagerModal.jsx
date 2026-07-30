@@ -14,7 +14,7 @@ function Chip({ active, onClick, children }) {
       className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
         active
           ? "bg-accent-600 border-accent-600 text-white"
-          : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
+          : "bg-n-0 border-n-200 text-n-600 hover:border-accent-300"
       }`}
     >
       {children}
@@ -48,7 +48,7 @@ function OrderTypeField({ item, options, onSave }) {
         if (v !== saved) onSave(item.id, v);
       }}
       aria-label={t("orderType")}
-      className="flex-1 min-w-0 text-xs px-2 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 outline-none focus:ring-2 focus:ring-accent-500"
+      className="flex-1 min-w-0 text-xs px-2 py-1.5 rounded-lg bg-n-0 border border-n-300 text-n-700 outline-none focus:ring-2 focus:ring-accent-500"
     >
       <option value="">{t("orderTypeNone")}</option>
       {options.map((o) => (
@@ -103,12 +103,12 @@ export default function ItemManagerModal({ items, onBack }) {
       <div className="flex items-center gap-3 mb-3">
         <button
           onClick={onBack}
-          className="h-9 w-9 grid place-items-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+          className="h-9 w-9 grid place-items-center rounded-lg bg-n-0 border border-n-200 text-n-500 hover:bg-n-50"
           aria-label="back"
         >
           ‹
         </button>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">{t("manageItems")}</h1>
+        <h1 className="text-xl font-bold text-n-900 tracking-tight">{t("manageItems")}</h1>
       </div>
 
       {/* A failed save (e.g. the order_type column is missing in Supabase)
@@ -119,14 +119,14 @@ export default function ItemManagerModal({ items, onBack }) {
         </div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-2xl">
-        <div className="px-4 py-2 border-b border-slate-200 space-y-2 sticky top-14 bg-white z-10">
+      <div className="bg-n-0 border border-n-200 rounded-2xl">
+        <div className="px-4 py-2 border-b border-n-200 space-y-2 sticky top-14 bg-n-0 z-10">
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("searchItems")}
-            className="w-full p-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-sm outline-none focus:ring-2 focus:ring-accent-500"
+            className="w-full p-2 rounded-lg bg-n-0 border border-n-300 text-n-900 text-sm outline-none focus:ring-2 focus:ring-accent-500"
           />
           {/* Quick category filter */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
@@ -167,7 +167,7 @@ export default function ItemManagerModal({ items, onBack }) {
           )}
         </div>
 
-        <div className="px-4 py-2 divide-y divide-slate-100">
+        <div className="px-4 py-2 divide-y divide-n-100">
           {filtered.map((item) => {
             const masterOff = item.globalActive === false; // disabled in SupplyTracker
             const localOff = item.ospActive === false; // disabled here only
@@ -177,24 +177,24 @@ export default function ItemManagerModal({ items, onBack }) {
               <div key={item.id} className={`py-2 ${unavailable ? "opacity-60" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium break-words ${unavailable ? "text-slate-400 line-through" : "text-slate-800"}`}>
+                    <div className={`text-sm font-medium break-words ${unavailable ? "text-n-400 line-through" : "text-n-800"}`}>
                       {ti(item.name, item)}
                     </div>
-                    <div className="text-[11px] text-slate-400 truncate">
+                    <div className="text-[11px] text-n-400 truncate">
                       {tc(item.category)} · {ts(item.subCategory)} · {item.unit}
                     </div>
                   </div>
                   {masterOff && (
                     <span
                       title="Disabled in SupplyTracker (master). Re-enable it there."
-                      className="shrink-0 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                      className="shrink-0 rounded bg-n-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-n-500"
                     >
                       master
                     </span>
                   )}
                   <span
                     className={`text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
-                      inactive ? "text-slate-400" : "text-accent-600"
+                      inactive ? "text-n-400" : "text-accent-600"
                     }`}
                   >
                     {inactive ? t("off") : t("on")}
@@ -207,27 +207,27 @@ export default function ItemManagerModal({ items, onBack }) {
                     aria-label={inactive ? t("reactivate") : t("deactivate")}
                     onClick={() => setActive.mutate({ id: item.id, active: inactive })}
                     className={`relative h-6 w-11 rounded-full shrink-0 transition ${
-                      masterOff ? "cursor-not-allowed bg-slate-200" : inactive ? "bg-slate-300" : "bg-accent-500"
+                      masterOff ? "cursor-not-allowed bg-n-200" : inactive ? "bg-n-300" : "bg-accent-500"
                     }`}
                   >
                     <span
-                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-n-0 shadow transition-all ${
                         inactive ? "left-0.5" : "left-[22px]"
                       }`}
                     />
                   </button>
                 </div>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 shrink-0">{t("orderType")}</span>
+                  <span className="text-[11px] text-n-400 shrink-0">{t("orderType")}</span>
                   <OrderTypeField item={item} options={orderTypeOptions} onSave={saveOrderType} />
                 </div>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 shrink-0">{t("orderUnit")}</span>
+                  <span className="text-[11px] text-n-400 shrink-0">{t("orderUnit")}</span>
                   {(() => {
                     const base = item.unit || "";
                     const ou = item.orderUnit || item.unit || "";
                     if (base === "pack")
-                      return <span className="text-[11px] text-slate-500">pack</span>;
+                      return <span className="text-[11px] text-n-500">pack</span>;
                     return (
                       <div className="inline-flex rounded-lg border border-accent-200 overflow-hidden">
                         {[base, "pack"].map((u) => (
@@ -237,7 +237,7 @@ export default function ItemManagerModal({ items, onBack }) {
                             onClick={() => saveOrderUnit(item.id, u)}
                             aria-pressed={ou === u}
                             className={`text-[11px] font-semibold px-2.5 py-1 transition ${
-                              ou === u ? "bg-accent-600 text-white" : "bg-white text-slate-500"
+                              ou === u ? "bg-accent-600 text-white" : "bg-n-0 text-n-500"
                             }`}
                           >
                             {u}
@@ -251,7 +251,7 @@ export default function ItemManagerModal({ items, onBack }) {
             );
           })}
           {filtered.length === 0 && (
-            <p className="py-6 text-center text-slate-400 text-sm">{t("noItemsFound")}</p>
+            <p className="py-6 text-center text-n-400 text-sm">{t("noItemsFound")}</p>
           )}
         </div>
       </div>

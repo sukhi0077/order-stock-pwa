@@ -428,9 +428,9 @@ export default function AdminDashboard() {
   // --- RENDER EDIT MODAL (Full Form View) ---
   if (editingRecord) {
     return (
-      <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
-        <div className="sticky top-0 bg-slate-100 p-4 shadow-md z-10 flex justify-between items-center border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">
+      <div className="fixed inset-0 bg-n-0 z-50 overflow-y-auto">
+        <div className="sticky top-0 bg-n-100 p-4 shadow-md z-10 flex justify-between items-center border-b border-n-200">
+          <h2 className="text-xl font-bold text-n-900">
             Editing Report: {editingRecord.dateString}
           </h2>
           <button
@@ -458,9 +458,9 @@ export default function AdminDashboard() {
   // --- RENDER ADD-NEW (Past-day) FORM ---
   if (isAddingNew) {
     return (
-      <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
-        <div className="sticky top-0 bg-slate-100 p-4 shadow-md z-10 flex justify-between items-center border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Add Report</h2>
+      <div className="fixed inset-0 bg-n-0 z-50 overflow-y-auto">
+        <div className="sticky top-0 bg-n-100 p-4 shadow-md z-10 flex justify-between items-center border-b border-n-200">
+          <h2 className="text-xl font-bold text-n-900">Add Report</h2>
           <button
             onClick={() => setIsAddingNew(false)}
             className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold"
@@ -506,10 +506,10 @@ export default function AdminDashboard() {
             : `${fmtUTC(startDate)} to ${fmtUTC(endDate)}`;
 
   const pickerInputClass =
-    "bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-accent-500";
+    "bg-n-0 border border-n-200 rounded-lg px-2.5 py-1.5 text-sm text-n-900 focus:outline-none focus:border-accent-500";
 
   return (
-    <div className="px-4 md:px-8 pb-8 pt-28 max-w-6xl mx-auto text-slate-900">
+    <div className="px-4 md:px-8 pb-8 pt-28 max-w-6xl mx-auto text-n-900">
       {/* Read-Only Details Modal */}
       <ReportDetailsModal
         report={viewingRecord}
@@ -524,11 +524,11 @@ export default function AdminDashboard() {
       {/* 1. HEADER & CONTROLS — minimal monoline: date + actions, then filters */}
       <div className="flex flex-col gap-4 mb-10">
         {/* Top line: date nav (left) + action links (right) */}
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-slate-200 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-n-200 pb-4">
           {/* Date nav, or manual range in Custom mode */}
           {viewMode === "Custom" ? (
             <div className="flex items-center flex-wrap gap-2">
-              <span className="text-sm text-slate-500">From</span>
+              <span className="text-sm text-n-500">From</span>
               <input
                 type="date"
                 value={customStart}
@@ -536,7 +536,7 @@ export default function AdminDashboard() {
                 onChange={(e) => setCustomStart(e.target.value)}
                 className={pickerInputClass}
               />
-              <span className="text-sm text-slate-500">To</span>
+              <span className="text-sm text-n-500">To</span>
               <input
                 type="date"
                 value={customEnd}
@@ -550,17 +550,17 @@ export default function AdminDashboard() {
               <button
                 onClick={handlePrev}
                 aria-label="Previous period"
-                className="text-slate-400 hover:text-slate-900 text-xl leading-none transition"
+                className="text-n-400 hover:text-n-900 text-xl leading-none transition"
               >
                 &larr;
               </button>
-              <span className="text-lg font-semibold tracking-tight text-slate-900">
+              <span className="text-lg font-semibold tracking-tight text-n-900">
                 {dateDisplay}
               </span>
               <button
                 onClick={handleNext}
                 aria-label="Next period"
-                className="text-slate-400 hover:text-slate-900 text-xl leading-none transition"
+                className="text-n-400 hover:text-n-900 text-xl leading-none transition"
               >
                 &rarr;
               </button>
@@ -577,20 +577,20 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setIsManagingStaff(true)}
-              className="text-slate-700 hover:text-slate-900 transition"
+              className="text-n-700 hover:text-n-900 transition"
             >
               Manage Staff
             </button>
             <button
               onClick={handleDownloadCsv}
               disabled={isExporting}
-              className="text-slate-700 hover:text-slate-900 transition disabled:opacity-50"
+              className="text-n-700 hover:text-n-900 transition disabled:opacity-50"
             >
               {isExporting ? "Preparing…" : "Export"}
             </button>
             <button
               onClick={() => setIsGlobalEditMode(!isGlobalEditMode)}
-              className={`transition ${isGlobalEditMode ? "text-amber-700" : "text-slate-500 hover:text-slate-900"}`}
+              className={`transition ${isGlobalEditMode ? "text-amber-700" : "text-n-500 hover:text-n-900"}`}
             >
               {isGlobalEditMode ? "Editing" : "Read only"}
             </button>
@@ -603,7 +603,7 @@ export default function AdminDashboard() {
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
-              className={`transition ${viewMode === mode ? "text-slate-900" : "text-slate-400 hover:text-slate-700"}`}
+              className={`transition ${viewMode === mode ? "text-n-900" : "text-n-400 hover:text-n-700"}`}
             >
               {mode}
             </button>
@@ -652,13 +652,13 @@ export default function AdminDashboard() {
             custom: (
               <span className="text-accent-700">
                 {totalCouponsGiven}
-                <span className="text-xs font-medium text-slate-500">
+                <span className="text-xs font-medium text-n-500">
                   {" "}
                   given
                 </span>
-                <span className="text-slate-400"> · </span>
+                <span className="text-n-400"> · </span>
                 {totalCouponsReceived}
-                <span className="text-xs font-medium text-slate-500">
+                <span className="text-xs font-medium text-n-500">
                   {" "}
                   rcvd
                 </span>
@@ -666,10 +666,10 @@ export default function AdminDashboard() {
             ),
           },
         ].map((card) => (
-          <div key={card.label} className="bg-slate-50 p-5 rounded-xl">
+          <div key={card.label} className="bg-n-50 p-5 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
               <span className={`h-2 w-2 rounded-full ${card.dot}`} />
-              <h3 className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+              <h3 className="text-n-500 text-xs font-medium uppercase tracking-wider">
                 {card.label}
               </h3>
             </div>
@@ -686,12 +686,12 @@ export default function AdminDashboard() {
 
       {/* 2b. GOOGLE-REVIEW COUPONS BY STAFF (per-member sum for this period) */}
       {!isLoading && !isError && couponsByStaff.length > 0 && (
-        <div className="bg-slate-100 rounded-xl border border-slate-200 p-5 mb-10">
+        <div className="bg-n-100 rounded-xl border border-n-200 p-5 mb-10">
           <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-800">
+            <h3 className="text-sm font-semibold text-n-800">
               Google-review coupons by staff
             </h3>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-n-400">
               {viewMode} total ·{" "}
               <span className="text-accent-700 font-mono">
                 {couponsByStaff.reduce((s, e) => s + e.count, 0)}
@@ -702,9 +702,9 @@ export default function AdminDashboard() {
             {couponsByStaff.map((e) => (
               <div
                 key={e.name}
-                className="flex items-center justify-between gap-2 bg-white rounded-lg border border-slate-200 px-3 py-2"
+                className="flex items-center justify-between gap-2 bg-n-0 rounded-lg border border-n-200 px-3 py-2"
               >
-                <span className="text-sm text-slate-700 truncate">
+                <span className="text-sm text-n-700 truncate">
                   {e.name}
                 </span>
                 <span className="text-sm font-bold font-mono text-accent-700">
@@ -722,7 +722,7 @@ export default function AdminDashboard() {
       )}
 
       {/* 4. DATA TABLE */}
-      <div className="bg-slate-100 rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-n-100 rounded-xl border border-n-200 overflow-hidden">
         {isLoading ? (
           <div className="p-10">
             <Spinner label="Loading reports…" />
@@ -732,39 +732,39 @@ export default function AdminDashboard() {
             Couldn't load reports. Check your connection and try again.
           </div>
         ) : reports.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">
+          <div className="p-8 text-center text-n-500">
             No reports found for this period.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
-                <tr className="bg-white border-b border-slate-200">
-                  <th className="p-4 font-semibold text-slate-700">Date</th>
-                  <th className="p-4 font-semibold text-slate-700">Reporter</th>
-                  <th className="p-4 font-semibold text-slate-700">
+                <tr className="bg-n-0 border-b border-n-200">
+                  <th className="p-4 font-semibold text-n-700">Date</th>
+                  <th className="p-4 font-semibold text-n-700">Reporter</th>
+                  <th className="p-4 font-semibold text-n-700">
                     Total Sale
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-green-700">
+                  <th className="p-4 font-semibold text-n-700 text-green-700">
                     Cash
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-accent-700">
+                  <th className="p-4 font-semibold text-n-700 text-accent-700">
                     Card
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-emerald-700">
+                  <th className="p-4 font-semibold text-n-700 text-emerald-700">
                     Bank Transfer
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-accent-700">
+                  <th className="p-4 font-semibold text-n-700 text-accent-700">
                     Coupons given
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-accent-700">
+                  <th className="p-4 font-semibold text-n-700 text-accent-700">
                     Coupons Rcvd
                   </th>
-                  <th className="p-4 font-semibold text-slate-700">
+                  <th className="p-4 font-semibold text-n-700">
                     Cash in Box
                   </th>
-                  <th className="p-4 font-semibold text-slate-700">Status</th>
-                  <th className="p-4 font-semibold text-center text-slate-700">
+                  <th className="p-4 font-semibold text-n-700">Status</th>
+                  <th className="p-4 font-semibold text-center text-n-700">
                     Actions
                   </th>
                 </tr>
@@ -773,13 +773,13 @@ export default function AdminDashboard() {
                 {reports.map((report) => (
                   <tr
                     key={report.id}
-                    className="border-b border-slate-200 hover:bg-slate-50 transition"
+                    className="border-b border-n-200 hover:bg-n-50 transition"
                   >
-                    <td className="p-4 text-slate-700">{report.dateString}</td>
-                    <td className="p-4 font-medium text-slate-900">
+                    <td className="p-4 text-n-700">{report.dateString}</td>
+                    <td className="p-4 font-medium text-n-900">
                       {report.reporter || "Unknown"}
                     </td>
-                    <td className="p-4 text-slate-700">
+                    <td className="p-4 text-n-700">
                       {money(report.totalSalePOS)}
                     </td>
                     <td className="p-4 text-green-700">
@@ -858,7 +858,7 @@ export default function AdminDashboard() {
                         ) : (
                           <span
                             title="Reports older than 2 months can't be edited"
-                            className="px-3 py-1 text-slate-400 border border-slate-200 rounded text-sm cursor-not-allowed"
+                            className="px-3 py-1 text-n-400 border border-n-200 rounded text-sm cursor-not-allowed"
                           >
                             🔒 Locked
                           </span>

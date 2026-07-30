@@ -13,19 +13,19 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
   // full-screen fixed overlay, and hide the Close button.
   const wrapperClass = embedded
     ? ""
-    : "fixed inset-0 bg-white/95 backdrop-blur-sm z-[100] overflow-y-auto p-4 md:p-8";
+    : "fixed inset-0 bg-n-0/95 backdrop-blur-sm z-[100] overflow-y-auto p-4 md:p-8";
   const innerClass = embedded
-    ? "bg-slate-100 rounded-2xl border border-slate-200 shadow-2xl overflow-hidden"
-    : "max-w-4xl mx-auto bg-slate-100 rounded-2xl border border-slate-200 shadow-2xl overflow-hidden";
+    ? "bg-n-100 rounded-2xl border border-n-200 shadow-2xl overflow-hidden"
+    : "max-w-4xl mx-auto bg-n-100 rounded-2xl border border-n-200 shadow-2xl overflow-hidden";
 
   return (
     <div className={wrapperClass}>
       <div className={innerClass}>
         {/* Header */}
-        <div className="bg-white p-6 border-b border-slate-200 flex justify-between items-center sticky top-0 z-10">
+        <div className="bg-n-0 p-6 border-b border-n-200 flex justify-between items-center sticky top-0 z-10">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Report Details</h2>
-            <p className="text-slate-500 text-sm mt-1">
+            <h2 className="text-2xl font-bold text-n-900">Report Details</h2>
+            <p className="text-n-500 text-sm mt-1">
               Date:{" "}
               <span className="text-accent-700 font-bold">
                 {report.dateString}
@@ -39,7 +39,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
           {!embedded && (
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-slate-200 hover:bg-slate-200 text-slate-900 rounded-lg font-bold transition"
+              className="px-4 py-2 bg-n-200 hover:bg-n-200 text-n-900 rounded-lg font-bold transition"
             >
               ✕ Close
             </button>
@@ -50,28 +50,28 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
         <div className="p-6 md:p-8 space-y-8">
           {/* POS Summary */}
           <section>
-            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-n-700 border-b border-n-200 pb-2 mb-4">
               POS Summary
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-500 uppercase tracking-wider">
+              <div className="bg-n-0 p-4 rounded-xl border border-n-200">
+                <p className="text-xs text-n-500 uppercase tracking-wider">
                   Total Sale
                 </p>
-                <p className="text-xl font-bold text-slate-900">
+                <p className="text-xl font-bold text-n-900">
                   {money(report.totalSalePOS)}
                 </p>
               </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-500 uppercase tracking-wider">
+              <div className="bg-n-0 p-4 rounded-xl border border-n-200">
+                <p className="text-xs text-n-500 uppercase tracking-wider">
                   Card Sale
                 </p>
                 <p className="text-xl font-bold text-accent-700">
                   {money(report.cardSalePOS)}
                 </p>
               </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-500 uppercase tracking-wider">
+              <div className="bg-n-0 p-4 rounded-xl border border-n-200">
+                <p className="text-xs text-n-500 uppercase tracking-wider">
                   Cash Sale
                 </p>
                 <p className="text-xl font-bold text-green-700">
@@ -79,9 +79,9 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                 </p>
               </div>
               <div
-                className={`p-4 rounded-xl border ${report.onlineSaleMismatch ? "bg-red-50 border-red-200" : "bg-white border-slate-200"}`}
+                className={`p-4 rounded-xl border ${report.onlineSaleMismatch ? "bg-red-50 border-red-200" : "bg-n-0 border-n-200"}`}
               >
-                <p className="text-xs text-slate-500 uppercase tracking-wider">
+                <p className="text-xs text-n-500 uppercase tracking-wider">
                   Online Sale
                 </p>
                 <p
@@ -108,22 +108,22 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
 
           {/* Cash Drawer Details */}
           <section>
-            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-n-700 border-b border-n-200 pb-2 mb-4">
               Cash Drawer
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="bg-white p-4 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-500 uppercase tracking-wider">
+              <div className="bg-n-0 p-4 rounded-xl border border-n-200">
+                <p className="text-xs text-n-500 uppercase tracking-wider">
                   Opening Cash (carried over)
                 </p>
-                <p className="text-lg font-bold text-slate-900">
+                <p className="text-lg font-bold text-n-900">
                   {money(report.cashFromYesterday)}
                 </p>
               </div>
               <div
                 className={`p-4 rounded-xl border ${report.cashMismatch ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}
               >
-                <p className="text-xs text-slate-500 uppercase tracking-wider">
+                <p className="text-xs text-n-500 uppercase tracking-wider">
                   Reported Cash in Box
                 </p>
                 <p
@@ -154,8 +154,8 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
               ].sort((a, b) => (a.ts || 0) - (b.ts || 0));
               if (adjustments.length === 0) return null;
               return (
-                <div className="bg-white p-4 rounded-xl border border-slate-200">
-                  <p className="text-sm font-semibold text-slate-700 mb-2">
+                <div className="bg-n-0 p-4 rounded-xl border border-n-200">
+                  <p className="text-sm font-semibold text-n-700 mb-2">
                     Cash Adjustments:
                   </p>
                   <ul className="space-y-2">
@@ -170,14 +170,14 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                       return (
                         <li
                           key={idx}
-                          className="flex items-center gap-2 bg-slate-100 p-2 rounded"
+                          className="flex items-center gap-2 bg-n-100 p-2 rounded"
                         >
                           <span
                             className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full font-bold border ${chip}`}
                           >
                             {taken ? "−" : "+"}
                           </span>
-                          <span className="flex-1 min-w-0 text-slate-700 truncate">
+                          <span className="flex-1 min-w-0 text-n-700 truncate">
                             {item.reason}
                           </span>
                           <span className={`font-bold font-mono ${amtColor}`}>
@@ -195,7 +195,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
 
           {/* Delivery Platforms */}
           <section>
-            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-n-700 border-b border-n-200 pb-2 mb-4">
               Delivery Breakdown
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -205,25 +205,25 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                   return (
                     <div
                       key={platform}
-                      className="bg-white p-4 rounded-xl border border-slate-200"
+                      className="bg-n-0 p-4 rounded-xl border border-n-200"
                     >
-                      <p className="text-sm font-bold text-slate-800 mb-2">
+                      <p className="text-sm font-bold text-n-800 mb-2">
                         {platform}
                       </p>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Online:</span>
+                        <span className="text-n-500">Online:</span>
                         <span className="text-accent-700 font-mono">
                           {money(data.online)}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Cash:</span>
+                        <span className="text-n-500">Cash:</span>
                         <span className="text-green-700 font-mono">
                           {money(data.cash)}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Card:</span>
+                        <span className="text-n-500">Card:</span>
                         <span className="text-accent-700 font-mono">
                           {money(data.card)}
                         </span>
@@ -236,12 +236,12 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
 
           {/* Coupons */}
           <section>
-            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-n-700 border-b border-n-200 pb-2 mb-4">
               Coupons
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white p-4 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+              <div className="bg-n-0 p-4 rounded-xl border border-n-200">
+                <p className="text-xs text-n-500 uppercase tracking-wider mb-1">
                   Given (Google Review)
                 </p>
                 {(() => {
@@ -249,7 +249,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                   // already resolved to names by the repository.
                   const entries = report.couponsGiven || [];
                   if (entries.length === 0) {
-                    return <span className="text-slate-400 italic">None</span>;
+                    return <span className="text-n-400 italic">None</span>;
                   }
                   const total = entries.reduce(
                     (s, e) => s + (Number(e.count) || 0),
@@ -262,16 +262,16 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                           key={e.name}
                           className="flex items-center justify-between gap-3 text-sm"
                         >
-                          <span className="text-slate-700 truncate">
+                          <span className="text-n-700 truncate">
                             {e.name}
                           </span>
-                          <span className="font-mono text-slate-800">
+                          <span className="font-mono text-n-800">
                             {Number(e.count) || 0}
                           </span>
                         </div>
                       ))}
-                      <div className="flex items-center justify-between gap-3 text-sm border-t border-slate-200 mt-1 pt-1">
-                        <span className="text-slate-500">Total</span>
+                      <div className="flex items-center justify-between gap-3 text-sm border-t border-n-200 mt-1 pt-1">
+                        <span className="text-n-500">Total</span>
                         <span className="font-mono text-accent-700 font-bold">
                           {total}
                         </span>
@@ -280,8 +280,8 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                   );
                 })()}
               </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+              <div className="bg-n-0 p-4 rounded-xl border border-n-200">
+                <p className="text-xs text-n-500 uppercase tracking-wider mb-1">
                   Received / Discount given
                 </p>
                 {report.receivedCoupons === "Yes" &&
@@ -291,19 +291,19 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                     {report.couponsDetails.map((c, idx) => (
                       <li
                         key={idx}
-                        className="flex justify-between items-center bg-slate-100 px-2 py-1.5 rounded text-sm"
+                        className="flex justify-between items-center bg-n-100 px-2 py-1.5 rounded text-sm"
                       >
                         <span className="text-accent-700 font-bold">
                           {c.percentage}%
                         </span>
-                        <span className="text-slate-500">
+                        <span className="text-n-500">
                           Order {c.posOrderNumber}
                         </span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-slate-400 italic">None</p>
+                  <p className="text-n-400 italic">None</p>
                 )}
               </div>
             </div>
@@ -311,12 +311,12 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
 
           {/* Comments */}
           <section>
-            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-n-700 border-b border-n-200 pb-2 mb-4">
               Comments / Issues
             </h3>
-            <div className="bg-white p-4 rounded-xl border border-slate-200 min-h-[100px] text-slate-700 whitespace-pre-wrap">
+            <div className="bg-n-0 p-4 rounded-xl border border-n-200 min-h-[100px] text-n-700 whitespace-pre-wrap">
               {report.comments || (
-                <span className="text-slate-400 italic">
+                <span className="text-n-400 italic">
                   No comments provided.
                 </span>
               )}

@@ -33,27 +33,27 @@ function Tile({ iconName, iconId, label, done, total, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
+      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
     >
       <div className="flex items-center gap-2">
         <span className={complete ? "text-emerald-600" : "text-accent-600"}>
           <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
-        <span className="flex-1 min-w-0 text-base font-medium text-slate-800 leading-tight">
+        <span className="flex-1 min-w-0 text-base font-medium text-n-800 leading-tight">
           {label}
         </span>
-        <span className="text-slate-300 shrink-0" aria-hidden>
+        <span className="text-n-300 shrink-0" aria-hidden>
           ›
         </span>
       </div>
-      <div className="mt-2.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+      <div className="mt-2.5 h-1.5 rounded-full bg-n-100 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${complete ? "bg-emerald-500" : "bg-accent-500"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
       <div
-        className={`mt-1.5 text-[11px] font-medium ${complete ? "text-emerald-600" : "text-slate-500"}`}
+        className={`mt-1.5 text-[11px] font-medium ${complete ? "text-emerald-600" : "text-n-500"}`}
       >
         {complete ? t("allCounted", { total }) : t("countedOf", { done, total })}
       </div>
@@ -141,13 +141,13 @@ export default function CountNavigator({
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       placeholder={t("searchItems")}
-      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
+      className="w-full p-3 rounded-xl bg-n-0 border border-n-300 text-n-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
     />
   );
   const ResultRows = (
     <div className="space-y-1.5">
       {searchResults.length === 0 ? (
-        <p className="text-center text-slate-400 py-8">{t("noItemsFound")}</p>
+        <p className="text-center text-n-400 py-8">{t("noItemsFound")}</p>
       ) : (
         searchResults.map((item) => (
           <ItemRow
@@ -176,8 +176,8 @@ export default function CountNavigator({
           <>
         <div className="flex flex-col items-center pt-2">
           <Ring percent={pct} size={132} stroke={13}>
-            <span className="text-3xl font-bold text-slate-900 leading-none">{pct}%</span>
-            <span className="text-xs text-slate-500 mt-1">
+            <span className="text-3xl font-bold text-n-900 leading-none">{pct}%</span>
+            <span className="text-xs text-n-500 mt-1">
               {overall.done} / {overall.total}
             </span>
           </Ring>
@@ -200,23 +200,23 @@ export default function CountNavigator({
         {overall.done > 0 && (
           <div className="space-y-2 pt-1">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-slate-900">{t("counted")}</h3>
-              <span className="text-xs text-slate-500">
+              <h3 className="text-sm font-bold text-n-900">{t("counted")}</h3>
+              <span className="text-xs text-n-500">
                 {overall.done}/{overall.total}
               </span>
             </div>
             {cats
               .filter((cat) => (catProg[cat]?.done || 0) > 0)
               .map((cat) => (
-                <div key={cat} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
+                <div key={cat} className="bg-n-0 border border-n-200 rounded-2xl overflow-hidden">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-n-50 border-b border-n-200">
                     <span className="text-accent-600">
                       <CategoryIcon name={cat} icon={iconForCat[cat]} size={16} />
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-n-500">
                       {tc(cat)}
                     </span>
-                    <span className="text-[11px] text-slate-400">· {catProg[cat].done}</span>
+                    <span className="text-[11px] text-n-400">· {catProg[cat].done}</span>
                   </div>
                   {orderedKeys(Object.keys(groups[cat]), SUBCATEGORY_ORDER[cat] || [])
                     .filter((sub) => (subProg[cat]?.[sub]?.done || 0) > 0)
@@ -225,7 +225,7 @@ export default function CountNavigator({
                         <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-accent-600/80">
                           {ts(sub)}
                         </div>
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-n-100">
                           {groups[cat][sub]
                             .filter((it) => isCounted(counts[it.id]))
                             .map((it) => (
@@ -233,19 +233,19 @@ export default function CountNavigator({
                                 <button
                                   type="button"
                                   onClick={() => setNav({ level: "items", cat, sub })}
-                                  className="flex-1 min-w-0 text-left text-sm font-medium text-slate-800 break-words"
+                                  className="flex-1 min-w-0 text-left text-sm font-medium text-n-800 break-words"
                                 >
                                   {ti(it.name, it)}
                                 </button>
                                 <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
                                   {num(counts[it.id])}{" "}
-                                  <span className="text-[11px] text-slate-400 font-normal">{it.unit}</span>
+                                  <span className="text-[11px] text-n-400 font-normal">{it.unit}</span>
                                 </span>
                                 {!disabled && (
                                   <button
                                     type="button"
                                     onClick={() => onCommit(it.id, "")}
-                                    className="h-6 w-6 grid place-items-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
+                                    className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
                                     aria-label="remove"
                                   >
                                     ×
@@ -288,12 +288,12 @@ export default function CountNavigator({
           <button
             type="button"
             onClick={() => setNav({ level: "cat", cat: null, sub: null })}
-            className="h-9 w-9 grid place-items-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+            className="h-9 w-9 grid place-items-center rounded-lg bg-n-0 border border-n-200 text-n-500 hover:bg-n-50"
             aria-label="back"
           >
             ‹
           </button>
-          <div className="flex-1 text-center text-lg font-bold text-slate-900 truncate px-2">
+          <div className="flex-1 text-center text-lg font-bold text-n-900 truncate px-2">
             {tc(cat)}
           </div>
           <span className="w-9" />
@@ -305,8 +305,8 @@ export default function CountNavigator({
           <>
             <div className="flex flex-col items-center">
               <Ring percent={pct} size={112} stroke={12}>
-                <span className="text-2xl font-bold text-slate-900 leading-none">{pct}%</span>
-                <span className="text-xs text-slate-500 mt-1">
+                <span className="text-2xl font-bold text-n-900 leading-none">{pct}%</span>
+                <span className="text-xs text-n-500 mt-1">
                   {cp.done} / {cp.total}
                 </span>
               </Ring>
@@ -341,14 +341,14 @@ export default function CountNavigator({
         <button
           type="button"
           onClick={() => setNav({ level: "sub", cat, sub: null })}
-          className="h-9 w-9 grid place-items-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+          className="h-9 w-9 grid place-items-center rounded-lg bg-n-0 border border-n-200 text-n-500 hover:bg-n-50"
           aria-label="back"
         >
           ‹
         </button>
         <div className="flex-1 min-w-0">
-          <div className="text-[11px] text-slate-400 truncate">{tc(cat)}</div>
-          <div className="text-base font-bold text-slate-900 leading-tight truncate">{ts(sub)}</div>
+          <div className="text-[11px] text-n-400 truncate">{tc(cat)}</div>
+          <div className="text-base font-bold text-n-900 leading-tight truncate">{ts(sub)}</div>
         </div>
         <span
           className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
@@ -358,7 +358,7 @@ export default function CountNavigator({
           {sp.done}/{sp.total}
         </span>
       </div>
-      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-n-100 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${pct === 100 ? "bg-emerald-500" : "bg-accent-500"}`}
           style={{ width: `${pct}%` }}

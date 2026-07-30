@@ -45,41 +45,41 @@ function OrderView({ order, itemsById, onBack }) {
 
   return (
     <>
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-200">
-        <button onClick={onBack} className="h-8 w-8 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100" aria-label="back">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-n-200">
+        <button onClick={onBack} className="h-8 w-8 grid place-items-center rounded-lg text-n-500 hover:bg-n-100" aria-label="back">
           ‹
         </button>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-slate-900 truncate">{orderRef(order)}</div>
-          <div className="text-[11px] text-slate-500">
+          <div className="font-bold text-n-900 truncate">{orderRef(order)}</div>
+          <div className="text-[11px] text-n-500">
             {when ? formatDateTime(new Date(when.seconds * 1000)) : ""}
           </div>
         </div>
       </div>
       <div className="overflow-y-auto px-4 py-3 space-y-3">
         {cats.map((cat) => (
-          <div key={cat} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200">
+          <div key={cat} className="bg-n-0 border border-n-200 rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 bg-n-50 border-b border-n-200">
               <span className="text-accent-600">
                 <CategoryIcon name={cat} size={16} />
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{tc(cat)}</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-n-500">{tc(cat)}</span>
             </div>
             {orderedKeys(Object.keys(groups[cat]), SUBCATEGORY_ORDER[cat] || []).map((sub) => (
               <div key={sub}>
                 <div className="px-3 pt-2 text-[10px] font-bold uppercase tracking-wider text-accent-600/80">
                   {ts(sub)}
                 </div>
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-n-100">
                   {groups[cat][sub].map(({ it, line }) => (
                     <div key={it.id} className="flex items-center gap-2 px-3 py-2">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-800 break-words">{ti(it.name, it)}</div>
-                        {line.note && <div className="text-[11px] text-slate-400 truncate">{line.note}</div>}
+                        <div className="text-sm font-medium text-n-800 break-words">{ti(it.name, it)}</div>
+                        {line.note && <div className="text-[11px] text-n-400 truncate">{line.note}</div>}
                       </div>
                       <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
                         {num(line.qty)}{" "}
-                        <span className="text-[11px] text-slate-400 font-normal">{orderUnitOf(it)}</span>
+                        <span className="text-[11px] text-n-400 font-normal">{orderUnitOf(it)}</span>
                       </span>
                     </div>
                   ))}
@@ -112,18 +112,18 @@ export default function SubmittedOrdersModal({ items, onClose }) {
   const openOrder = submitted.find((o) => o.id === openId) || null;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-slate-900/40 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] bg-n-900/40 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
       <div
-        className="bg-white border border-slate-200 w-full md:max-w-2xl max-h-[90vh] rounded-t-2xl md:rounded-2xl flex flex-col shadow-xl"
+        className="bg-n-0 border border-n-200 w-full md:max-w-2xl max-h-[90vh] rounded-t-2xl md:rounded-2xl flex flex-col shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {openOrder ? (
           <OrderView order={openOrder} itemsById={itemsById} onBack={() => setOpenId(null)} />
         ) : (
           <>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-              <h3 className="font-bold text-slate-900">{t("submittedOrders")}</h3>
-              <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-2xl leading-none px-2">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-n-200">
+              <h3 className="font-bold text-n-900">{t("submittedOrders")}</h3>
+              <button onClick={onClose} className="text-n-400 hover:text-n-700 text-2xl leading-none px-2">
                 ×
               </button>
             </div>
@@ -133,7 +133,7 @@ export default function SubmittedOrdersModal({ items, onClose }) {
                   <Spinner />
                 </div>
               ) : submitted.length === 0 ? (
-                <p className="text-center text-slate-400 py-8">{t("noOrders")}</p>
+                <p className="text-center text-n-400 py-8">{t("noOrders")}</p>
               ) : (
                 submitted.map((o) => {
                   const count = Object.keys(o.lines || {}).length;
@@ -142,15 +142,15 @@ export default function SubmittedOrdersModal({ items, onClose }) {
                     <button
                       key={o.id}
                       onClick={() => setOpenId(o.id)}
-                      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
+                      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-900">{orderRef(o)}</span>
+                        <span className="font-semibold text-n-900">{orderRef(o)}</span>
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-50 text-accent-700">
                           {t("status_submitted")}
                         </span>
                       </div>
-                      <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
+                      <div className="mt-1 flex items-center justify-between text-xs text-n-500">
                         <span>{t("nItems", { n: count })}</span>
                         <span>{when ? formatDateTime(new Date(when.seconds * 1000)) : ""}</span>
                       </div>

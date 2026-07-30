@@ -8,7 +8,7 @@ export default function ExpiryBadge({ expiry }) {
   const { t } = useT();
   const d = daysLeft(expiry);
   if (d === null) return null;
-  let cls = "bg-slate-100 text-slate-500";
+  let cls = "bg-n-100 text-n-500";
   let text;
   if (d < 0) {
     cls = "bg-rose-100 text-rose-700";

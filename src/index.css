@@ -16,6 +16,15 @@
    The :root values below are the Classic scheme's teal, used before the app
    mounts and by anything rendered outside the provider (e.g. the login page).
 --------------------------------------------------------------------------- */
+
+/* Neutral ramp: n-0 is the card surface, n-50 the page behind it, n-900 the
+   primary text. A dark scheme swaps these values and nothing else. */
+:root {
+  --n-0: #ffffff;  --n-50: #f8fafc;  --n-100: #f1f5f9; --n-200: #e2e8f0;
+  --n-300: #cbd5e1; --n-400: #94a3b8; --n-500: #64748b; --n-600: #475569;
+  --n-700: #334155; --n-800: #1e293b; --n-900: #0f172a;
+}
+
 :root {
   --accent-50: #f0fdfa;
   --accent-100: #ccfbf1;
@@ -30,6 +39,18 @@
 }
 
 @theme {
+  --color-n-0: var(--n-0);
+  --color-n-50: var(--n-50);
+  --color-n-100: var(--n-100);
+  --color-n-200: var(--n-200);
+  --color-n-300: var(--n-300);
+  --color-n-400: var(--n-400);
+  --color-n-500: var(--n-500);
+  --color-n-600: var(--n-600);
+  --color-n-700: var(--n-700);
+  --color-n-800: var(--n-800);
+  --color-n-900: var(--n-900);
+
   --color-accent-50: var(--accent-50);
   --color-accent-100: var(--accent-100);
   --color-accent-200: var(--accent-200);

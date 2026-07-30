@@ -43,7 +43,7 @@ function Tile({ mode, title, desc, onChoose, hue }) {
   return (
     <button
       onClick={() => onChoose(mode)}
-      className="w-full bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-4 transition text-left hover:border-accent-300 hover:bg-accent-50"
+      className="w-full bg-n-0 border border-n-200 rounded-2xl p-6 flex items-center gap-4 transition text-left hover:border-accent-300 hover:bg-accent-50"
     >
       <span
         className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl text-white"
@@ -63,8 +63,8 @@ function Tile({ mode, title, desc, onChoose, hue }) {
         </svg>
       </span>
       <span className="min-w-0">
-        <span className="block text-lg font-bold text-slate-900">{title}</span>
-        <span className="block text-sm text-slate-500">{desc}</span>
+        <span className="block text-lg font-bold text-n-900">{title}</span>
+        <span className="block text-sm text-n-500">{desc}</span>
       </span>
     </button>
   );
@@ -77,7 +77,7 @@ function ThemePicker() {
   const { themeId, setTheme } = useTheme();
   return (
     <div className="mt-10">
-      <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-2">
+      <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-n-400 mb-2">
         {t("colourScheme")}
       </p>
       <div className="flex justify-center gap-2">
@@ -91,11 +91,17 @@ function ThemePicker() {
               aria-pressed={on}
               className={`flex-1 max-w-[9rem] rounded-xl border px-3 py-2.5 transition ${
                 on
-                  ? "border-slate-900 bg-white shadow-sm"
-                  : "border-slate-200 bg-white hover:border-slate-400"
+                  ? "border-n-900 bg-n-0 shadow-sm"
+                  : "border-n-200 bg-n-0 hover:border-n-400"
               }`}
             >
-              <span className="flex justify-center gap-1 mb-1.5">
+              {/* Dark schemes get a dark strip behind the dots, so the picker
+                  shows at a glance that the whole app changes, not just hues. */}
+              <span
+                className={`flex justify-center gap-1 mb-1.5 rounded-md py-1 ${
+                  th.neutrals === "dark" ? "bg-slate-900" : ""
+                }`}
+              >
                 {swatchesFor(th).map((hex, i) => (
                   <span
                     key={i}
@@ -106,7 +112,7 @@ function ThemePicker() {
               </span>
               <span
                 className={`block text-xs font-semibold ${
-                  on ? "text-slate-900" : "text-slate-500"
+                  on ? "text-n-900" : "text-n-500"
                 }`}
               >
                 {th.label}
@@ -134,8 +140,8 @@ export default function HomeChooser({ onChoose }) {
 
   return (
     <div className="max-w-md mx-auto px-2 py-8">
-      <h1 className="text-2xl font-bold text-slate-900 text-center mb-1">{t("home_q")}</h1>
-      <p className="text-center text-slate-500 text-sm mb-8">{t("home_sub")}</p>
+      <h1 className="text-2xl font-bold text-n-900 text-center mb-1">{t("home_q")}</h1>
+      <p className="text-center text-n-500 text-sm mb-8">{t("home_sub")}</p>
 
       <div className="space-y-4">
         {tiles.map(([mode, title, desc]) => (

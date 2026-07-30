@@ -33,21 +33,21 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
 
   return (
     <div
-      className={`rounded-xl border transition ${on ? "bg-accent-50/70 border-accent-200" : "bg-white border-slate-200"}`}
+      className={`rounded-xl border transition ${on ? "bg-accent-50/70 border-accent-200" : "bg-n-0 border-n-200"}`}
     >
       <div className="flex items-center gap-3 py-2.5 pl-3 pr-2">
         <div className="min-w-0 flex-1">
-          <div className="text-base font-medium text-slate-800 leading-tight break-words">
+          <div className="text-base font-medium text-n-800 leading-tight break-words">
             {ti(item.name, item)}
           </div>
-          <span className="text-[11px] text-slate-400">{unit}</span>
+          <span className="text-[11px] text-n-400">{unit}</span>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={() => step(-1)}
-            className="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 text-slate-500 text-lg leading-none hover:bg-slate-200"
+            className="h-10 w-10 rounded-lg bg-n-100 border border-n-200 text-n-500 text-lg leading-none hover:bg-n-200"
             aria-label="decrease"
           >
             −
@@ -61,14 +61,14 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
             onChange={(e) => setQty(e.target.value)}
             onBlur={() => commit(qty, note)}
             placeholder="0"
-            className={`h-10 w-14 text-center rounded-lg bg-white border text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500 ${
-              on ? "border-accent-400 font-semibold" : "border-slate-300"
+            className={`h-10 w-14 text-center rounded-lg bg-n-0 border text-n-900 text-base outline-none focus:ring-2 focus:ring-accent-500 ${
+              on ? "border-accent-400 font-semibold" : "border-n-300"
             }`}
           />
           <button
             type="button"
             onClick={() => step(1)}
-            className="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 text-slate-500 text-lg leading-none hover:bg-slate-200"
+            className="h-10 w-10 rounded-lg bg-n-100 border border-n-200 text-n-500 text-lg leading-none hover:bg-n-200"
             aria-label="increase"
           >
             +
@@ -85,7 +85,7 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
             onChange={(e) => setNote(e.target.value)}
             onBlur={() => commit(qty, note)}
             placeholder={t("notePlaceholder")}
-            className="w-full text-sm px-3 py-2 rounded-lg bg-white border border-accent-200 text-slate-700 outline-none focus:ring-2 focus:ring-accent-500"
+            className="w-full text-sm px-3 py-2 rounded-lg bg-n-0 border border-accent-200 text-n-700 outline-none focus:ring-2 focus:ring-accent-500"
           />
         </div>
       )}

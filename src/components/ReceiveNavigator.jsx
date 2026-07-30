@@ -26,20 +26,20 @@ function Tile({ iconName, iconId, label, count, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
+      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
     >
       <div className="flex items-center gap-2">
         <span className="text-accent-600">
           <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
-        <span className="flex-1 min-w-0 text-base font-medium text-slate-800 leading-tight">
+        <span className="flex-1 min-w-0 text-base font-medium text-n-800 leading-tight">
           {label}
         </span>
-        <span className="text-slate-300 shrink-0" aria-hidden>
+        <span className="text-n-300 shrink-0" aria-hidden>
           ›
         </span>
       </div>
-      <div className={`mt-2 text-[11px] font-medium ${has ? "text-accent-700" : "text-slate-400"}`}>
+      <div className={`mt-2 text-[11px] font-medium ${has ? "text-accent-700" : "text-n-400"}`}>
         {has ? t("receivedCount", { n: count }) : t("noneYet")}
       </div>
     </button>
@@ -134,13 +134,13 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       placeholder={t("searchItems")}
-      className="w-full p-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
+      className="w-full p-3 rounded-xl bg-n-0 border border-n-300 text-n-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
     />
   );
   const ResultRows = (
     <div className="space-y-1.5">
       {searchResults.length === 0 ? (
-        <p className="text-center text-slate-400 py-8">{t("noItemsFound")}</p>
+        <p className="text-center text-n-400 py-8">{t("noItemsFound")}</p>
       ) : (
         searchResults.map((item) => (
           <ReceiveItemRow
@@ -181,13 +181,13 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
 
         {recent.length > 0 && (
           <div className="space-y-2 pt-1">
-            <h3 className="text-sm font-bold text-slate-900 px-1">{t("recentlyReceived")}</h3>
-            <div className="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100">
+            <h3 className="text-sm font-bold text-n-900 px-1">{t("recentlyReceived")}</h3>
+            <div className="bg-n-0 border border-n-200 rounded-2xl divide-y divide-n-100">
               {recent.map((r) => (
                 <div key={r.id} className="flex items-center gap-2 px-3 py-2">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 break-words">{nameOf(r)}</div>
-                    <div className="text-[11px] text-slate-500">
+                    <div className="text-sm font-medium text-n-800 break-words">{nameOf(r)}</div>
+                    <div className="text-[11px] text-n-500">
                       {num(r.qty)} {r.unit} · {t("expires")} {formatDay(r.expiry)}
                     </div>
                   </div>
@@ -196,7 +196,7 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
                     onClick={() => {
                       if (window.confirm(t("removeReceipt"))) onDelete(r.id);
                     }}
-                    className="h-7 w-7 grid place-items-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 text-lg leading-none"
+                    className="h-7 w-7 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 text-lg leading-none"
                     aria-label="remove"
                   >
                     ×
@@ -222,12 +222,12 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
           <button
             type="button"
             onClick={() => setNav({ level: "cat", cat: null, sub: null })}
-            className="h-9 w-9 grid place-items-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+            className="h-9 w-9 grid place-items-center rounded-lg bg-n-0 border border-n-200 text-n-500 hover:bg-n-50"
             aria-label="back"
           >
             ‹
           </button>
-          <div className="flex-1 text-center text-lg font-bold text-slate-900 truncate px-2">
+          <div className="flex-1 text-center text-lg font-bold text-n-900 truncate px-2">
             {tc(cat)}
           </div>
           <span className="w-9" />
@@ -262,14 +262,14 @@ export default function ReceiveNavigator({ items, receipts, onAdd, onDelete, add
         <button
           type="button"
           onClick={() => setNav({ level: "sub", cat, sub: null })}
-          className="h-9 w-9 grid place-items-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+          className="h-9 w-9 grid place-items-center rounded-lg bg-n-0 border border-n-200 text-n-500 hover:bg-n-50"
           aria-label="back"
         >
           ‹
         </button>
         <div className="flex-1 min-w-0">
-          <div className="text-[11px] text-slate-400 truncate">{tc(cat)}</div>
-          <div className="text-base font-bold text-slate-900 leading-tight truncate">{ts(sub)}</div>
+          <div className="text-[11px] text-n-400 truncate">{tc(cat)}</div>
+          <div className="text-base font-bold text-n-900 leading-tight truncate">{ts(sub)}</div>
         </div>
       </div>
       <div className="space-y-1.5">

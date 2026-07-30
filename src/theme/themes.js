@@ -26,6 +26,34 @@ const RAMPS = {
 };
 const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
 
+// NEUTRALS — surfaces, borders and text.
+//
+// The app used bg-white / text-slate-900 / border-slate-200 directly, which is
+// why a scheme could only ever recolour accents. Those are now n-0..n-900, fed
+// by --n-* variables, so a scheme controls the whole page.
+//
+// n-0 is the CARD surface and n-50 the page behind it; n-900 is primary text.
+// A dark scheme is then just this ramp read from the other end — no component
+// needs a dark: variant.
+const NEUTRALS = {
+  light: {
+    0: "#ffffff", 50: "#f8fafc", 100: "#f1f5f9", 200: "#e2e8f0", 300: "#cbd5e1",
+    400: "#94a3b8", 500: "#64748b", 600: "#475569", 700: "#334155",
+    800: "#1e293b", 900: "#0f172a",
+  },
+  dark: {
+    0: "#111827", 50: "#0b1220", 100: "#1f2937", 200: "#374151", 300: "#4b5563",
+    400: "#9ca3af", 500: "#cbd5e1", 600: "#d1d5db", 700: "#e5e7eb",
+    800: "#f3f4f6", 900: "#f9fafb",
+  },
+};
+const N_SHADES = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+
+export function neutralVars(mode) {
+  const ramp = NEUTRALS[mode] || NEUTRALS.light;
+  return Object.fromEntries(N_SHADES.map((s) => [`--n-${s}`, ramp[s]]));
+}
+
 // The --accent-* custom properties for one hue, ready for a style attribute.
 export function accentVars(hue) {
   const ramp = RAMPS[hue] || RAMPS.teal;
@@ -41,6 +69,7 @@ export const THEMES = {
   classic: {
     id: "classic",
     label: "Classic",
+    neutrals: "light",
     orders: S("teal"),
     receive: S("blue"),
     stock: S("amber"),
@@ -50,6 +79,7 @@ export const THEMES = {
   ocean: {
     id: "ocean",
     label: "Ocean",
+    neutrals: "light",
     orders: S("teal"),
     receive: S("sky"),
     stock: S("cyan"),
@@ -61,11 +91,24 @@ export const THEMES = {
   graphite: {
     id: "graphite",
     label: "Graphite",
+    neutrals: "light",
     orders: S("slate"),
     receive: S("slate"),
     stock: S("slate"),
     dsr: S("slate"),
     admin: S("slate"),
+  },
+  // The only scheme that flips the neutral ramp. Every surface and text colour
+  // comes from n-*, so nothing else has to change to make the app dark.
+  midnight: {
+    id: "midnight",
+    label: "Midnight",
+    neutrals: "dark",
+    orders: S("teal"),
+    receive: S("sky"),
+    stock: S("amber"),
+    dsr: S("violet"),
+    admin: S("indigo"),
   },
 };
 

@@ -4,7 +4,7 @@
 // sessionStorage so the choice survives closing the PWA — it is a preference,
 // not navigation state.
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { DEFAULT_THEME, THEMES, getTheme, accentVars } from "./themes.js";
+import { DEFAULT_THEME, THEMES, getTheme, accentVars, neutralVars } from "./themes.js";
 
 // Apply a hue by writing --accent-* onto <html>.
 //
@@ -20,13 +20,19 @@ import { DEFAULT_THEME, THEMES, getTheme, accentVars } from "./themes.js";
 // --color-accent-* Tailwind actually reads. Setting the second directly means
 // the result does not depend on the one-hop indirection resolving the way we
 // expect — the utilities read --color-accent-* and find the new value there.
-export function applyAccent(hue) {
+export function applyAccent(hue, neutrals = "light") {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  for (const [k, v] of Object.entries(accentVars(hue))) {
+  const set = (k, v) => {
     root.style.setProperty(k, v);
-    root.style.setProperty(k.replace("--accent-", "--color-accent-"), v);
-  }
+    // Also write the --color-* name Tailwind reads, so the result does not
+    // depend on the one-hop indirection in index.css resolving as expected.
+    root.style.setProperty(k.replace(/^--(accent|n)-/, "--color-$1-"), v);
+  };
+  for (const [k, v] of Object.entries(accentVars(hue))) set(k, v);
+  for (const [k, v] of Object.entries(neutralVars(neutrals))) set(k, v);
+  // Lets the browser paint form controls and scrollbars to match.
+  root.style.colorScheme = neutrals === "dark" ? "dark" : "light";
 }
 
 const KEY = "appTheme";

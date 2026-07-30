@@ -39,7 +39,7 @@ export default function StaffPanel({ reporter, isOnline }) {
   }
   if (activeItems.length === 0) {
     return (
-      <div className="text-center py-12 text-slate-500">{t("noItemsStaff")}</div>
+      <div className="text-center py-12 text-n-500">{t("noItemsStaff")}</div>
     );
   }
 
@@ -58,7 +58,7 @@ export default function StaffPanel({ reporter, isOnline }) {
   };
 
   const statusPill = {
-    [STATUS.DRAFT]: { text: t("status_draft"), cls: "bg-slate-100 text-slate-600" },
+    [STATUS.DRAFT]: { text: t("status_draft"), cls: "bg-n-100 text-n-600" },
     [STATUS.SUBMITTED]: { text: t("status_submitted"), cls: "bg-accent-50 text-accent-700" },
     [STATUS.FINALIZED]: { text: t("status_finalized"), cls: "bg-emerald-50 text-emerald-700" },
   }[status];
@@ -68,10 +68,10 @@ export default function StaffPanel({ reporter, isOnline }) {
       {/* Slim month header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 leading-tight">
+          <h2 className="text-xl font-bold text-n-900 leading-tight">
             {tMonth(monthId)}
           </h2>
-          <p className="text-xs text-slate-500">{t("endMonthCount")}</p>
+          <p className="text-xs text-n-500">{t("endMonthCount")}</p>
         </div>
         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusPill.cls}`}>
           {statusPill.text}
@@ -93,7 +93,7 @@ export default function StaffPanel({ reporter, isOnline }) {
           {Object.keys(sc.prevClosing).length > 0 && !isFinalized && (
             <button
               onClick={sc.fillFromLastMonth}
-              className="w-full py-2 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-accent-700 hover:bg-accent-50"
+              className="w-full py-2 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-accent-700 hover:bg-accent-50"
             >
               {t("prefillLast")}
             </button>

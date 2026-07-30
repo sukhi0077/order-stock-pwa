@@ -119,31 +119,31 @@ function AdminTrends({ reports }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
       {/* 1. Total sales by day */}
-      <div className="bg-slate-50 rounded-xl p-5 lg:col-span-2">
+      <div className="bg-n-50 rounded-xl p-5 lg:col-span-2">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-4">
-          <h3 className="text-slate-700 text-sm font-semibold uppercase tracking-wider">
+          <h3 className="text-n-700 text-sm font-semibold uppercase tracking-wider">
             Total Sales by Day
           </h3>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-n-500">
             Total{" "}
             <span className="text-accent-700 font-bold">{money(periodTotal)}</span>
-            <span className="mx-1.5 text-slate-400">·</span>
-            Avg/day <span className="text-slate-800 font-semibold">
+            <span className="mx-1.5 text-n-400">·</span>
+            Avg/day <span className="text-n-800 font-semibold">
               {money(avgDay)}
             </span>
-            <span className="mx-1.5 text-slate-400">·</span>
+            <span className="mx-1.5 text-n-400">·</span>
             Peak{" "}
-            <span className="text-slate-800 font-semibold">
+            <span className="text-n-800 font-semibold">
               {money(peakDay.total)}
             </span>{" "}
-            <span className="text-slate-400">({dayLabel(peakDay.date)})</span>
+            <span className="text-n-400">({dayLabel(peakDay.date)})</span>
           </div>
         </div>
 
         {days.length === 1 ? (
           <p className="text-3xl font-bold text-accent-700">
             {money(days[0].total)}
-            <span className="text-sm text-slate-500 font-medium ml-2">
+            <span className="text-sm text-n-500 font-medium ml-2">
               on {days[0].date}
             </span>
           </p>
@@ -169,7 +169,7 @@ function AdminTrends({ reports }) {
                 >
                   {/* Value label above the bar (hidden when too many days) */}
                   {days.length <= 12 && d.total > 0 && (
-                    <span className="text-[9px] text-slate-700 font-semibold mb-0.5 whitespace-nowrap">
+                    <span className="text-[9px] text-n-700 font-semibold mb-0.5 whitespace-nowrap">
                       {Math.round(d.total)}
                     </span>
                   )}
@@ -187,7 +187,7 @@ function AdminTrends({ reports }) {
               {days.map((d) => (
                 <span
                   key={d.date}
-                  className="flex-1 text-[9px] text-slate-400 truncate text-center min-w-0"
+                  className="flex-1 text-[9px] text-n-400 truncate text-center min-w-0"
                 >
                   {dayLabel(d.date)}
                 </span>
@@ -198,8 +198,8 @@ function AdminTrends({ reports }) {
       </div>
 
       {/* 2. Payment mix */}
-      <div className="bg-slate-50 rounded-xl p-5">
-        <h3 className="text-slate-700 text-sm font-semibold uppercase tracking-wider mb-4">
+      <div className="bg-n-50 rounded-xl p-5">
+        <h3 className="text-n-700 text-sm font-semibold uppercase tracking-wider mb-4">
           Payment Mix
         </h3>
         <div className="space-y-3">
@@ -212,12 +212,12 @@ function AdminTrends({ reports }) {
             .map((row) => (
             <div key={row.label}>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-500">{row.label}</span>
-                <span className="text-slate-800 font-semibold">
+                <span className="text-n-500">{row.label}</span>
+                <span className="text-n-800 font-semibold">
                   {money(row.value)} ({pct(row.value).toFixed(0)}%)
                 </span>
               </div>
-              <div className="h-2 bg-white rounded-full overflow-hidden">
+              <div className="h-2 bg-n-0 rounded-full overflow-hidden">
                 <div
                   className={`h-full ${row.bar} rounded-full`}
                   style={{ width: `${pct(row.value)}%` }}
@@ -229,12 +229,12 @@ function AdminTrends({ reports }) {
       </div>
 
       {/* 3. Portal-wise sales */}
-      <div className="bg-slate-50 rounded-xl p-5 lg:col-span-3">
+      <div className="bg-n-50 rounded-xl p-5 lg:col-span-3">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 mb-4">
-          <h3 className="text-slate-700 text-sm font-semibold uppercase tracking-wider">
+          <h3 className="text-n-700 text-sm font-semibold uppercase tracking-wider">
             Sales by Portal
           </h3>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-n-500">
             Total{" "}
             <span className="text-emerald-700 font-bold">
               {money(portalGrand)}
@@ -242,7 +242,7 @@ function AdminTrends({ reports }) {
           </span>
         </div>
         {portalGrand === 0 ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-n-400">
             No portal sales in this period.
           </p>
         ) : (
@@ -250,10 +250,10 @@ function AdminTrends({ reports }) {
             {portalTotals.map((p) => (
               <div key={p.name}>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-700 font-medium">{p.name}</span>
-                  <span className="text-slate-800 font-semibold">
+                  <span className="text-n-700 font-medium">{p.name}</span>
+                  <span className="text-n-800 font-semibold">
                     {money(p.total)}
-                    <span className="text-slate-400 ml-1">
+                    <span className="text-n-400 ml-1">
                       ({portalGrand > 0
                         ? ((p.total / portalGrand) * 100).toFixed(0)
                         : 0}
@@ -261,7 +261,7 @@ function AdminTrends({ reports }) {
                     </span>
                   </span>
                 </div>
-                <div className="h-2.5 bg-white rounded-full overflow-hidden">
+                <div className="h-2.5 bg-n-0 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full"
                     style={{ width: `${(p.total / maxPortal) * 100}%` }}
@@ -274,8 +274,8 @@ function AdminTrends({ reports }) {
       </div>
 
       {/* 4. Discrepancies */}
-      <div className="bg-slate-50 rounded-xl p-5 lg:col-span-3">
-        <h3 className="text-slate-700 text-sm font-semibold uppercase tracking-wider mb-4">
+      <div className="bg-n-50 rounded-xl p-5 lg:col-span-3">
+        <h3 className="text-n-700 text-sm font-semibold uppercase tracking-wider mb-4">
           Discrepancies ({issues.flagged} of {reports.length} reports flagged)
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -288,10 +288,10 @@ function AdminTrends({ reports }) {
           ].map((s) => (
             <div
               key={s.label}
-              className="bg-slate-50 rounded-lg p-3 text-center"
+              className="bg-n-50 rounded-lg p-3 text-center"
             >
               <p className={`text-2xl font-bold ${s.text}`}>{s.value}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+              <p className="text-xs text-n-500 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>

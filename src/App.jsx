@@ -38,9 +38,10 @@ export default function App() {
   const activeSection =
     isAdmin && isAdminView ? "admin" : mode === "home" ? "orders" : mode;
   const activeHue = (theme[activeSection] || theme.orders).hue;
+  const neutrals = theme.neutrals || "light";
   useEffect(() => {
-    applyAccent(activeHue);
-  }, [activeHue]);
+    applyAccent(activeHue, neutrals);
+  }, [activeHue, neutrals]);
 
   const chooseMode = (m) => {
     setMode(m);
@@ -59,7 +60,7 @@ export default function App() {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-n-50">
         <Spinner />
       </div>
     );
@@ -76,7 +77,7 @@ export default function App() {
   const showHomeBtn = !showAdmin && mode !== "home";
   const colBtn = coloredHeader
     ? "bg-white/20 border-white/30 text-white hover:bg-white/30"
-    : "bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900";
+    : "bg-n-100 border-n-200 text-n-600 hover:text-n-900";
 
   const title = showAdmin
     ? t("admin")
@@ -92,8 +93,8 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans text-slate-900 ${
-        isHome ? "bg-slate-50" : "bg-accent-50"
+      className={`min-h-screen font-sans text-n-900 ${
+        isHome ? "bg-n-50" : "bg-accent-50"
       }`}
     >
       {(!isOnline || pending > 0) && (
@@ -110,7 +111,7 @@ export default function App() {
 
       <header
         className={`sticky top-0 z-50 backdrop-blur border-b ${
-          isHome ? "bg-white/90 border-slate-200" : "bg-accent-600 border-accent-700"
+          isHome ? "bg-white/90 border-n-200" : "bg-accent-600 border-accent-700"
         }`}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-2.5">
@@ -131,7 +132,7 @@ export default function App() {
               </svg>
             )}
             <span
-              className={`font-bold tracking-tight truncate ${coloredHeader ? "text-white" : "text-slate-900"}`}
+              className={`font-bold tracking-tight truncate ${coloredHeader ? "text-white" : "text-n-900"}`}
             >
               {title}
             </span>
@@ -151,7 +152,7 @@ export default function App() {
             <button
               onClick={logout}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${
-                coloredHeader ? colBtn : "bg-slate-100 border-slate-200 text-rose-600 hover:text-rose-700"
+                coloredHeader ? colBtn : "bg-n-100 border-n-200 text-rose-600 hover:text-rose-700"
               }`}
             >
               {t("signOut")}
@@ -197,7 +198,7 @@ export default function App() {
       )}
 
       {/* TEMP DEBUG — remove once admin access works. */}
-      <div className="fixed bottom-1 left-1 z-[60] px-2 py-1 rounded bg-slate-900/80 text-[10px] font-mono text-slate-200 select-all max-w-[95vw] break-words">
+      <div className="fixed bottom-1 left-1 z-[60] px-2 py-1 rounded bg-n-900/80 text-[10px] font-mono text-n-200 select-all max-w-[95vw] break-words">
         uid: {user.uid} · admin: {isAdmin ? "YES" : "no"}
         {adminError && <div className="text-rose-300 mt-0.5">profile: {adminError}</div>}
       </div>

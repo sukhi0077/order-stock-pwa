@@ -81,7 +81,7 @@ export default function StaffPanel() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-100 border border-slate-200 rounded-xl p-10">
+      <div className="bg-n-100 border border-n-200 rounded-xl p-10">
         <Spinner />
       </div>
     );
@@ -97,7 +97,7 @@ export default function StaffPanel() {
           </h2>
           <button
             onClick={() => setIsEditing(false)}
-            className="px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:text-slate-900"
+            className="px-3 py-2 bg-n-100 border border-n-300 rounded-lg text-sm font-bold text-n-700 hover:text-n-900"
           >
             ← Cancel
           </button>
@@ -114,13 +114,13 @@ export default function StaffPanel() {
 
   // Previous day's report(s) — a distinct, muted "archive" card.
   const historySection = pastReports.length > 0 && (
-    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+    <div className="bg-n-50 border border-n-200 rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-base">🗄️</span>
-        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+        <h3 className="text-sm font-bold text-n-700 uppercase tracking-wider">
           Previous Day
         </h3>
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider ml-auto">
+        <span className="text-[10px] text-n-400 uppercase tracking-wider ml-auto">
           View only
         </span>
       </div>
@@ -128,11 +128,11 @@ export default function StaffPanel() {
         {pastReports.map((r) => (
           <div
             key={r.id}
-            className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3"
+            className="bg-n-0 border border-n-200 rounded-xl p-3 flex items-center justify-between gap-3"
           >
             <div className="min-w-0">
-              <p className="font-bold text-slate-900">{r.dateString}</p>
-              <p className="text-xs text-slate-500 truncate">
+              <p className="font-bold text-n-900">{r.dateString}</p>
+              <p className="text-xs text-n-500 truncate">
                 {r.reporter || "Unknown"} · Total{" "}
                 {(Number(r.totalSalePOS) || 0).toFixed(2)}
                 {(r.cashMismatch || r.onlineSaleMismatch) && (
@@ -169,7 +169,7 @@ export default function StaffPanel() {
               <h3 className="text-sm font-bold text-accent-700 uppercase tracking-wider">
                 Today's Report
               </h3>
-              <div className="flex-1 border-t border-slate-200" />
+              <div className="flex-1 border-t border-n-200" />
             </div>
           </div>
         )}
@@ -204,7 +204,7 @@ export default function StaffPanel() {
             <h3 className="text-sm font-bold text-accent-700 uppercase tracking-wider">
               Today's Report
             </h3>
-            <div className="flex-1 border-t border-slate-200" />
+            <div className="flex-1 border-t border-n-200" />
           </div>
         </div>
       )}

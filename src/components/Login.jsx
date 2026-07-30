@@ -45,15 +45,15 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900 p-4">
-      <div className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+    <div className="min-h-screen flex items-center justify-center bg-n-50 text-n-900 p-4">
+      <div className="w-full max-w-sm bg-n-0 border border-n-200 rounded-2xl p-8 shadow-sm">
         <div className="flex justify-end mb-2">
           <LangToggle />
         </div>
-        <h1 className="text-2xl font-bold text-center mb-1 tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold text-center mb-1 tracking-tight text-n-900">
           {t("login_title")}
         </h1>
-        <p className="text-center text-slate-500 text-sm mb-6">{t("login_subtitle")}</p>
+        <p className="text-center text-n-500 text-sm mb-6">{t("login_subtitle")}</p>
 
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-lg mb-4 text-sm text-center font-semibold">
@@ -62,7 +62,7 @@ export default function Login({ onLogin }) {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <label className="block text-sm font-medium text-slate-600 mb-2">
+          <label className="block text-sm font-medium text-n-600 mb-2">
             {t("email")}
           </label>
           <input
@@ -70,11 +70,11 @@ export default function Login({ onLogin }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
-            className="w-full p-3 mb-4 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-accent-500 transition"
+            className="w-full p-3 mb-4 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500 transition"
             placeholder="staff@yourshop.com"
           />
 
-          <label className="block text-sm font-medium text-slate-600 mb-2">
+          <label className="block text-sm font-medium text-n-600 mb-2">
             {t("password")}
           </label>
           <input
@@ -82,11 +82,11 @@ export default function Login({ onLogin }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
-            className="w-full p-3 mb-3 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-accent-500 transition"
+            className="w-full p-3 mb-3 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500 transition"
             placeholder="••••••••"
           />
 
-          <label className="flex items-center gap-2 mb-6 text-sm text-slate-600 cursor-pointer select-none">
+          <label className="flex items-center gap-2 mb-6 text-sm text-n-600 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={showPassword}
@@ -99,7 +99,7 @@ export default function Login({ onLogin }) {
           <button
             type="submit"
             disabled={isBusy}
-            className="w-full py-3 bg-accent-600 hover:bg-accent-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl transition"
+            className="w-full py-3 bg-accent-600 hover:bg-accent-500 disabled:bg-n-200 disabled:text-n-400 text-white font-bold rounded-xl transition"
           >
             {isBusy ? t("signingIn") : t("signIn")}
           </button>

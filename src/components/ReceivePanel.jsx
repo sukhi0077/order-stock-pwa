@@ -47,7 +47,7 @@ export default function ReceivePanel({ reporter }) {
   }
   if (activeItems.length === 0) {
     return (
-      <div className="text-center py-12 text-slate-500">{t("noItemsStaff")}</div>
+      <div className="text-center py-12 text-n-500">{t("noItemsStaff")}</div>
     );
   }
 
@@ -62,8 +62,8 @@ export default function ReceivePanel({ reporter }) {
           </svg>
         </span>
         <div>
-          <h2 className="text-xl font-bold text-slate-900 leading-tight">{t("receive")}</h2>
-          <p className="text-xs text-slate-500">{t("receive_desc")}</p>
+          <h2 className="text-xl font-bold text-n-900 leading-tight">{t("receive")}</h2>
+          <p className="text-xs text-n-500">{t("receive_desc")}</p>
         </div>
       </div>
 
@@ -80,7 +80,7 @@ export default function ReceivePanel({ reporter }) {
             className={`py-2 rounded-xl border text-sm font-semibold transition ${
               mode === key
                 ? "bg-accent-500 border-accent-500 text-white"
-                : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
+                : "bg-n-0 border-n-200 text-n-600 hover:border-accent-300"
             }`}
           >
             {label}

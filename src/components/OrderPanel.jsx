@@ -28,7 +28,7 @@ export default function OrderPanel({ reporter }) {
     );
   }
   if (activeItems.length === 0) {
-    return <div className="text-center py-12 text-slate-500">{t("noItemsStaff")}</div>;
+    return <div className="text-center py-12 text-n-500">{t("noItemsStaff")}</div>;
   }
 
   const handleSubmit = async () => {
@@ -50,12 +50,12 @@ export default function OrderPanel({ reporter }) {
     <div className="space-y-4 pb-10">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <h2 className="text-xl font-bold text-slate-900 leading-tight">{t("placeOrder")}</h2>
-          <p className="text-xs text-slate-500 truncate">{t("placeOrder_desc")}</p>
+          <h2 className="text-xl font-bold text-n-900 leading-tight">{t("placeOrder")}</h2>
+          <p className="text-xs text-n-500 truncate">{t("placeOrder_desc")}</p>
         </div>
         <button
           onClick={() => setShowSubmitted(true)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-900"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-n-600 hover:text-n-900"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M8 6h13" />

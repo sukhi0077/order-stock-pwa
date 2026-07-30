@@ -15,7 +15,7 @@ function orderedKeys(keys, preferred) {
 function ProgressBar({ done, total, className = "" }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
-    <div className={`h-1.5 rounded-full bg-slate-700/70 overflow-hidden ${className}`}>
+    <div className={`h-1.5 rounded-full bg-n-700/70 overflow-hidden ${className}`}>
       <div
         className={`h-full rounded-full transition-all ${done === total && total ? "bg-emerald-500" : "bg-accent-500"}`}
         style={{ width: `${pct}%` }}
@@ -82,15 +82,15 @@ export default function StockCountForm({
   return (
     <div className="space-y-3">
       {/* Search + filter toggle */}
-      <div className="sticky top-0 z-10 -mx-1 px-1 py-2 bg-slate-900/95 backdrop-blur space-y-2">
+      <div className="sticky top-0 z-10 -mx-1 px-1 py-2 bg-n-900/95 backdrop-blur space-y-2">
         <input
           type="search"
           value={searchRaw}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search items…"
-          className="w-full p-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-100 outline-none focus:ring-2 focus:ring-accent-500 transition"
+          className="w-full p-3 rounded-xl bg-n-800 border border-n-600 text-n-100 outline-none focus:ring-2 focus:ring-accent-500 transition"
         />
-        <label className="flex items-center gap-2 text-xs text-slate-300 select-none cursor-pointer">
+        <label className="flex items-center gap-2 text-xs text-n-300 select-none cursor-pointer">
           <input
             type="checkbox"
             checked={onlyRemaining}
@@ -102,7 +102,7 @@ export default function StockCountForm({
       </div>
 
       {categories.length === 0 && (
-        <p className="text-center text-slate-400 py-8">
+        <p className="text-center text-n-400 py-8">
           {onlyRemaining ? "Everything visible is counted. 🎉" : `No items match “${searchRaw}”.`}
         </p>
       )}
@@ -117,17 +117,17 @@ export default function StockCountForm({
         return (
           <div
             key={cat}
-            className="bg-slate-800/70 border border-slate-700 rounded-2xl overflow-hidden"
+            className="bg-n-800/70 border border-n-700 rounded-2xl overflow-hidden"
           >
             <button
               type="button"
               onClick={() => toggleCat(cat)}
-              className="w-full px-4 py-3 hover:bg-slate-700/30 transition text-left"
+              className="w-full px-4 py-3 hover:bg-n-700/30 transition text-left"
             >
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 font-bold text-slate-100">
+                <span className="flex items-center gap-2 font-bold text-n-100">
                   <span
-                    className={`text-slate-400 text-xs transition-transform ${open ? "rotate-90" : ""}`}
+                    className={`text-n-400 text-xs transition-transform ${open ? "rotate-90" : ""}`}
                   >
                     ▶
                   </span>
@@ -139,7 +139,7 @@ export default function StockCountForm({
                       ? "bg-emerald-500/20 text-emerald-300"
                       : done > 0
                         ? "bg-accent-500/20 text-accent-300"
-                        : "bg-slate-700 text-slate-400"
+                        : "bg-n-700 text-n-400"
                   }`}
                 >
                   {done}/{total}

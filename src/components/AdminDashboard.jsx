@@ -78,8 +78,8 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
   if (allItems.length === 0) {
     return (
       <div className="max-w-md mx-auto text-center py-16 px-4 space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">{t("setupItems_title")}</h2>
-        <p className="text-slate-500 text-sm">{t("setupItems_desc", { n: SEED_COUNT })}</p>
+        <h2 className="text-xl font-bold text-n-900">{t("setupItems_title")}</h2>
+        <p className="text-n-500 text-sm">{t("setupItems_desc", { n: SEED_COUNT })}</p>
         {seed.isError && (
           <p className="text-rose-600 text-sm">
             {seed.error?.message || t("seedFailed")}
@@ -107,7 +107,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
     : 0;
 
   const statusPill = {
-    [STATUS.DRAFT]: { text: t("status_draft"), cls: "bg-slate-100 text-slate-600" },
+    [STATUS.DRAFT]: { text: t("status_draft"), cls: "bg-n-100 text-n-600" },
     [STATUS.SUBMITTED]: { text: t("status_submitted"), cls: "bg-amber-50 text-amber-700" },
     [STATUS.FINALIZED]: { text: t("status_finalized"), cls: "bg-emerald-50 text-emerald-700" },
   }[status];
@@ -115,10 +115,10 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-4 pb-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">{t("dashboard")}</h1>
+        <h1 className="text-xl font-bold text-n-900 tracking-tight">{t("dashboard")}</h1>
         <button
           onClick={() => setShowItems(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-900"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-n-600 hover:text-n-900"
         >
           <Icon name="sliders" size={15} />
           {t("manageItems")}
@@ -126,7 +126,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
       </div>
 
       {/* DSR / Orders / Stock / Expiry tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+      <div className="flex gap-1 bg-n-100 rounded-xl p-1">
         {[
           { id: "dsr", icon: "chart", label: t("tab_dsr") },
           { id: "orders", icon: "cart", label: t("tab_orders") },
@@ -137,7 +137,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
             key={tb.id}
             onClick={() => setTab(tb.id)}
             className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition ${
-              tab === tb.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tab === tb.id ? "bg-n-0 text-n-900 shadow-sm" : "text-n-500 hover:text-n-700"
             }`}
           >
             <Icon name={tb.icon} size={15} />
@@ -163,16 +163,16 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
       ) : (
         <>
       {/* Month navigator + progress */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3">
+      <div className="bg-n-0 border border-n-200 rounded-2xl p-3">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setMonthId(prevMonthId(monthId))}
-            className="h-9 w-9 grid place-items-center rounded-lg hover:bg-slate-100 text-slate-600 font-bold text-lg"
+            className="h-9 w-9 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold text-lg"
           >
             ‹
           </button>
           <div className="text-center">
-            <div className="font-bold text-slate-900">{tMonth(monthId)}</div>
+            <div className="font-bold text-n-900">{tMonth(monthId)}</div>
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusPill.cls}`}>
               {statusPill.text}
             </span>
@@ -180,7 +180,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
           <button
             onClick={() => canGoNext && setMonthId(nextMonthId(monthId))}
             disabled={!canGoNext}
-            className="h-9 w-9 grid place-items-center rounded-lg hover:bg-slate-100 text-slate-600 font-bold text-lg disabled:opacity-30"
+            className="h-9 w-9 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold text-lg disabled:opacity-30"
           >
             ›
           </button>
@@ -189,13 +189,13 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
         {!sc.isLoading && (
           <div className="mt-3">
             <div className="flex items-end justify-between mb-1">
-              <span className="text-2xl font-bold text-slate-900 leading-none">
+              <span className="text-2xl font-bold text-n-900 leading-none">
                 {summary.counted}
-                <span className="text-sm font-medium text-slate-400"> / {summary.totalItems}</span>
+                <span className="text-sm font-medium text-n-400"> / {summary.totalItems}</span>
               </span>
               <span className="text-sm font-semibold text-amber-600">{pct}%</span>
             </div>
-            <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-2 rounded-full bg-n-100 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${pct === 100 ? "bg-emerald-500" : "bg-amber-500"}`}
                 style={{ width: `${pct}%` }}
@@ -214,14 +214,14 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setShowDetails(true)}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:text-slate-900"
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-n-0 border border-n-200 text-sm font-semibold text-n-700 hover:text-n-900"
             >
               <Icon name="eye" size={16} />
               {t("viewDetails")}
             </button>
             <button
               onClick={() => downloadMonthCsv(monthId, activeItems, sc.counts)}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:text-slate-900"
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-n-0 border border-n-200 text-sm font-semibold text-n-700 hover:text-n-900"
             >
               <Icon name="download" size={16} />
               {t("exportCsv")}
@@ -257,7 +257,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
           {Object.keys(sc.prevClosing).length > 0 && !isFinalized && (
             <button
               onClick={sc.fillFromLastMonth}
-              className="w-full py-2 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+              className="w-full py-2 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-amber-700 hover:bg-amber-50"
             >
               {t("prefillLast")}
             </button>

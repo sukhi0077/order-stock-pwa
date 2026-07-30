@@ -19,7 +19,7 @@ import { useT } from "../i18n/i18n.jsx";
 function StatusPill({ status }) {
   const { t } = useT();
   const map = {
-    draft: { text: t("status_draft"), cls: "bg-slate-100 text-slate-600" },
+    draft: { text: t("status_draft"), cls: "bg-n-100 text-n-600" },
     submitted: { text: t("status_submitted"), cls: "bg-accent-50 text-accent-700" },
   };
   const s = map[status] || map.draft;
@@ -78,9 +78,9 @@ function ExportBar({ order, items, lines }) {
     setExcluded(on ? new Set() : new Set(rows.map((r) => r.item.id)));
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2.5">
+    <div className="rounded-2xl border border-n-200 bg-n-0 p-3 space-y-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
           {t("orderType")}
         </span>
         <button
@@ -104,7 +104,7 @@ function ExportBar({ order, items, lines }) {
               className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
                 on
                   ? "bg-accent-600 border-accent-600 text-white"
-                  : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
+                  : "bg-n-0 border-n-200 text-n-600 hover:border-accent-300"
               }`}
             >
               {ty}
@@ -112,25 +112,25 @@ function ExportBar({ order, items, lines }) {
           );
         })}
         {types.length === 0 && (
-          <span className="text-xs text-slate-400">{t("noItemsOnOrder")}</span>
+          <span className="text-xs text-n-400">{t("noItemsOnOrder")}</span>
         )}
       </div>
 
       {rows.length > 0 && (
-        <div className="rounded-xl border border-slate-200">
+        <div className="rounded-xl border border-n-200">
           <button
             type="button"
             onClick={() => setShowItems((v) => !v)}
             aria-expanded={showItems}
-            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-600"
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-n-600"
           >
             <span>{t("chooseItems", { n: includedCount, total: rows.length })}</span>
-            <span className="text-slate-400">{showItems ? "▴" : "▾"}</span>
+            <span className="text-n-400">{showItems ? "▴" : "▾"}</span>
           </button>
 
           {showItems && (
-            <div className="border-t border-slate-200">
-              <div className="flex gap-3 px-3 py-1.5 border-b border-slate-100">
+            <div className="border-t border-n-200">
+              <div className="flex gap-3 px-3 py-1.5 border-b border-n-100">
                 <button
                   type="button"
                   onClick={() => setAllItems(true)}
@@ -141,19 +141,19 @@ function ExportBar({ order, items, lines }) {
                 <button
                   type="button"
                   onClick={() => setAllItems(false)}
-                  className="text-[11px] font-semibold text-slate-500 hover:underline"
+                  className="text-[11px] font-semibold text-n-500 hover:underline"
                 >
                   {t("selectNone")}
                 </button>
               </div>
-              <ul className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+              <ul className="max-h-72 overflow-y-auto divide-y divide-n-100">
                 {rows.map(({ item, orderType, line }, i) => {
                   const on = !excluded.has(item.id);
                   const newGroup = i === 0 || rows[i - 1].orderType !== orderType;
                   return (
                     <li key={item.id}>
                       {newGroup && (
-                        <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                        <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-n-400">
                           {orderType}
                         </div>
                       )}
@@ -166,12 +166,12 @@ function ExportBar({ order, items, lines }) {
                         />
                         <span
                           className={`flex-1 min-w-0 truncate text-xs ${
-                            on ? "text-slate-700" : "text-slate-400 line-through"
+                            on ? "text-n-700" : "text-n-400 line-through"
                           }`}
                         >
                           {item.name}
                         </span>
-                        <span className="shrink-0 text-[11px] font-semibold text-slate-500">
+                        <span className="shrink-0 text-[11px] font-semibold text-n-500">
                           {line.qty} {orderUnitOf(item)}
                         </span>
                       </label>
@@ -188,7 +188,7 @@ function ExportBar({ order, items, lines }) {
         <button
           disabled={none}
           onClick={() => downloadOrderCsv(order, items, lines, selected, excluded)}
-          className="py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-semibold hover:text-slate-900 disabled:opacity-40 disabled:hover:text-slate-600"
+          className="py-2.5 rounded-xl bg-n-100 border border-n-200 text-n-600 font-semibold hover:text-n-900 disabled:opacity-40 disabled:hover:text-n-600"
         >
           {t("exportCsv")}
         </button>
@@ -200,7 +200,7 @@ function ExportBar({ order, items, lines }) {
           {t("exportPdf")}
         </button>
       </div>
-      <p className="text-[11px] text-slate-400 text-center">{t("exportSelectionHint")}</p>
+      <p className="text-[11px] text-n-400 text-center">{t("exportSelectionHint")}</p>
     </div>
   );
 }
@@ -215,16 +215,16 @@ function OrderEditor({ orderId, items, reporter, onBack }) {
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="h-9 w-9 grid place-items-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+          className="h-9 w-9 grid place-items-center rounded-lg bg-n-0 border border-n-200 text-n-500 hover:bg-n-50"
           aria-label="back to orders"
         >
           ‹
         </button>
         <div className="flex-1 min-w-0">
-          <div className="text-base font-bold text-slate-900 truncate">
+          <div className="text-base font-bold text-n-900 truncate">
             {oc.order ? orderRef(oc.order) : "Order"}
           </div>
-          <div className="text-xs text-slate-500">{t("onOrderItems", { n: oc.summary.onOrder })}</div>
+          <div className="text-xs text-n-500">{t("onOrderItems", { n: oc.summary.onOrder })}</div>
         </div>
         <StatusPill status={oc.status} />
       </div>
@@ -285,7 +285,7 @@ export default function OrdersAdmin({ reporter }) {
   return (
     <div className="space-y-3">
       {orders.length === 0 && (
-        <div className="text-center py-12 text-slate-500">{t("noOrders")}</div>
+        <div className="text-center py-12 text-n-500">{t("noOrders")}</div>
       )}
       {orders.map((o) => {
         const count = Object.keys(o.lines || {}).length;
@@ -295,13 +295,13 @@ export default function OrdersAdmin({ reporter }) {
           <button
             key={o.id}
             onClick={() => setOpenId(o.id)}
-            className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
+            className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
           >
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-900">{orderRef(o)}</span>
+              <span className="font-semibold text-n-900">{orderRef(o)}</span>
               <StatusPill status={o.status} />
             </div>
-            <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
+            <div className="mt-1 flex items-center justify-between text-xs text-n-500">
               <span>{t("nItems", { n: count })}</span>
               <span>{label}</span>
             </div>

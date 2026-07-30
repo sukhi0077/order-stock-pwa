@@ -103,8 +103,8 @@ export default function EmployeeManagerModal({ onClose }) {
       key={emp.id}
       className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${
         emp.active
-          ? "bg-white border-slate-200"
-          : "bg-slate-50 border-slate-200"
+          ? "bg-n-0 border-n-200"
+          : "bg-n-50 border-n-200"
       }`}
     >
       {editingId === emp.id ? (
@@ -121,7 +121,7 @@ export default function EmployeeManagerModal({ onClose }) {
             }
             if (e.key === "Escape") setEditingId(null);
           }}
-          className="flex-1 min-w-0 bg-slate-100 border border-accent-200 rounded-md px-2 py-1 text-sm text-slate-900 focus:outline-none"
+          className="flex-1 min-w-0 bg-n-100 border border-accent-200 rounded-md px-2 py-1 text-sm text-n-900 focus:outline-none"
         />
       ) : (
         <button
@@ -129,8 +129,8 @@ export default function EmployeeManagerModal({ onClose }) {
           onClick={() => emp.active && startEdit(emp)}
           className={`flex-1 min-w-0 text-left text-sm truncate ${
             emp.active
-              ? "text-slate-800 hover:text-slate-900"
-              : "text-slate-400 line-through"
+              ? "text-n-800 hover:text-n-900"
+              : "text-n-400 line-through"
           }`}
           title={emp.active ? "Tap to rename" : undefined}
         >
@@ -144,7 +144,7 @@ export default function EmployeeManagerModal({ onClose }) {
         disabled={busyId === emp.id}
         className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-semibold border transition disabled:opacity-40 ${
           emp.active
-            ? "border-slate-300 text-slate-500 hover:text-red-700 hover:border-red-200"
+            ? "border-n-300 text-n-500 hover:text-red-700 hover:border-red-200"
             : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
         }`}
       >
@@ -155,20 +155,20 @@ export default function EmployeeManagerModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-100 w-full max-w-md rounded-2xl border border-slate-200 shadow-xl my-8">
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-900">Manage employees</h2>
+      <div className="bg-n-100 w-full max-w-md rounded-2xl border border-n-200 shadow-xl my-8">
+        <div className="flex items-center justify-between p-4 border-b border-n-200">
+          <h2 className="text-lg font-bold text-n-900">Manage employees</h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-slate-500 hover:text-slate-900 text-xl leading-none"
+            className="text-n-500 hover:text-n-900 text-xl leading-none"
           >
             ✕
           </button>
         </div>
 
         <div className="p-4">
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="text-sm text-n-500 mb-4">
             These people appear in the report’s <strong>Reporter</strong>{" "}
             dropdown and in “Coupons given for Google Review”. Changes save
             immediately.
@@ -187,7 +187,7 @@ export default function EmployeeManagerModal({ onClose }) {
                 }
               }}
               placeholder="Add an employee…"
-              className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-accent-500"
+              className="flex-1 bg-n-0 border border-n-200 rounded-lg px-3 py-2 text-sm text-n-900 placeholder-n-400 focus:outline-none focus:border-accent-500"
             />
             <button
               type="button"
@@ -200,9 +200,9 @@ export default function EmployeeManagerModal({ onClose }) {
           </div>
 
           {isLoading ? (
-            <p className="text-sm text-slate-400">Loading…</p>
+            <p className="text-sm text-n-400">Loading…</p>
           ) : employees.length === 0 ? (
-            <p className="text-sm text-slate-400 italic">
+            <p className="text-sm text-n-400 italic">
               No employees yet. Add the first one above.
             </p>
           ) : (
@@ -211,7 +211,7 @@ export default function EmployeeManagerModal({ onClose }) {
 
               {inactive.length > 0 && (
                 <>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-400 pt-3 pb-1">
+                  <p className="text-[10px] uppercase tracking-wider text-n-400 pt-3 pb-1">
                     Inactive · hidden from the app, history kept
                   </p>
                   {inactive.map(row)}
@@ -225,7 +225,7 @@ export default function EmployeeManagerModal({ onClose }) {
           )}
         </div>
 
-        <div className="flex justify-end p-4 border-t border-slate-200">
+        <div className="flex justify-end p-4 border-t border-n-200">
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-lg text-sm font-semibold bg-accent-600 hover:bg-accent-500 text-white transition"

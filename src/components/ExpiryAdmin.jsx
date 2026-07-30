@@ -12,7 +12,7 @@ function ExpiryBadge({ expiry }) {
   const { t } = useT();
   const d = daysLeft(expiry);
   if (d === null) return null;
-  let cls = "bg-slate-100 text-slate-500";
+  let cls = "bg-n-100 text-n-500";
   let text;
   if (d < 0) {
     cls = "bg-rose-100 text-rose-700";
@@ -71,7 +71,7 @@ export default function ExpiryAdmin() {
             className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border ${
               win === w
                 ? "bg-accent-600 border-accent-600 text-white"
-                : "bg-white border-slate-200 text-slate-600"
+                : "bg-n-0 border-n-200 text-n-600"
             }`}
           >
             {t(
@@ -94,32 +94,32 @@ export default function ExpiryAdmin() {
           <Spinner />
         </div>
       ) : totalBatches === 0 ? (
-        <p className="text-slate-400 text-sm py-10 text-center">{t("noExpiring")}</p>
+        <p className="text-n-400 text-sm py-10 text-center">{t("noExpiring")}</p>
       ) : (
         <div className="space-y-2.5">
           {groups.map((g) => {
             const item = itemsById[g.itemId];
             const cat = item?.category;
             return (
-              <div key={g.itemId} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-                <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-100">
+              <div key={g.itemId} className="bg-n-0 border border-n-200 rounded-2xl overflow-hidden">
+                <div className="flex items-center gap-2 px-3 py-2.5 border-b border-n-100">
                   <span className="text-accent-600 shrink-0">
                     <CategoryIcon name={cat} size={18} />
                   </span>
-                  <span className="flex-1 min-w-0 text-sm font-bold text-slate-900 truncate">
+                  <span className="flex-1 min-w-0 text-sm font-bold text-n-900 truncate">
                     {nameOf(g.batches[0])}
                   </span>
-                  <span className="text-xs font-semibold text-slate-500 shrink-0">
+                  <span className="text-xs font-semibold text-n-500 shrink-0">
                     {t("totalQty", { qty: g.total, unit: g.unit })}
                   </span>
                 </div>
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-n-100">
                   {g.batches.map((r) => (
                     <div key={r.id} className="flex items-center gap-2 px-3 py-2">
-                      <span className="text-sm text-slate-700 w-16 shrink-0">
+                      <span className="text-sm text-n-700 w-16 shrink-0">
                         {num(r.qty)} {r.unit}
                       </span>
-                      <span className="flex-1 text-xs text-slate-500">
+                      <span className="flex-1 text-xs text-n-500">
                         {t("expires")} {formatDay(r.expiry)}
                       </span>
                       <ExpiryBadge expiry={r.expiry} />
@@ -127,7 +127,7 @@ export default function ExpiryAdmin() {
                         onClick={() => {
                           if (window.confirm(t("removeReceipt"))) delReceipt.mutate(r.id);
                         }}
-                        className="h-6 w-6 grid place-items-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
+                        className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
                         aria-label="remove"
                       >
                         ×

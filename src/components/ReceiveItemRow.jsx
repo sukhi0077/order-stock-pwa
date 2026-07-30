@@ -27,12 +27,12 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
   const has = batches && batches.length > 0;
 
   return (
-    <div className={`rounded-xl border p-3 ${has ? "bg-accent-50/60 border-accent-200" : "bg-white border-slate-200"}`}>
+    <div className={`rounded-xl border p-3 ${has ? "bg-accent-50/60 border-accent-200" : "bg-n-0 border-n-200"}`}>
       <div className="flex items-baseline justify-between gap-2 mb-2">
-        <span className="text-base font-medium text-slate-800 leading-tight break-words min-w-0">
+        <span className="text-base font-medium text-n-800 leading-tight break-words min-w-0">
           {ti(item.name, item)}
         </span>
-        <span className="text-[11px] text-slate-400 shrink-0">{item.unit}</span>
+        <span className="text-[11px] text-n-400 shrink-0">{item.unit}</span>
       </div>
 
       {ordered && (
@@ -41,7 +41,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
             {t("orderedQty", { qty: ordered.qty, unit: ordered.unit })}
           </span>
           {ordered.note && (
-            <span className="min-w-0 flex-1 truncate text-[11px] text-slate-500">
+            <span className="min-w-0 flex-1 truncate text-[11px] text-n-500">
               {ordered.note}
             </span>
           )}
@@ -54,7 +54,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
           own full-width line; from `sm` up all three sit side by side. */}
       <div className="grid grid-cols-[4rem_minmax(0,1fr)] sm:grid-cols-[4rem_minmax(0,1fr)_auto] gap-2 items-end">
         <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] uppercase tracking-wide text-slate-400">{t("quantity")}</span>
+          <span className="text-[10px] uppercase tracking-wide text-n-400">{t("quantity")}</span>
           <input
             type="number"
             inputMode="decimal"
@@ -62,11 +62,11 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
             step="any"
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="h-10 w-full text-center rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
+            className="h-10 w-full text-center rounded-lg bg-n-0 border border-n-300 text-n-900 text-base outline-none focus:ring-2 focus:ring-accent-500"
           />
         </label>
         <label className="flex flex-col gap-1 min-w-0">
-          <span className="text-[10px] uppercase tracking-wide text-slate-400">{t("expiryDate")}</span>
+          <span className="text-[10px] uppercase tracking-wide text-n-400">{t("expiryDate")}</span>
           {/* min-w-0 belt-and-braces: the grid track above already caps this
               input, but the intrinsic width of a native date input is wide
               enough that it is worth pinning in both places. */}
@@ -74,7 +74,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
             type="date"
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="h-10 w-full min-w-0 rounded-lg bg-white border border-slate-300 text-slate-900 text-base px-2 outline-none focus:ring-2 focus:ring-accent-500"
+            className="h-10 w-full min-w-0 rounded-lg bg-n-0 border border-n-300 text-n-900 text-base px-2 outline-none focus:ring-2 focus:ring-accent-500"
           />
         </label>
         <button
@@ -91,10 +91,10 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
         <div className="mt-2 space-y-1">
           {batches.map((b) => (
             <div key={b.id} className="flex items-center gap-2 text-xs">
-              <span className="text-slate-700 w-16 shrink-0">
+              <span className="text-n-700 w-16 shrink-0">
                 {num(b.qty)} {b.unit}
               </span>
-              <span className="flex-1 text-slate-500 truncate">
+              <span className="flex-1 text-n-500 truncate">
                 {t("expires")} {formatDay(b.expiry)}
               </span>
               <ExpiryBadge expiry={b.expiry} />
@@ -102,7 +102,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
                 onClick={() => {
                   if (window.confirm(t("removeReceipt"))) onDelete(b.id);
                 }}
-                className="h-6 w-6 grid place-items-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
+                className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
                 aria-label="remove"
               >
                 ×

@@ -36,7 +36,7 @@ function FilterChip({ active, onClick, small = false, children }) {
       } ${
         active
           ? "bg-accent-500 border-accent-500 text-white"
-          : "bg-white border-slate-200 text-slate-600 hover:border-accent-300"
+          : "bg-n-0 border-n-200 text-n-600 hover:border-accent-300"
       }`}
     >
       {children}
@@ -104,14 +104,14 @@ function OrderReceiveView({ order, items, batchesByItem, onAdd, onDelete, adding
         <button
           type="button"
           onClick={onBack}
-          className="h-9 w-9 grid place-items-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 shrink-0"
+          className="h-9 w-9 grid place-items-center rounded-lg bg-n-0 border border-n-200 text-n-500 hover:bg-n-50 shrink-0"
           aria-label="back"
         >
           ‹
         </button>
         <div className="flex-1 min-w-0">
-          <div className="text-base font-bold text-slate-900 truncate">{orderRef(order)}</div>
-          <div className="text-[11px] text-slate-500">
+          <div className="text-base font-bold text-n-900 truncate">{orderRef(order)}</div>
+          <div className="text-[11px] text-n-500">
             {t("receivedOfOrdered", { done: doneCount, total: lineCount })}
             {when ? ` · ${formatDateTime(new Date(when.seconds * 1000))}` : ""}
           </div>
@@ -119,7 +119,7 @@ function OrderReceiveView({ order, items, batchesByItem, onAdd, onDelete, adding
       </div>
 
       {allCats.length === 0 && (
-        <p className="text-center text-slate-400 py-8">{t("noReceivableItems")}</p>
+        <p className="text-center text-n-400 py-8">{t("noReceivableItems")}</p>
       )}
 
       {allCats.length > 0 && (
@@ -172,7 +172,7 @@ function OrderReceiveView({ order, items, batchesByItem, onAdd, onDelete, adding
         <div key={cat} className="space-y-1.5">
           {subsOf(cat).map((sub) => (
             <div key={sub} className="space-y-1.5">
-              <h3 className="px-1 pt-1 text-[11px] font-bold uppercase tracking-wide text-slate-400">
+              <h3 className="px-1 pt-1 text-[11px] font-bold uppercase tracking-wide text-n-400">
                 {tc(cat)} · {ts(sub)}
               </h3>
               {groups[cat][sub].map(({ it, line }) => (
@@ -242,7 +242,7 @@ export default function ReceiveFromOrder({ items, batchesByItem, onAdd, onDelete
   }
 
   if (submitted.length === 0) {
-    return <p className="text-center text-slate-400 py-8">{t("noSubmittedOrders")}</p>;
+    return <p className="text-center text-n-400 py-8">{t("noSubmittedOrders")}</p>;
   }
 
   return (
@@ -257,21 +257,21 @@ export default function ReceiveFromOrder({ items, batchesByItem, onAdd, onDelete
             key={o.id}
             type="button"
             onClick={() => setOpenId(o.id)}
-            className="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
+            className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
           >
             <div className="flex items-center gap-2">
-              <span className="flex-1 min-w-0 font-semibold text-slate-900 truncate">
+              <span className="flex-1 min-w-0 font-semibold text-n-900 truncate">
                 {orderRef(o)}
               </span>
               <span
                 className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  complete ? "bg-accent-100 text-accent-800" : "bg-slate-100 text-slate-600"
+                  complete ? "bg-accent-100 text-accent-800" : "bg-n-100 text-n-600"
                 }`}
               >
                 {t("receivedOfOrdered", { done, total: ids.length })}
               </span>
             </div>
-            <div className="mt-1 text-xs text-slate-500">
+            <div className="mt-1 text-xs text-n-500">
               {when ? formatDateTime(new Date(when.seconds * 1000)) : ""}
             </div>
           </button>

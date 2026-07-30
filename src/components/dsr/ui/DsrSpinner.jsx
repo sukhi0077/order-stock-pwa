@@ -5,7 +5,7 @@ import React from "react";
 export default function Spinner({ label = "Loading…", className = "" }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-3 text-slate-500 ${className}`}
+      className={`flex flex-col items-center justify-center gap-3 text-n-500 ${className}`}
     >
       <svg
         className="w-10 h-10 animate-spin text-accent-700"
