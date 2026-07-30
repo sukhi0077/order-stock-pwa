@@ -29,7 +29,7 @@ export default function StaffPanel({ reporter, isOnline }) {
   }
   if (itemsQuery.isError) {
     return (
-      <div className="text-center py-12 text-rose-600">
+      <div className="text-center py-12 text-rose-600 dark:text-rose-400">
         {t("loadItemsErr")}{" "}
         <button onClick={() => itemsQuery.refetch()} className="underline">
           {t("retry")}
@@ -60,7 +60,7 @@ export default function StaffPanel({ reporter, isOnline }) {
   const statusPill = {
     [STATUS.DRAFT]: { text: t("status_draft"), cls: "bg-n-100 text-n-600" },
     [STATUS.SUBMITTED]: { text: t("status_submitted"), cls: "bg-accent-50 text-accent-700" },
-    [STATUS.FINALIZED]: { text: t("status_finalized"), cls: "bg-emerald-50 text-emerald-700" },
+    [STATUS.FINALIZED]: { text: t("status_finalized"), cls: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300" },
   }[status];
 
   return (
@@ -85,7 +85,7 @@ export default function StaffPanel({ reporter, isOnline }) {
       ) : (
         <>
           {isFinalized && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-lg px-3 py-2">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300 text-xs rounded-lg px-3 py-2">
               {t("finalizedRO")}
             </div>
           )}
@@ -100,7 +100,7 @@ export default function StaffPanel({ reporter, isOnline }) {
           )}
 
           {sc.saveError && (
-            <p className="text-rose-600 text-sm text-center">{sc.saveError}</p>
+            <p className="text-rose-600 dark:text-rose-400 text-sm text-center">{sc.saveError}</p>
           )}
 
           <CountNavigator

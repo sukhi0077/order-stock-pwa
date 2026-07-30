@@ -152,7 +152,7 @@ export default function App() {
             <button
               onClick={logout}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${
-                coloredHeader ? colBtn : "bg-n-100 border-n-200 text-rose-600 hover:text-rose-700"
+                coloredHeader ? colBtn : "bg-n-100 border-n-200 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300"
               }`}
             >
               {t("signOut")}

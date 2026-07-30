@@ -344,7 +344,7 @@ export default function DailyReportForm({
   return (
     <div className="pb-24">
       {hasSubmitted && Object.keys(errors).length > 0 && (
-        <div className="bg-red-50 border border-red-500 text-red-700 p-4 rounded-xl mb-6 text-center font-bold animate-bounce">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-500 text-red-700 dark:text-red-300 p-4 rounded-xl mb-6 text-center font-bold animate-bounce">
           Oops! Missing some required info. Check the red boxes below! 👇
         </div>
       )}
@@ -393,7 +393,7 @@ export default function DailyReportForm({
             const mismatch = Math.abs(Number(data.totalSalePOS) - parts) > 0.01;
             if (!mismatch) return null;
             return (
-              <div className="-mt-2 mb-2 flex items-center justify-between text-xs text-red-700">
+              <div className="-mt-2 mb-2 flex items-center justify-between text-xs text-red-700 dark:text-red-300">
                 <span>Cash + Card + Online</span>
                 <span className="font-bold">
                   {parts.toFixed(2)} — must equal Total Sale
@@ -505,31 +505,31 @@ export default function DailyReportForm({
               card 1's "Online Sale": green when matching, red when not. */}
           <div
             className={`mt-3 pt-3 border-t grid grid-cols-4 gap-2 items-center ${
-              onlineSaleMismatch ? "border-red-200" : "border-n-200"
+              onlineSaleMismatch ? "border-red-200 dark:border-red-700/40" : "border-n-200"
             }`}
           >
             <span
               className={`text-sm font-bold uppercase tracking-wider ${
-                onlineSaleMismatch ? "text-red-700" : "text-emerald-700"
+                onlineSaleMismatch ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300"
               }`}
             >
               Total
             </span>
             <span
               className={`text-base font-bold pl-1 ${
-                onlineSaleMismatch ? "text-red-700" : "text-emerald-700"
+                onlineSaleMismatch ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300"
               }`}
             >
               {deliveryOnlineSum.toFixed(2)}
             </span>
             <span
               className={`text-base font-bold pl-1 ${
-                deliveryCashOverflow ? "text-red-700" : "text-emerald-700"
+                deliveryCashOverflow ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300"
               }`}
             >
               {deliveryCashSum.toFixed(2)}
             </span>
-            <span className="text-base font-bold pl-1 text-emerald-700">
+            <span className="text-base font-bold pl-1 text-emerald-700 dark:text-emerald-300">
               {deliveryCardSum.toFixed(2)}
             </span>
           </div>
@@ -545,14 +545,14 @@ export default function DailyReportForm({
           </div>
 
           {deliveryCashOverflow && (
-            <p className="text-red-600 text-xs mt-1 font-semibold animate-pulse text-right">
+            <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-semibold animate-pulse text-right">
               Delivery cash ({deliveryCashSum.toFixed(2)}) can't exceed Cash Sale
               ({Number(data.cashSalePOS).toFixed(2)})
             </p>
           )}
 
           {onlineSaleMismatch && (
-            <p className="text-red-600 text-xs mt-1 font-semibold animate-pulse text-right">
+            <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-semibold animate-pulse text-right">
               Recheck online sale for portals — off by{" "}
               {Math.abs(
                 Number(data.onlineSalePOS) - deliveryOnlineSum,
@@ -566,7 +566,7 @@ export default function DailyReportForm({
         <Card title="3. Cash Calculations" color="teal">
           {/* Manual-entry notice only applies to NEW reports */}
           {!isEditMode && prevDataError && (
-            <div className="bg-amber-50 border border-amber-500 text-amber-700 p-3 rounded-lg mb-4 text-sm">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-500 text-amber-700 dark:text-amber-300 p-3 rounded-lg mb-4 text-sm">
               ⚠️ Last day data not available. Please enter cash from yesterday
               manually.
             </div>
@@ -624,7 +624,7 @@ export default function DailyReportForm({
           </div>
 
           {isEditMode && (
-            <p className="text-xs text-amber-700/80 mt-1 mb-1">
+            <p className="text-xs text-amber-700/80 dark:text-amber-300/80 mt-1 mb-1">
               🔒 Opening cash stays locked while editing so the day-to-day cash
               chain isn't broken. Adjust the figures below if a sale or payout
               was entered incorrectly.
@@ -640,14 +640,14 @@ export default function DailyReportForm({
               <button
                 type="button"
                 onClick={() => openAdjust("taken")}
-                className="flex items-center justify-center gap-2 py-3 bg-n-100 hover:bg-n-100 active:scale-[0.98] text-red-700 border border-red-200 rounded-xl text-sm font-bold transition"
+                className="flex items-center justify-center gap-2 py-3 bg-n-100 hover:bg-n-100 active:scale-[0.98] text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40 rounded-xl text-sm font-bold transition"
               >
                 <span className="text-lg leading-none">−</span> Cash Taken
               </button>
               <button
                 type="button"
                 onClick={() => openAdjust("added")}
-                className="flex items-center justify-center gap-2 py-3 bg-n-100 hover:bg-n-100 active:scale-[0.98] text-green-700 border border-green-200 rounded-xl text-sm font-bold transition"
+                className="flex items-center justify-center gap-2 py-3 bg-n-100 hover:bg-n-100 active:scale-[0.98] text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700/40 rounded-xl text-sm font-bold transition"
               >
                 <span className="text-lg leading-none">+</span> Cash Added
               </button>
@@ -657,10 +657,10 @@ export default function DailyReportForm({
                 unmistakable (tinted bg, accent border, coloured header). */}
             {adjustType && (
               <div
-                className={`mb-3 rounded-lg border bg-n-100 ${adjustType === "taken" ? "border-red-200" : "border-green-200"}`}
+                className={`mb-3 rounded-lg border bg-n-100 ${adjustType === "taken" ? "border-red-200 dark:border-red-700/40" : "border-green-200 dark:border-green-700/40"}`}
               >
                 <div
-                  className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border-b ${adjustType === "taken" ? "text-red-700 border-red-200" : "text-green-700 border-green-200"}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border-b ${adjustType === "taken" ? "text-red-700 dark:text-red-300 border-red-200 dark:border-red-700/40" : "text-green-700 dark:text-green-300 border-green-200 dark:border-green-700/40"}`}
                 >
                   <span className="text-base leading-none">
                     {adjustType === "taken" ? "−" : "+"}
@@ -694,7 +694,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={confirmAdjust}
                       aria-label="Confirm entry"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 hover:bg-green-50 text-green-700 border border-green-200 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-50 dark:hover:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700/40 font-bold text-lg transition"
                     >
                       ✓
                     </button>
@@ -702,7 +702,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={cancelAdjust}
                       aria-label="Discard entry"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-50 text-red-700 border border-red-200 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40 font-bold text-lg transition"
                     >
                       ✕
                     </button>
@@ -717,9 +717,9 @@ export default function DailyReportForm({
                 const taken = item.kind === "taken";
                 // Full static class strings (Tailwind can't see dynamic ones).
                 const chip = taken
-                  ? "text-red-700 bg-red-50 border-red-200"
-                  : "text-green-700 bg-green-50 border-green-200";
-                const amtColor = taken ? "text-red-700" : "text-green-700";
+                  ? "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700/40"
+                  : "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700/40";
+                const amtColor = taken ? "text-red-700 dark:text-red-300" : "text-green-700 dark:text-green-300";
                 return (
                   <div
                     key={`${item.kind}-${item.idx}`}
@@ -741,7 +741,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={() => removeAdjust(item.kind, item.idx)}
                       aria-label="Delete entry"
-                      className="shrink-0 text-red-600 hover:text-red-700 font-bold text-lg hover:scale-110 transition"
+                      className="shrink-0 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold text-lg hover:scale-110 transition"
                     >
                       ✕
                     </button>
@@ -769,7 +769,7 @@ export default function DailyReportForm({
             />
 
             {cashMismatch && (
-              <div className="bg-red-50 border border-red-500 text-red-700 p-3 rounded-lg mt-2 text-sm font-semibold text-center">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-500 text-red-700 dark:text-red-300 p-3 rounded-lg mt-2 text-sm font-semibold text-center">
                 Amount mismatch! Difference: {mismatchDiff.toFixed(2)}
               </div>
             )}
@@ -933,7 +933,7 @@ export default function DailyReportForm({
                     type="button"
                     onClick={() => removeCoupon(idx)}
                     aria-label="Delete coupon"
-                    className="shrink-0 text-red-600 hover:text-red-700 font-bold text-lg hover:scale-110 transition"
+                    className="shrink-0 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold text-lg hover:scale-110 transition"
                   >
                     ✕
                   </button>
@@ -967,7 +967,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={confirmCoupon}
                       aria-label="Confirm coupon"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 hover:bg-green-50 text-green-700 border border-green-200 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-50 dark:hover:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700/40 font-bold text-lg transition"
                     >
                       ✓
                     </button>
@@ -975,7 +975,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={cancelCoupon}
                       aria-label="Discard coupon"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-50 text-red-700 border border-red-200 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/40 font-bold text-lg transition"
                     >
                       ✕
                     </button>
@@ -994,7 +994,7 @@ export default function DailyReportForm({
               )}
 
               {errors.discountCoupons && data.couponsDetails.length === 0 && (
-                <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">
+                <span className="text-red-600 dark:text-red-400 text-xs mt-1 block font-semibold animate-pulse">
                   {errors.discountCoupons}
                 </span>
               )}
@@ -1011,7 +1011,7 @@ export default function DailyReportForm({
             <label className="block text-sm font-medium text-n-700 mb-2 flex flex-col md:flex-row md:items-center gap-2">
               <span>Comments</span>
               {isCommentRequired && (
-                <span className="text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded border border-red-200">
+                <span className="text-red-700 dark:text-red-300 font-bold text-xs bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded border border-red-200 dark:border-red-700/40">
                   * Required: {commentReasons.join(", ")}
                 </span>
               )}
@@ -1023,7 +1023,7 @@ export default function DailyReportForm({
               className={`w-full p-2 rounded-lg bg-n-0 border outline-none transition min-h-[100px] ${errors.comments ? "border-red-500 ring-1 ring-red-500 text-n-900 placeholder-red-400/50" : "border-n-300 text-n-900 focus:ring-2 focus:ring-accent-500"}`}
             />
             {errors.comments && (
-              <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">
+              <span className="text-red-600 dark:text-red-400 text-xs mt-1 block font-semibold animate-pulse">
                 {errors.comments}
               </span>
             )}
@@ -1032,7 +1032,7 @@ export default function DailyReportForm({
               is a real FK, so the name can never be misspelt or drift. */}
           <div className="mb-3 w-full" data-error={errors.reporterId ? "true" : undefined}>
             <label className="block text-sm font-medium text-n-700 mb-1">
-              Reporter <span className="text-red-600">*</span>
+              Reporter <span className="text-red-600 dark:text-red-400">*</span>
             </label>
             <select
               value={data.reporterId || ""}
@@ -1066,7 +1066,7 @@ export default function DailyReportForm({
               </p>
             )}
             {errors.reporterId && (
-              <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">
+              <span className="text-red-600 dark:text-red-400 text-xs mt-1 block font-semibold animate-pulse">
                 {errors.reporterId}
               </span>
             )}
@@ -1082,7 +1082,7 @@ export default function DailyReportForm({
                   type="button"
                   onClick={handleCleanForm}
                   disabled={isSaving}
-                  className="w-1/4 py-4 bg-n-100 hover:bg-n-100 disabled:opacity-50 border border-red-200 text-red-700 font-bold rounded-xl shadow-lg transition duration-200"
+                  className="w-1/4 py-4 bg-n-100 hover:bg-n-100 disabled:opacity-50 border border-red-200 dark:border-red-700/40 text-red-700 dark:text-red-300 font-bold rounded-xl shadow-lg transition duration-200"
                 >
                   🧹 Clean
                 </button>

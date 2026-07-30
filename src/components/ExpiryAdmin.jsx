@@ -15,15 +15,15 @@ function ExpiryBadge({ expiry }) {
   let cls = "bg-n-100 text-n-500";
   let text;
   if (d < 0) {
-    cls = "bg-rose-100 text-rose-700";
+    cls = "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300";
     text = t("expiredAgo", { n: Math.abs(d) });
   } else if (d === 0) {
-    cls = "bg-rose-100 text-rose-700";
+    cls = "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300";
     text = t("expiresToday");
   } else {
     text = t("daysLeft", { n: d });
-    if (d <= 7) cls = "bg-rose-100 text-rose-700";
-    else if (d <= 30) cls = "bg-amber-100 text-amber-700";
+    if (d <= 7) cls = "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300";
+    else if (d <= 30) cls = "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300";
   }
   return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${cls}`}>{text}</span>;
 }
@@ -127,7 +127,7 @@ export default function ExpiryAdmin() {
                         onClick={() => {
                           if (window.confirm(t("removeReceipt"))) delReceipt.mutate(r.id);
                         }}
-                        className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
+                        className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 shrink-0 leading-none"
                         aria-label="remove"
                       >
                         ×

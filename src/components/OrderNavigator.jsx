@@ -234,7 +234,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
                             <button
                               type="button"
                               onClick={() => onRemove(item.id)}
-                              className="h-7 w-7 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 text-lg leading-none"
+                              className="h-7 w-7 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 shrink-0 text-lg leading-none"
                               aria-label={`remove ${item.name}`}
                             >
                               ×

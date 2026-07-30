@@ -74,23 +74,23 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                 <p className="text-xs text-n-500 uppercase tracking-wider">
                   Cash Sale
                 </p>
-                <p className="text-xl font-bold text-green-700">
+                <p className="text-xl font-bold text-green-700 dark:text-green-300">
                   {money(report.cashSalePOS)}
                 </p>
               </div>
               <div
-                className={`p-4 rounded-xl border ${report.onlineSaleMismatch ? "bg-red-50 border-red-200" : "bg-n-0 border-n-200"}`}
+                className={`p-4 rounded-xl border ${report.onlineSaleMismatch ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700/40" : "bg-n-0 border-n-200"}`}
               >
                 <p className="text-xs text-n-500 uppercase tracking-wider">
                   Online Sale
                 </p>
                 <p
-                  className={`text-xl font-bold ${report.onlineSaleMismatch ? "text-red-700" : "text-emerald-700"}`}
+                  className={`text-xl font-bold ${report.onlineSaleMismatch ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300"}`}
                 >
                   {money(report.onlineSalePOS)}
                 </p>
                 {report.onlineSaleMismatch && (
-                  <p className="text-xs text-red-700 mt-1 leading-snug">
+                  <p className="text-xs text-red-700 dark:text-red-300 mt-1 leading-snug">
                     Off by{" "}
                     {money(
                       Math.abs(
@@ -121,18 +121,18 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                 </p>
               </div>
               <div
-                className={`p-4 rounded-xl border ${report.cashMismatch ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}
+                className={`p-4 rounded-xl border ${report.cashMismatch ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700/40" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700/40"}`}
               >
                 <p className="text-xs text-n-500 uppercase tracking-wider">
                   Reported Cash in Box
                 </p>
                 <p
-                  className={`text-xl font-bold ${report.cashMismatch ? "text-red-700" : "text-green-700"}`}
+                  className={`text-xl font-bold ${report.cashMismatch ? "text-red-700 dark:text-red-300" : "text-green-700 dark:text-green-300"}`}
                 >
                   {money(report.totalCashInBox)}
                 </p>
                 {report.cashMismatch && (
-                  <p className="text-xs text-red-700 mt-1 leading-snug">
+                  <p className="text-xs text-red-700 dark:text-red-300 mt-1 leading-snug">
                     Off by {money(report.mismatchDiff)} — expected cash is{" "}
                     {money(report.autoCalculatedCash)}
                   </p>
@@ -162,11 +162,11 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                     {adjustments.map((item, idx) => {
                       const taken = item.kind === "taken";
                       const chip = taken
-                        ? "text-red-700 bg-red-50 border-red-200"
-                        : "text-green-700 bg-green-50 border-green-200";
+                        ? "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700/40"
+                        : "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700/40";
                       const amtColor = taken
-                        ? "text-red-700"
-                        : "text-green-700";
+                        ? "text-red-700 dark:text-red-300"
+                        : "text-green-700 dark:text-green-300";
                       return (
                         <li
                           key={idx}
@@ -218,7 +218,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-n-500">Cash:</span>
-                        <span className="text-green-700 font-mono">
+                        <span className="text-green-700 dark:text-green-300 font-mono">
                           {money(data.cash)}
                         </span>
                       </div>

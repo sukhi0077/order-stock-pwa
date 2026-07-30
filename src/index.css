@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* A `dark:` variant driven by the data-theme attribute the theme provider sets
+   on <html>. The n-* ramp already flips every surface and text colour, but a
+   few things cannot be expressed as a neutral: coloured card tints and status
+   chips need a genuinely different recipe on a dark card — bg-blue-900/20 with
+   text-blue-300, not bg-blue-50 with text-blue-700.
+   Deliberately NOT the prefers-color-scheme dark mode: the scheme is the
+   user's explicit choice and must not follow the OS. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ---------------------------------------------------------------------------
    THEME ACCENT
    The colour scheme picked on the home screen sets --accent-* on the app root

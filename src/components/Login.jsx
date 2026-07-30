@@ -56,7 +56,7 @@ export default function Login({ onLogin }) {
         <p className="text-center text-n-500 text-sm mb-6">{t("login_subtitle")}</p>
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-lg mb-4 text-sm text-center font-semibold">
+          <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-700/40 text-rose-700 dark:text-rose-300 p-3 rounded-lg mb-4 text-sm text-center font-semibold">
             {t(error)}
           </div>
         )}

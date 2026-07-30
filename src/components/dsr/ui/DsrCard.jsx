@@ -1,45 +1,48 @@
 import React from "react";
 
-// Each section gets its own colour so it's easy to tell cards apart.
+// Each section of the daily report gets its own colour so the cards are easy to
+// tell apart — "Report finansowy", "Portal sales" and so on.
+//
 // Amber, orange and pink are deliberately absent: those read as warning /
 // error everywhere else in the app, and a decorative amber card was being
 // mistaken for a caution.
-// a soft
-// tint with a bold left accent, matching the light chrome the rest of the app
-// uses (white surfaces, slate-200 hairlines, rounded-2xl).
+//
+// Two recipes, not one tint dimmed. On a light page a card is a pale wash with
+// dark text; on the dark page it is a deep translucent wash with LIGHT text.
+// The dark strings are lifted verbatim from the standalone dsr-pwa, so
+// Midnight reproduces that app rather than approximating it:
+//     bg-<hue>-900/20  border-<hue>-700/40  border-l-<hue>-500  text-<hue>-300
 const COLORS = {
   blue: {
-    wrap: "bg-blue-50 border-blue-200 border-l-blue-500",
-    title: "text-blue-700",
+    wrap: "bg-blue-50 border-blue-200 border-l-blue-500 dark:bg-blue-900/20 dark:border-blue-700/40 dark:border-l-blue-500",
+    title: "text-blue-700 dark:text-blue-300",
   },
   green: {
-    wrap: "bg-emerald-50 border-emerald-200 border-l-emerald-500",
-    title: "text-emerald-700",
+    wrap: "bg-emerald-50 border-emerald-200 border-l-emerald-500 dark:bg-emerald-900/20 dark:border-emerald-700/40 dark:border-l-emerald-500",
+    title: "text-emerald-700 dark:text-emerald-300",
   },
   purple: {
-    wrap: "bg-violet-50 border-violet-200 border-l-violet-500",
-    title: "text-violet-700",
+    wrap: "bg-violet-50 border-violet-200 border-l-violet-500 dark:bg-violet-900/20 dark:border-violet-700/40 dark:border-l-violet-500",
+    title: "text-violet-700 dark:text-violet-300",
   },
   teal: {
-    wrap: "bg-teal-50 border-teal-200 border-l-teal-500",
-    title: "text-teal-700",
+    wrap: "bg-teal-50 border-teal-200 border-l-teal-500 dark:bg-teal-900/20 dark:border-teal-700/40 dark:border-l-teal-500",
+    title: "text-teal-700 dark:text-teal-300",
   },
   indigo: {
-    wrap: "bg-indigo-50 border-indigo-200 border-l-indigo-500",
-    title: "text-indigo-700",
+    wrap: "bg-indigo-50 border-indigo-200 border-l-indigo-500 dark:bg-indigo-900/20 dark:border-indigo-700/40 dark:border-l-indigo-500",
+    title: "text-indigo-700 dark:text-indigo-300",
   },
   cyan: {
-    wrap: "bg-cyan-50 border-cyan-200 border-l-cyan-500",
-    title: "text-cyan-700",
+    wrap: "bg-cyan-50 border-cyan-200 border-l-cyan-500 dark:bg-cyan-900/20 dark:border-cyan-700/40 dark:border-l-cyan-500",
+    title: "text-cyan-700 dark:text-cyan-300",
   },
 };
 
 export default function Card({ title, color = "blue", children }) {
   const c = COLORS[color] || COLORS.blue;
   return (
-    <div
-      className={`p-4 rounded-2xl mb-4 border border-l-4 ${c.wrap}`}
-    >
+    <div className={`p-4 rounded-2xl mb-4 border border-l-4 ${c.wrap}`}>
       <h2 className={`text-base font-bold mb-3 ${c.title}`}>{title}</h2>
       {children}
     </div>

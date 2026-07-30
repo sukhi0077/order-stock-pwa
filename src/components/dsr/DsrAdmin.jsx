@@ -590,7 +590,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setIsGlobalEditMode(!isGlobalEditMode)}
-              className={`transition ${isGlobalEditMode ? "text-amber-700" : "text-n-500 hover:text-n-900"}`}
+              className={`transition ${isGlobalEditMode ? "text-amber-700 dark:text-amber-300" : "text-n-500 hover:text-n-900"}`}
             >
               {isGlobalEditMode ? "Editing" : "Read only"}
             </button>
@@ -631,7 +631,7 @@ export default function AdminDashboard() {
             label: "Cash Sales",
             value: totalCash,
             dot: "bg-green-500",
-            text: "text-green-700",
+            text: "text-green-700 dark:text-green-300",
           },
           {
             label: "Online Sales",
@@ -728,7 +728,7 @@ export default function AdminDashboard() {
             <Spinner label="Loading reports…" />
           </div>
         ) : isError ? (
-          <div className="p-8 text-center text-red-700">
+          <div className="p-8 text-center text-red-700 dark:text-red-300">
             Couldn't load reports. Check your connection and try again.
           </div>
         ) : reports.length === 0 ? (
@@ -745,13 +745,13 @@ export default function AdminDashboard() {
                   <th className="p-4 font-semibold text-n-700">
                     Total Sale
                   </th>
-                  <th className="p-4 font-semibold text-n-700 text-green-700">
+                  <th className="p-4 font-semibold text-n-700 text-green-700 dark:text-green-300">
                     Cash
                   </th>
                   <th className="p-4 font-semibold text-n-700 text-accent-700">
                     Card
                   </th>
-                  <th className="p-4 font-semibold text-n-700 text-emerald-700">
+                  <th className="p-4 font-semibold text-n-700 text-emerald-700 dark:text-emerald-300">
                     Bank Transfer
                   </th>
                   <th className="p-4 font-semibold text-n-700 text-accent-700">
@@ -782,13 +782,13 @@ export default function AdminDashboard() {
                     <td className="p-4 text-n-700">
                       {money(report.totalSalePOS)}
                     </td>
-                    <td className="p-4 text-green-700">
+                    <td className="p-4 text-green-700 dark:text-green-300">
                       {money(report.cashSalePOS)}
                     </td>
                     <td className="p-4 text-accent-700">
                       {money(report.cardSalePOS)}
                     </td>
-                    <td className="p-4 text-emerald-700">
+                    <td className="p-4 text-emerald-700 dark:text-emerald-300">
                       {money(report.onlineSalePOS)}
                     </td>
                     <td className="p-4 text-accent-700">
@@ -799,7 +799,7 @@ export default function AdminDashboard() {
                     <td className="p-4 text-accent-700">
                       {report.receivedCoupons || 0}
                     </td>
-                    <td className="p-4 font-bold text-green-700">
+                    <td className="p-4 font-bold text-green-700 dark:text-green-300">
                       {money(report.totalCashInBox)}
                     </td>
                     <td className="p-4">
@@ -820,7 +820,7 @@ export default function AdminDashboard() {
 
                         if (flags.length === 0) {
                           return (
-                            <span className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded border border-green-200">
+                            <span className="px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-xs rounded border border-green-200 dark:border-green-700/40">
                               Balanced
                             </span>
                           );
@@ -830,7 +830,7 @@ export default function AdminDashboard() {
                             {flags.map((f) => (
                               <span
                                 key={f}
-                                className="px-2 py-1 bg-red-50 text-red-700 text-xs rounded border border-red-200"
+                                className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded border border-red-200 dark:border-red-700/40"
                               >
                                 {f}
                               </span>
@@ -851,7 +851,7 @@ export default function AdminDashboard() {
                         (canEdit(report) ? (
                           <button
                             onClick={() => setEditingRecord(report)}
-                            className="px-3 py-1 bg-amber-50 hover:bg-amber-50 text-amber-600 border border-amber-200 rounded transition text-sm"
+                            className="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700/40 rounded transition text-sm"
                           >
                             ✏️ Edit
                           </button>

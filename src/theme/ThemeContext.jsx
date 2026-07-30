@@ -33,6 +33,8 @@ export function applyAccent(hue, neutrals = "light") {
   for (const [k, v] of Object.entries(neutralVars(neutrals))) set(k, v);
   // Lets the browser paint form controls and scrollbars to match.
   root.style.colorScheme = neutrals === "dark" ? "dark" : "light";
+  // Drives the `dark:` variant declared in index.css.
+  root.dataset.theme = neutrals;
 }
 
 const KEY = "appTheme";

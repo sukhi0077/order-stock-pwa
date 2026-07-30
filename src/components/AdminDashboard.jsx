@@ -81,7 +81,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
         <h2 className="text-xl font-bold text-n-900">{t("setupItems_title")}</h2>
         <p className="text-n-500 text-sm">{t("setupItems_desc", { n: SEED_COUNT })}</p>
         {seed.isError && (
-          <p className="text-rose-600 text-sm">
+          <p className="text-rose-600 dark:text-rose-400 text-sm">
             {seed.error?.message || t("seedFailed")}
           </p>
         )}
@@ -108,8 +108,8 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
 
   const statusPill = {
     [STATUS.DRAFT]: { text: t("status_draft"), cls: "bg-n-100 text-n-600" },
-    [STATUS.SUBMITTED]: { text: t("status_submitted"), cls: "bg-amber-50 text-amber-700" },
-    [STATUS.FINALIZED]: { text: t("status_finalized"), cls: "bg-emerald-50 text-emerald-700" },
+    [STATUS.SUBMITTED]: { text: t("status_submitted"), cls: "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300" },
+    [STATUS.FINALIZED]: { text: t("status_finalized"), cls: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300" },
   }[status];
 
   return (
@@ -193,7 +193,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
                 {summary.counted}
                 <span className="text-sm font-medium text-n-400"> / {summary.totalItems}</span>
               </span>
-              <span className="text-sm font-semibold text-amber-600">{pct}%</span>
+              <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{pct}%</span>
             </div>
             <div className="h-2 rounded-full bg-n-100 overflow-hidden">
               <div
@@ -251,13 +251,13 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
           </div>
 
           {sc.saveError && (
-            <p className="text-rose-600 text-sm text-center">{sc.saveError}</p>
+            <p className="text-rose-600 dark:text-rose-400 text-sm text-center">{sc.saveError}</p>
           )}
 
           {Object.keys(sc.prevClosing).length > 0 && !isFinalized && (
             <button
               onClick={sc.fillFromLastMonth}
-              className="w-full py-2 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+              className="w-full py-2 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
             >
               {t("prefillLast")}
             </button>

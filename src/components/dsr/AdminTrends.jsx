@@ -236,7 +236,7 @@ function AdminTrends({ reports }) {
           </h3>
           <span className="text-xs text-n-500">
             Total{" "}
-            <span className="text-emerald-700 font-bold">
+            <span className="text-emerald-700 dark:text-emerald-300 font-bold">
               {money(portalGrand)}
             </span>
           </span>
@@ -280,11 +280,11 @@ function AdminTrends({ reports }) {
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: "Balanced", value: issues.clean, text: "text-green-700" },
-            { label: "Cash diff", value: issues.cash, text: "text-red-700" },
-            { label: "Online diff", value: issues.online, text: "text-red-700" },
-            { label: "Fiskalne No", value: issues.fiskalne, text: "text-red-700" },
-            { label: "ING No", value: issues.ing, text: "text-red-700" },
+            { label: "Balanced", value: issues.clean, text: "text-green-700 dark:text-green-300" },
+            { label: "Cash diff", value: issues.cash, text: "text-red-700 dark:text-red-300" },
+            { label: "Online diff", value: issues.online, text: "text-red-700 dark:text-red-300" },
+            { label: "Fiskalne No", value: issues.fiskalne, text: "text-red-700 dark:text-red-300" },
+            { label: "ING No", value: issues.ing, text: "text-red-700 dark:text-red-300" },
           ].map((s) => (
             <div
               key={s.label}

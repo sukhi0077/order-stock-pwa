@@ -5,7 +5,7 @@ export default function RadioGroup({ label, value, onChange, error }) {
     <div className="mb-4 mt-2">
       <div className="flex flex-wrap items-center gap-4">
         <span className="text-sm font-medium text-n-700">
-          {label} <span className="text-red-600">*</span>
+          {label} <span className="text-red-600 dark:text-red-400">*</span>
         </span>
         <div className="flex gap-4">
           {['Yes', 'No'].map(opt => (
@@ -23,7 +23,7 @@ export default function RadioGroup({ label, value, onChange, error }) {
           ))}
         </div>
       </div>
-      {error && <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">{error}</span>}
+      {error && <span className="text-red-600 dark:text-red-400 text-xs mt-1 block font-semibold animate-pulse">{error}</span>}
     </div>
   );
 }

@@ -144,8 +144,8 @@ export default function EmployeeManagerModal({ onClose }) {
         disabled={busyId === emp.id}
         className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-semibold border transition disabled:opacity-40 ${
           emp.active
-            ? "border-n-300 text-n-500 hover:text-red-700 hover:border-red-200"
-            : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+            ? "border-n-300 text-n-500 hover:text-red-700 dark:hover:text-red-300 hover:border-red-200 dark:hover:border-red-700/40"
+            : "border-emerald-200 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
         }`}
       >
         {emp.active ? "Deactivate" : "Restore"}
@@ -221,7 +221,7 @@ export default function EmployeeManagerModal({ onClose }) {
           )}
 
           {error && (
-            <p className="mt-3 text-sm text-red-700 font-medium">{error}</p>
+            <p className="mt-3 text-sm text-red-700 dark:text-red-300 font-medium">{error}</p>
           )}
         </div>
 

@@ -76,7 +76,7 @@ export default function OrderPanel({ reporter }) {
       ) : (
         <>
           {oc.saveError && (
-            <p className="text-rose-600 text-sm text-center">{oc.saveError}</p>
+            <p className="text-rose-600 dark:text-rose-400 text-sm text-center">{oc.saveError}</p>
           )}
           <OrderNavigator
             key={navKey}

@@ -92,7 +92,7 @@ export default function StaffPanel() {
     return (
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-amber-700">
+          <h2 className="text-lg font-bold text-amber-700 dark:text-amber-300">
             Editing today's report
           </h2>
           <button
@@ -136,7 +136,7 @@ export default function StaffPanel() {
                 {r.reporter || "Unknown"} · Total{" "}
                 {(Number(r.totalSalePOS) || 0).toFixed(2)}
                 {(r.cashMismatch || r.onlineSaleMismatch) && (
-                  <span className="ml-2 text-red-700 font-semibold">
+                  <span className="ml-2 text-red-700 dark:text-red-300 font-semibold">
                     ⚠ check
                   </span>
                 )}
@@ -174,13 +174,13 @@ export default function StaffPanel() {
           </div>
         )}
 
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
-          <p className="text-green-700 font-semibold text-sm">
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
+          <p className="text-green-700 dark:text-green-300 font-semibold text-sm">
             ✅ Today's report has been submitted.
           </p>
           <button
             onClick={() => setIsEditing(true)}
-            className="shrink-0 px-4 py-2 bg-amber-50 hover:bg-amber-50 text-amber-700 border border-amber-200 rounded-lg font-bold text-sm transition"
+            className="shrink-0 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/40 rounded-lg font-bold text-sm transition"
           >
             ✏️ Edit
           </button>

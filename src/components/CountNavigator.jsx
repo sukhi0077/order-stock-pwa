@@ -36,7 +36,7 @@ function Tile({ iconName, iconId, label, done, total, onClick }) {
       className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
     >
       <div className="flex items-center gap-2">
-        <span className={complete ? "text-emerald-600" : "text-accent-600"}>
+        <span className={complete ? "text-emerald-600 dark:text-emerald-400" : "text-accent-600"}>
           <CategoryIcon name={iconName} icon={iconId} size={20} />
         </span>
         <span className="flex-1 min-w-0 text-base font-medium text-n-800 leading-tight">
@@ -53,7 +53,7 @@ function Tile({ iconName, iconId, label, done, total, onClick }) {
         />
       </div>
       <div
-        className={`mt-1.5 text-[11px] font-medium ${complete ? "text-emerald-600" : "text-n-500"}`}
+        className={`mt-1.5 text-[11px] font-medium ${complete ? "text-emerald-600 dark:text-emerald-400" : "text-n-500"}`}
       >
         {complete ? t("allCounted", { total }) : t("countedOf", { done, total })}
       </div>
@@ -245,7 +245,7 @@ export default function CountNavigator({
                                   <button
                                     type="button"
                                     onClick={() => onCommit(it.id, "")}
-                                    className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
+                                    className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 shrink-0 leading-none"
                                     aria-label="remove"
                                   >
                                     ×
@@ -352,7 +352,7 @@ export default function CountNavigator({
         </div>
         <span
           className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-            sp.done === sp.total ? "bg-emerald-100 text-emerald-700" : "bg-accent-100 text-accent-700"
+            sp.done === sp.total ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300" : "bg-accent-100 text-accent-700"
           }`}
         >
           {sp.done}/{sp.total}

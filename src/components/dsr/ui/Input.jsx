@@ -4,7 +4,7 @@ export default function Input({ label, type = "number", value, onChange, require
   return (
     <div className="mb-3 w-full" data-error={error ? "true" : undefined}>
       <label className="block text-sm font-medium text-n-700 mb-1">
-        {label} {required && <span className="text-red-600">*</span>}
+        {label} {required && <span className="text-red-600 dark:text-red-400">*</span>}
       </label>
       <input
         type={type}
@@ -20,7 +20,7 @@ export default function Input({ label, type = "number", value, onChange, require
               : 'border-n-300 text-n-900 focus:ring-accent-500'
           }`}
       />
-      {error && <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">{error}</span>}
+      {error && <span className="text-red-600 dark:text-red-400 text-xs mt-1 block font-semibold animate-pulse">{error}</span>}
     </div>
   );
 }

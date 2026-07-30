@@ -102,7 +102,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
                 onClick={() => {
                   if (window.confirm(t("removeReceipt"))) onDelete(b.id);
                 }}
-                className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 hover:bg-rose-50 shrink-0 leading-none"
+                className="h-6 w-6 grid place-items-center rounded-lg text-n-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 shrink-0 leading-none"
                 aria-label="remove"
               >
                 ×

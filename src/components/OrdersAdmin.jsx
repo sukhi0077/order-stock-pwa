@@ -236,7 +236,7 @@ function OrderEditor({ orderId, items, reporter, onBack }) {
       ) : (
         <>
           <ExportBar order={oc.order} items={items} lines={oc.lines} />
-          {oc.saveError && <p className="text-rose-600 text-sm text-center">{oc.saveError}</p>}
+          {oc.saveError && <p className="text-rose-600 dark:text-rose-400 text-sm text-center">{oc.saveError}</p>}
           <OrderNavigator
             items={items}
             lines={oc.lines}
