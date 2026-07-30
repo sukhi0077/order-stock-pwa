@@ -8,20 +8,27 @@ import Login from "./components/Login.jsx";
 import Spinner from "./components/ui/Spinner.jsx";
 import { useAuth } from "./hooks/useAuth.js";
 import { useOfflineSync } from "./hooks/useOfflineSync.js";
+import { useBusinessDay } from "./hooks/useBusinessDay.js";
 import { useT } from "./i18n/i18n.jsx";
 import LangToggle from "./components/ui/LangToggle.jsx";
 
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
+// The Daily Sale Report is a big, self-contained screen — load it only when
+// someone actually opens the tile.
+const DsrPanel = lazy(() => import("./components/dsr/DsrPanel.jsx"));
+const DsrAdmin = lazy(() => import("./components/dsr/DsrAdmin.jsx"));
 
 export default function App() {
   const { user, isAdmin, isAuthLoading, adminError, login, logout } = useAuth();
   const { pending, isOnline } = useOfflineSync();
+  // Warsaw business date — used to remount the DSR panel at midnight.
+  const businessDay = useBusinessDay();
   const { t } = useT();
 
   const [isAdminView, setIsAdminView] = useState(
     () => sessionStorage.getItem("isAdminView") === "true",
   );
-  // Count-app landing: 'home' | 'stock' | 'orders'
+  // Landing: 'home' | 'orders' | 'receive' | 'stock' | 'dsr'
   const [mode, setMode] = useState(() => sessionStorage.getItem("appMode") || "home");
 
   const chooseMode = (m) => {
@@ -47,17 +54,28 @@ export default function App() {
 
   const reporter = user.email || user.uid;
   const showAdmin = isAdmin && isAdminView;
+  // Which admin dashboard? The one for the tile you came from — open Admin
+  // while on the Daily Sale Report and you get the DSR dashboard.
+  const isDsrAdmin = showAdmin && mode === "dsr";
   const receiveTheme = !showAdmin && mode === "receive";
   const stockTheme = !showAdmin && mode === "stock";
-  const coloredHeader = showAdmin || receiveTheme || stockTheme;
-  const showHomeBtn = !showAdmin && mode !== "home";
+  // The Daily Sale Report screen is dark, so it gets its own header + surface
+  // rather than the light chrome the other three tiles use.
+  const dsrTheme = mode === "dsr";
+  const coloredHeader = showAdmin || receiveTheme || stockTheme || dsrTheme;
+  // The home button also gets you out of the DSR admin dashboard.
+  const showHomeBtn = (!showAdmin || isDsrAdmin) && mode !== "home";
   const colBtn = coloredHeader
     ? "bg-white/20 border-white/30 text-white hover:bg-white/30"
     : "bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900";
 
   const title = showAdmin
-    ? t("admin")
-    : mode === "orders"
+    ? isDsrAdmin
+      ? `${t("admin")} · ${t("dsr")}`
+      : t("admin")
+    : mode === "dsr"
+      ? t("dsr")
+      : mode === "orders"
       ? t("placeOrder")
       : mode === "stock"
         ? t("monthStock")
@@ -67,7 +85,11 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen text-slate-900 font-sans ${showAdmin ? "bg-indigo-50" : receiveTheme ? "bg-blue-50" : stockTheme ? "bg-amber-50" : "bg-slate-50"}`}
+      className={`min-h-screen font-sans ${
+        dsrTheme
+          ? "bg-slate-900 text-slate-100"
+          : `text-slate-900 ${showAdmin ? "bg-indigo-50" : receiveTheme ? "bg-blue-50" : stockTheme ? "bg-amber-50" : "bg-slate-50"}`
+      }`}
     >
       {(!isOnline || pending > 0) && (
         <div
@@ -83,7 +105,9 @@ export default function App() {
 
       <header
         className={`sticky top-0 z-50 backdrop-blur border-b ${
-          showAdmin
+          dsrTheme
+            ? "bg-slate-800 border-slate-700"
+            : showAdmin
             ? "bg-indigo-600 border-indigo-700"
             : receiveTheme
               ? "bg-blue-600 border-blue-700"
@@ -145,7 +169,7 @@ export default function App() {
             </div>
           }
         >
-          <AdminDashboard reporter={reporter} />
+          {isDsrAdmin ? <DsrAdmin /> : <AdminDashboard reporter={reporter} />}
         </Suspense>
       ) : (
         <div className="p-4 max-w-2xl mx-auto">
@@ -153,6 +177,19 @@ export default function App() {
           {mode === "stock" && <StaffPanel reporter={reporter} isOnline={isOnline} />}
           {mode === "orders" && <OrderPanel reporter={reporter} />}
           {mode === "receive" && <ReceivePanel reporter={reporter} />}
+          {mode === "dsr" && (
+            <Suspense
+              fallback={
+                <div className="min-h-[60vh] flex items-center justify-center">
+                  <Spinner label="Loading report…" />
+                </div>
+              }
+            >
+              {/* key: remount when the business day rolls over, so a phone
+                  left open overnight resets to a blank form for the new day. */}
+              <DsrPanel key={businessDay} />
+            </Suspense>
+          )}
         </div>
       )}
 

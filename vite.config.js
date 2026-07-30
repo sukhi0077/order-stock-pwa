@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["apple-touch-icon.png", "favicon.ico"],
       manifest: {
-        name: "Order & Stock",
-        short_name: "Stock",
-        description: "Restaurant stock counts, orders & receiving",
+        name: "myRestro",
+        short_name: "myRestro",
+        description: "Restaurant orders, receiving, stock counts & daily sale reports",
         theme_color: "#0f172a",
         background_color: "#0f172a",
         display: "standalone",

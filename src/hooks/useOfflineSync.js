@@ -1,20 +1,32 @@
 // src/hooks/useOfflineSync.js
-// Watches connectivity and flushes any queued month saves when back online.
+// Watches connectivity and flushes anything queued while offline: month-end
+// stock counts AND daily sale reports. Two independent queues, one banner.
 import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { peekAll, removeMonth, count } from "../utils/offlineQueue.js";
 import { StockCountService } from "../services/StockCountService.js";
+import { dsrOfflineQueue, flushDsrQueue } from "../utils/dsrOfflineQueue.js";
 
 export function useOfflineSync() {
   const qc = useQueryClient();
   const [isOnline, setIsOnline] = useState(
     typeof navigator === "undefined" ? true : navigator.onLine,
   );
-  const [pending, setPending] = useState(count());
+  // Both queues contribute to the "n pending" banner.
+  const total = () => count() + dsrOfflineQueue.size();
+  const [pending, setPending] = useState(total);
 
   const flush = useCallback(async () => {
+    // Daily sale reports first — they are time-sensitive (the next day's
+    // "cash from yesterday" reads the latest saved report).
+    try {
+      await flushDsrQueue();
+    } catch {
+      // Leave them queued; we'll retry on the next online event.
+    }
+
     const entries = peekAll();
-    setPending(entries.length);
+    setPending(count() + dsrOfflineQueue.size());
     if (entries.length === 0) return;
 
     for (const entry of entries) {
@@ -28,7 +40,7 @@ export function useOfflineSync() {
         break;
       }
     }
-    setPending(count());
+    setPending(count() + dsrOfflineQueue.size());
   }, [qc]);
 
   useEffect(() => {
@@ -45,7 +57,7 @@ export function useOfflineSync() {
     if (navigator.onLine) flush();
 
     // Poll the queue size so the banner stays accurate.
-    const t = setInterval(() => setPending(count()), 4000);
+    const t = setInterval(() => setPending(count() + dsrOfflineQueue.size()), 4000);
 
     return () => {
       window.removeEventListener("online", goOnline);

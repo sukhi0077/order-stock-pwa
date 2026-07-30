@@ -67,6 +67,9 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
         </label>
         <label className="flex flex-col gap-1 min-w-0">
           <span className="text-[10px] uppercase tracking-wide text-slate-400">{t("expiryDate")}</span>
+          {/* min-w-0 belt-and-braces: the grid track above already caps this
+              input, but the intrinsic width of a native date input is wide
+              enough that it is worth pinning in both places. */}
           <input
             type="date"
             value={expiry}

@@ -1,5 +1,5 @@
 {
-  "name": "order-stock-pwa",
+  "name": "myrestro",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -26,7 +26,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.27",
-    "eslint": "^9.39.4",
+    "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
