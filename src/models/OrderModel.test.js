@@ -81,3 +81,19 @@ describe("buildPayload()", () => {
     expect(buildPayload({ reporter: "x", status: "weird", lines: {} }).status).toBe("draft");
   });
 });
+
+describe("num", () => {
+  it("parses numeric strings and clamps negatives to 0", () => {
+    expect(num("2.5")).toBe(2.5);
+    expect(num(3)).toBe(3);
+    expect(num("-4")).toBe(0);
+  });
+
+  it("returns 0 for anything unparseable, so a bad input never reaches the order", () => {
+    for (const v of ["", "abc", null, undefined, NaN, {}]) expect(num(v)).toBe(0);
+  });
+
+  it("rounds to 3 decimals, so float noise never reaches the database", () => {
+    expect(num(0.1 + 0.2)).toBe(0.3);
+  });
+});

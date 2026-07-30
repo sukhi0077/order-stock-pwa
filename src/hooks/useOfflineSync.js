@@ -54,12 +54,17 @@ export function useOfflineSync() {
     window.addEventListener("offline", goOffline);
 
     // Attempt a flush on mount in case we start online with a stale queue.
-    if (navigator.onLine) flush();
+    // Deferred to a microtask: flush() calls setPending synchronously on its
+    // first line, and a synchronous setState inside an effect re-renders
+    // before paint for no benefit here.
+    let cancelled = false;
+    if (navigator.onLine) queueMicrotask(() => !cancelled && flush());
 
     // Poll the queue size so the banner stays accurate.
     const t = setInterval(() => setPending(count() + dsrOfflineQueue.size()), 4000);
 
     return () => {
+      cancelled = true;
       window.removeEventListener("online", goOnline);
       window.removeEventListener("offline", goOffline);
       clearInterval(t);

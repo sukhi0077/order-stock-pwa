@@ -17,7 +17,7 @@ function orderedKeys(keys, preferred) {
 
 // Read-only view of a submitted order, grouped by category -> sub-category.
 function OrderView({ order, itemsById, onBack }) {
-  const { t, tc, ts, ti } = useT();
+  const { tc, ts, ti } = useT();
 
   const groups = useMemo(() => {
     const g = {};

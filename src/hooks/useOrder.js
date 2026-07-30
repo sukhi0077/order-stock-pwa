@@ -30,8 +30,16 @@ export function useOrder({ items, reporter, orderId = null }) {
   // refetches). Draft mode starts null and is set on first create.
   const idRef = useRef(null);
 
+  // Adopt the server's lines whenever a different order arrives.
+  //
+  // Deliberately an effect, and deliberately exempt from set-state-in-effect:
+  // the obvious "adjust during render" rewrite is WRONG here. A setState during
+  // render makes React discard that pass and re-run the component, so the
+  // idRef assignment on the discarded pass never happens — leaving the hook
+  // writing to a stale order id and creating a duplicate draft on the next add.
   useEffect(() => {
     if (orderQuery.isSuccess) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLines(toLines(order?.lines || {}));
       idRef.current = isDraftMode ? order?.id || null : orderId;
     }

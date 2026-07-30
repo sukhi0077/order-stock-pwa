@@ -100,6 +100,34 @@ function drawSectionHeading(doc, label, count, y) {
   return y + h + 2;
 }
 
+// The sheet's CONTENT, separated from its rendering.
+//
+// Extracted so the document can be asserted on in tests: jsPDF writes text as
+// subset glyph IDs, not characters, so the finished PDF cannot be read back
+// without the font's cmap. Everything worth testing — which sections exist,
+// their order and counts, row numbering, what each row says — lives here, and
+// the renderer below is a thin drawing pass over it.
+export function buildOrderSheet(order, items, lines, selected = null, excludedIds = null) {
+  const groups = groupByOrderType(selectOrderRows(items, lines, selected, excludedIds));
+  return {
+    business: BUSINESS,
+    ref: orderRef(order),
+    date: orderDate(order),
+    sections: groups.map((g) => ({
+      orderType: g.orderType,
+      count: g.rows.length,
+      rows: g.rows.map((r, i) => ({
+        n: i + 1,
+        name: r.item.name,
+        qty: orderNum(r.line.qty),
+        unit: orderUnitOf(r.item),
+        note: r.line.note || "",
+        group: r.group,
+      })),
+    })),
+  };
+}
+
 // One body row per item — no group heading rows.
 //
 // Group headings used to sit above each run of rows, but most category /
@@ -111,12 +139,12 @@ function drawSectionHeading(doc, label, count, y) {
 // Item numbers run continuously through the order-type section, so the last
 // number is also the section's item count.
 function bodyRows(rows) {
-  return rows.map((r, i) => [
-    String(i + 1),
-    r.item.name,
-    String(orderNum(r.line.qty)),
-    orderUnitOf(r.item),
-    r.line.note || "",
+  return rows.map((r) => [
+    String(r.n),
+    r.name,
+    String(r.qty),
+    r.unit,
+    r.note,
     r.group,
     "",
   ]);
@@ -190,7 +218,8 @@ export function buildOrderPdf(order, items, lines, selected = null, excludedIds 
   registerUnicodeFont(doc);
 
   const pageH = doc.internal.pageSize.getHeight();
-  const groups = groupByOrderType(selectOrderRows(items, lines, selected, excludedIds));
+  const sheet = buildOrderSheet(order, items, lines, selected, excludedIds);
+  const groups = sheet.sections;
   let y = drawLetterhead(doc, order);
 
   if (groups.length === 0) {
@@ -206,7 +235,7 @@ export function buildOrderPdf(order, items, lines, selected = null, excludedIds 
       doc.addPage();
       y = MARGIN;
     }
-    y = drawSectionHeading(doc, g.orderType, g.rows.length, y);
+    y = drawSectionHeading(doc, g.orderType, g.count, y);
     autoTable(doc, tableOptions(doc, g.rows, y));
     y = doc.lastAutoTable.finalY + 6;
   }

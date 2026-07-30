@@ -4,7 +4,7 @@
 // (and the previous month's closing, shown as a reference), holds the editable
 // per-item closing values, and AUTO-SAVES on every change (like the order
 // flow). "Submit" marks the month submitted; admins can finalize.
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { StockCountService } from "../services/StockCountService.js";
 import { toCounts, validateClosings, summarizeClosings, STATUS } from "../models/StockCountModel.js";
@@ -33,10 +33,13 @@ export function useStockCount({ monthId, items, reporter, isOnline = true }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    if (monthQuery.isSuccess) setCounts(toCounts(saved?.lines || {}));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [monthQuery.isSuccess, monthId]);
+  // Adopt the saved counts when a different month loads — during render rather
+  // than in an effect, so the month's figures are on screen at first paint.
+  const [syncedMonth, setSyncedMonth] = useState(null);
+  if (monthQuery.isSuccess && syncedMonth !== monthId) {
+    setSyncedMonth(monthId);
+    setCounts(toCounts(saved?.lines || {}));
+  }
 
   const status = saved?.status || STATUS.DRAFT;
   const isFinalized = status === STATUS.FINALIZED;

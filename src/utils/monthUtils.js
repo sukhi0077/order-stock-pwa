@@ -91,21 +91,13 @@ export function monthEndDate(monthId) {
   return dt.toISOString().slice(0, 10);
 }
 
-// "June 2026" for display.
-export function formatMonthLabel(monthId) {
-  const [y, m] = String(monthId).split("-").map(Number);
-  if (!y || !m) return monthId;
-  return `${MONTH_NAMES[m - 1]} ${y}`;
-}
-
-// Short "Jun 2026".
-export function formatMonthShort(monthId) {
-  const [y, m] = String(monthId).split("-").map(Number);
-  if (!y || !m) return monthId;
-  return `${MONTH_NAMES[m - 1].slice(0, 3)} ${y}`;
-}
-
 // Is the given month id the current (open) business month?
+//
+// Strict equality on purpose. The DATABASE is more permissive —
+// public.is_current_month() in schema.sql allows a +/-31 day cushion so an RLS
+// check cannot reject a legitimate save across a timezone boundary. Keeping
+// the client stricter than the database is the safe direction: the UI never
+// offers an edit the database would refuse.
 export function isCurrentMonth(monthId) {
   return monthId === currentMonthId();
 }

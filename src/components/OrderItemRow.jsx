@@ -1,5 +1,5 @@
 // src/components/OrderItemRow.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { isOrdered, num, orderUnitOf } from "../models/OrderModel.js";
 import { useT } from "../i18n/i18n.jsx";
 
@@ -14,11 +14,17 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
   const [qty, setQty] = useState(on ? String(num(line.qty)) : "");
   const [note, setNote] = useState(on ? line.note || "" : "");
 
-  useEffect(() => {
-    setQty(on ? String(num(line?.qty)) : "");
-    setNote(on ? line?.note || "" : "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [line?.qty, line?.note]);
+  // Re-sync the inputs when the saved line changes. Adjusted during render
+  // (React's alternative to a sync effect) so an auto-save does not repaint
+  // the row a second time.
+  const savedQty = on ? String(num(line?.qty)) : "";
+  const savedNote = on ? line?.note || "" : "";
+  const [seen, setSeen] = useState({ qty: savedQty, note: savedNote });
+  if (seen.qty !== savedQty || seen.note !== savedNote) {
+    setSeen({ qty: savedQty, note: savedNote });
+    setQty(savedQty);
+    setNote(savedNote);
+  }
 
   // Persist: qty > 0 saves the line, qty 0 removes it from the order.
   const commit = (q, n) => {

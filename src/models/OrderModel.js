@@ -29,13 +29,6 @@ export function isOrdered(line) {
   return num(line?.qty) > 0;
 }
 
-export function normalizeLine(line = {}) {
-  return {
-    qty: num(line.qty),
-    note: String(line.note || "").slice(0, MAX_NOTE),
-  };
-}
-
 // Load a persisted lines map into editable working lines.
 export function toLines(saved = {}) {
   const out = {};

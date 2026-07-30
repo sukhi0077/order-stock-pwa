@@ -19,7 +19,7 @@ const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
 const DsrPanel = lazy(() => import("./components/dsr/DsrPanel.jsx"));
 
 export default function App() {
-  const { user, isAdmin, isAuthLoading, adminError, login, logout } = useAuth();
+  const { user, isAdmin, isAuthLoading, login, logout } = useAuth();
   const { pending, isOnline } = useOfflineSync();
   // Warsaw business date — used to remount the DSR panel at midnight.
   const businessDay = useBusinessDay();
@@ -197,11 +197,6 @@ export default function App() {
         </div>
       )}
 
-      {/* TEMP DEBUG — remove once admin access works. */}
-      <div className="fixed bottom-1 left-1 z-[60] px-2 py-1 rounded bg-n-900/80 text-[10px] font-mono text-n-200 select-all max-w-[95vw] break-words">
-        uid: {user.uid} · admin: {isAdmin ? "YES" : "no"}
-        {adminError && <div className="text-rose-300 mt-0.5">profile: {adminError}</div>}
-      </div>
     </div>
   );
 }

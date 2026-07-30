@@ -1,5 +1,5 @@
 // src/components/ItemRow.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { isCounted, num } from "../models/StockCountModel.js";
 import { useT } from "../i18n/i18n.jsx";
 
@@ -7,8 +7,15 @@ import { useT } from "../i18n/i18n.jsx";
 // month on change (no separate save). Tap "last: X" to use last month's closing.
 function ItemRow({ item, value, prev, disabled, onCommit }) {
   const { t, ti } = useT();
+  // Mirror the saved value locally so typing is smooth, re-syncing when a new
+  // value arrives. Adjusted during render rather than in an effect: an effect
+  // would repaint the row twice on every save round-trip.
   const [val, setVal] = useState(value ?? "");
-  useEffect(() => setVal(value ?? ""), [value]);
+  const [seen, setSeen] = useState(value ?? "");
+  if ((value ?? "") !== seen) {
+    setSeen(value ?? "");
+    setVal(value ?? "");
+  }
 
   const counted = isCounted(val);
   const hasPrev = prev !== undefined && prev !== null && prev !== "";
