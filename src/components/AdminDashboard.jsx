@@ -1,5 +1,5 @@
 // src/components/AdminDashboard.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, Suspense, lazy } from "react";
 import Spinner from "./ui/Spinner.jsx";
 import Icon from "./ui/Icon.jsx";
 import CountNavigator from "./CountNavigator.jsx";
@@ -17,11 +17,17 @@ import { downloadMonthCsv } from "../utils/exportCsv.js";
 import { SEED_COUNT } from "../data/seedItems.js";
 import { useT } from "../i18n/i18n.jsx";
 
-export default function AdminDashboard({ reporter }) {
+// Big, self-contained screen — only loaded when the DSR tab is opened.
+const DsrAdmin = lazy(() => import("./dsr/DsrAdmin.jsx"));
+
+// `initialTab` lets App open the dashboard on the tab matching the tile the
+// admin came from, so switching to Admin while on the Daily Sale Report still
+// lands on the DSR dashboard.
+export default function AdminDashboard({ reporter, initialTab = "orders" }) {
   const { t, tMonth } = useT();
   const qc = useQueryClient();
   const thisMonth = currentMonthId();
-  const [tab, setTab] = useState("orders"); // 'stock' | 'orders'
+  const [tab, setTab] = useState(initialTab); // 'orders' | 'stock' | 'expiry' | 'dsr'
   const [monthId, setMonthId] = useState(thisMonth);
   const [showDetails, setShowDetails] = useState(false);
   const [showItems, setShowItems] = useState(false);
@@ -119,17 +125,18 @@ export default function AdminDashboard({ reporter }) {
         </button>
       </div>
 
-      {/* Orders / Stock / Expiry tabs */}
+      {/* Orders / Stock / Expiry / DSR tabs */}
       <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
         {[
           { id: "orders", icon: "cart", label: t("tab_orders") },
           { id: "stock", icon: "stock", label: t("tab_stock") },
           { id: "expiry", icon: "calendar", label: t("tab_expiry") },
+          { id: "dsr", icon: "chart", label: t("tab_dsr") },
         ].map((tb) => (
           <button
             key={tb.id}
             onClick={() => setTab(tb.id)}
-            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition ${
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition ${
               tab === tb.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -143,6 +150,16 @@ export default function AdminDashboard({ reporter }) {
         <OrdersAdmin reporter={reporter} />
       ) : tab === "expiry" ? (
         <ExpiryAdmin />
+      ) : tab === "dsr" ? (
+        <Suspense
+          fallback={
+            <div className="min-h-[50vh] flex items-center justify-center">
+              <Spinner label={t("loadingItemsShort")} />
+            </div>
+          }
+        >
+          <DsrAdmin />
+        </Suspense>
       ) : (
         <>
       {/* Month navigator + progress */}

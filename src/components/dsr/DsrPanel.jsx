@@ -81,7 +81,7 @@ export default function StaffPanel() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-10">
+      <div className="bg-slate-100 border border-slate-200 rounded-xl p-10">
         <Spinner />
       </div>
     );
@@ -92,12 +92,12 @@ export default function StaffPanel() {
     return (
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-amber-300">
+          <h2 className="text-lg font-bold text-amber-700">
             Editing today's report
           </h2>
           <button
             onClick={() => setIsEditing(false)}
-            className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm font-bold text-slate-300 hover:text-white"
+            className="px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:text-slate-900"
           >
             ← Cancel
           </button>
@@ -114,13 +114,13 @@ export default function StaffPanel() {
 
   // Previous day's report(s) — a distinct, muted "archive" card.
   const historySection = pastReports.length > 0 && (
-    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-4">
+    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-base">🗄️</span>
-        <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
           Previous Day
         </h3>
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider ml-auto">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider ml-auto">
           View only
         </span>
       </div>
@@ -128,15 +128,15 @@ export default function StaffPanel() {
         {pastReports.map((r) => (
           <div
             key={r.id}
-            className="bg-slate-900 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-3"
+            className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3"
           >
             <div className="min-w-0">
-              <p className="font-bold text-white">{r.dateString}</p>
-              <p className="text-xs text-slate-400 truncate">
+              <p className="font-bold text-slate-900">{r.dateString}</p>
+              <p className="text-xs text-slate-500 truncate">
                 {r.reporter || "Unknown"} · Total{" "}
                 {(Number(r.totalSalePOS) || 0).toFixed(2)}
                 {(r.cashMismatch || r.onlineSaleMismatch) && (
-                  <span className="ml-2 text-red-400 font-semibold">
+                  <span className="ml-2 text-red-700 font-semibold">
                     ⚠ check
                   </span>
                 )}
@@ -144,7 +144,7 @@ export default function StaffPanel() {
             </div>
             <button
               onClick={() => setViewing(r)}
-              className="shrink-0 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-600/50 rounded-lg font-semibold text-sm transition"
+              className="shrink-0 px-3 py-1.5 bg-blue-50 hover:bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-semibold text-sm transition"
             >
               👁️ View
             </button>
@@ -166,21 +166,21 @@ export default function StaffPanel() {
             {historySection}
             <div className="flex items-center gap-3 mt-8 mb-4">
               <span className="text-base">📝</span>
-              <h3 className="text-sm font-bold text-blue-300 uppercase tracking-wider">
+              <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wider">
                 Today's Report
               </h3>
-              <div className="flex-1 border-t border-slate-700" />
+              <div className="flex-1 border-t border-slate-200" />
             </div>
           </div>
         )}
 
-        <div className="bg-green-900/20 border border-green-600/40 rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
-          <p className="text-green-300 font-semibold text-sm">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
+          <p className="text-green-700 font-semibold text-sm">
             ✅ Today's report has been submitted.
           </p>
           <button
             onClick={() => setIsEditing(true)}
-            className="shrink-0 px-4 py-2 bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-600/50 rounded-lg font-bold text-sm transition"
+            className="shrink-0 px-4 py-2 bg-amber-50 hover:bg-amber-50 text-amber-700 border border-amber-200 rounded-lg font-bold text-sm transition"
           >
             ✏️ Edit
           </button>
@@ -201,10 +201,10 @@ export default function StaffPanel() {
           {historySection}
           <div className="flex items-center gap-3 mt-8 mb-4">
             <span className="text-base">📝</span>
-            <h3 className="text-sm font-bold text-blue-300 uppercase tracking-wider">
+            <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wider">
               Today's Report
             </h3>
-            <div className="flex-1 border-t border-slate-700" />
+            <div className="flex-1 border-t border-slate-200" />
           </div>
         </div>
       )}

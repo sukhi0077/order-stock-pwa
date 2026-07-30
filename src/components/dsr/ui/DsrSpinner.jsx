@@ -5,10 +5,10 @@ import React from "react";
 export default function Spinner({ label = "Loading…", className = "" }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-3 text-slate-400 ${className}`}
+      className={`flex flex-col items-center justify-center gap-3 text-slate-500 ${className}`}
     >
       <svg
-        className="w-10 h-10 animate-spin text-sky-400"
+        className="w-10 h-10 animate-spin text-sky-700"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

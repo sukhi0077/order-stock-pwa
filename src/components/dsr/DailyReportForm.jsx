@@ -344,7 +344,7 @@ export default function DailyReportForm({
   return (
     <div className="pb-24">
       {hasSubmitted && Object.keys(errors).length > 0 && (
-        <div className="bg-red-500/20 border border-red-500 text-red-200 p-4 rounded-xl mb-6 text-center font-bold animate-bounce">
+        <div className="bg-red-50 border border-red-500 text-red-700 p-4 rounded-xl mb-6 text-center font-bold animate-bounce">
           Oops! Missing some required info. Check the red boxes below! 👇
         </div>
       )}
@@ -352,7 +352,7 @@ export default function DailyReportForm({
       <form ref={formRef} onSubmit={handleSubmit} noValidate>
         {allowBackdate && (
           <Card title="Report Date (Admin)" color="purple">
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Pick the date this report is for
             </label>
             <input
@@ -360,9 +360,9 @@ export default function DailyReportForm({
               value={reportDate}
               max={todayStr()}
               onChange={(e) => setReportDate(e.target.value)}
-              className="w-full p-2 rounded-lg bg-slate-900 border border-slate-600 text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 rounded-lg bg-white border border-slate-300 text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-slate-500 mt-2">
               Enter “Cash From Yesterday” manually below — it is not auto-filled
               for past-day entries.
             </p>
@@ -393,7 +393,7 @@ export default function DailyReportForm({
             const mismatch = Math.abs(Number(data.totalSalePOS) - parts) > 0.01;
             if (!mismatch) return null;
             return (
-              <div className="-mt-2 mb-2 flex items-center justify-between text-xs text-red-400">
+              <div className="-mt-2 mb-2 flex items-center justify-between text-xs text-red-700">
                 <span>Cash + Card + Online</span>
                 <span className="font-bold">
                   {parts.toFixed(2)} — must equal Total Sale
@@ -412,7 +412,7 @@ export default function DailyReportForm({
           />
 
           {/* Cash Sale */}
-          <div className="mt-4 pt-4 border-t border-slate-700">
+          <div className="mt-4 pt-4 border-t border-slate-200">
             <Input
               label="By Cash"
               value={data.cashSalePOS}
@@ -423,7 +423,7 @@ export default function DailyReportForm({
           </div>
 
           {/* Card Sale — same behaviour as the old "Card POS" card */}
-          <div className="mt-4 pt-4 border-t border-slate-700">
+          <div className="mt-4 pt-4 border-t border-slate-200">
             <Input
               label="By Card"
               value={data.cardSalePOS}
@@ -444,7 +444,7 @@ export default function DailyReportForm({
 
           {/* Online Sale — typed from the POS, cross-checked against the
               Delivery Breakdown "Total" in the Online Sales card below. */}
-          <div className="mt-4 pt-4 border-t border-slate-700">
+          <div className="mt-4 pt-4 border-t border-slate-200">
             <Input
               label="By Bank Transfer"
               value={data.onlineSalePOS}
@@ -456,7 +456,7 @@ export default function DailyReportForm({
         </Card>
 
         <Card title="2. Portal Sales" color="green">
-          <div className="grid grid-cols-4 gap-2 text-xs font-bold text-slate-400 mb-2 px-1">
+          <div className="grid grid-cols-4 gap-2 text-xs font-bold text-slate-500 mb-2 px-1">
             <div>Platform</div>
             <div>Online</div>
             <div>Cash</div>
@@ -474,10 +474,10 @@ export default function DailyReportForm({
                 className="grid grid-cols-4 gap-2 items-center mb-2"
               >
                 <div className="pl-1 min-w-0">
-                  <span className="text-slate-300 font-medium block truncate">
+                  <span className="text-slate-700 font-medium block truncate">
                     {platform}
                   </span>
-                  <span className="text-xs font-bold text-slate-400">
+                  <span className="text-xs font-bold text-slate-500">
                     Σ {rowTotal.toFixed(2)}
                   </span>
                 </div>
@@ -505,54 +505,54 @@ export default function DailyReportForm({
               card 1's "Online Sale": green when matching, red when not. */}
           <div
             className={`mt-3 pt-3 border-t grid grid-cols-4 gap-2 items-center ${
-              onlineSaleMismatch ? "border-red-500/50" : "border-slate-700"
+              onlineSaleMismatch ? "border-red-200" : "border-slate-200"
             }`}
           >
             <span
               className={`text-sm font-bold uppercase tracking-wider ${
-                onlineSaleMismatch ? "text-red-400" : "text-emerald-400"
+                onlineSaleMismatch ? "text-red-700" : "text-emerald-700"
               }`}
             >
               Total
             </span>
             <span
               className={`text-base font-bold pl-1 ${
-                onlineSaleMismatch ? "text-red-400" : "text-emerald-400"
+                onlineSaleMismatch ? "text-red-700" : "text-emerald-700"
               }`}
             >
               {deliveryOnlineSum.toFixed(2)}
             </span>
             <span
               className={`text-base font-bold pl-1 ${
-                deliveryCashOverflow ? "text-red-400" : "text-emerald-400"
+                deliveryCashOverflow ? "text-red-700" : "text-emerald-700"
               }`}
             >
               {deliveryCashSum.toFixed(2)}
             </span>
-            <span className="text-base font-bold pl-1 text-emerald-400">
+            <span className="text-base font-bold pl-1 text-emerald-700">
               {deliveryCardSum.toFixed(2)}
             </span>
           </div>
 
           {/* Combined total (Online + Cash + Card) — informational only */}
           <div className="flex items-center justify-between mt-1 text-xs">
-            <span className="text-slate-400 uppercase tracking-wider">
+            <span className="text-slate-500 uppercase tracking-wider">
               Combined (Online + Cash + Card)
             </span>
-            <span className="text-slate-300 font-bold">
+            <span className="text-slate-700 font-bold">
               {Number(autoCalculatedOnlineSale).toFixed(2)}
             </span>
           </div>
 
           {deliveryCashOverflow && (
-            <p className="text-red-500 text-xs mt-1 font-semibold animate-pulse text-right">
+            <p className="text-red-600 text-xs mt-1 font-semibold animate-pulse text-right">
               Delivery cash ({deliveryCashSum.toFixed(2)}) can't exceed Cash Sale
               ({Number(data.cashSalePOS).toFixed(2)})
             </p>
           )}
 
           {onlineSaleMismatch && (
-            <p className="text-red-500 text-xs mt-1 font-semibold animate-pulse text-right">
+            <p className="text-red-600 text-xs mt-1 font-semibold animate-pulse text-right">
               Recheck online sale for portals — off by{" "}
               {Math.abs(
                 Number(data.onlineSalePOS) - deliveryOnlineSum,
@@ -566,7 +566,7 @@ export default function DailyReportForm({
         <Card title="3. Cash Calculations" color="amber">
           {/* Manual-entry notice only applies to NEW reports */}
           {!isEditMode && prevDataError && (
-            <div className="bg-amber-900/50 border border-amber-500 text-amber-200 p-3 rounded-lg mb-4 text-sm">
+            <div className="bg-amber-50 border border-amber-500 text-amber-700 p-3 rounded-lg mb-4 text-sm">
               ⚠️ Last day data not available. Please enter cash from yesterday
               manually.
             </div>
@@ -575,17 +575,17 @@ export default function DailyReportForm({
           {/* Summary panel: always shows BOTH rows. "Cash From Yesterday"
               becomes editable for admin backdate or when no previous report
               was found; "Today's Cash Sale" always mirrors card 1's Cash Sale. */}
-          <div className="bg-slate-900/40 rounded-lg border border-slate-700 divide-y divide-slate-700">
+          <div className="bg-slate-50 rounded-lg border border-slate-200 divide-y divide-slate-100">
             {/* Cash From Yesterday */}
             <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-              <span className="text-sm font-medium text-slate-300">
+              <span className="text-sm font-medium text-slate-700">
                 {isLoadingPrevData
                   ? "Fetching Yesterday's Cash..."
                   : isEditMode
                     ? "Cash From Yesterday (locked)"
                     : "Cash From Yesterday"}
                 {!isLoadingPrevData && !isEditMode && yesterdayDate && (
-                  <span className="block text-xs text-slate-500 mt-0.5">
+                  <span className="block text-xs text-slate-400 mt-0.5">
                     {yesterdayDate}
                   </span>
                 )}
@@ -598,10 +598,10 @@ export default function DailyReportForm({
                     handleChange("cashFromYesterday", e.target.value)
                   }
                   placeholder="0.00"
-                  className="w-28 text-right p-1.5 rounded-lg bg-slate-900 border border-amber-600/50 text-amber-300 font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-28 text-right p-1.5 rounded-lg bg-white border border-amber-200 text-amber-700 font-bold outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
-                <span className="text-base font-bold text-amber-300">
+                <span className="text-base font-bold text-amber-700">
                   {isLoadingPrevData
                     ? "…"
                     : Number(data.cashFromYesterday || 0).toFixed(2)}
@@ -611,20 +611,20 @@ export default function DailyReportForm({
 
             {/* Today's Cash Sale — mirrors the Cash Sale entered in card 1 */}
             <div className="flex items-center justify-between px-3 py-2.5">
-              <span className="text-sm font-medium text-slate-300">
+              <span className="text-sm font-medium text-slate-700">
                 Today's Cash Sale
-                <span className="block text-xs text-slate-500 mt-0.5">
+                <span className="block text-xs text-slate-400 mt-0.5">
                   {todayStr()}
                 </span>
               </span>
-              <span className="text-base font-bold text-amber-300">
+              <span className="text-base font-bold text-amber-700">
                 {Number(data.cashSalePOS || 0).toFixed(2)}
               </span>
             </div>
           </div>
 
           {isEditMode && (
-            <p className="text-xs text-amber-300/80 mt-1 mb-1">
+            <p className="text-xs text-amber-700/80 mt-1 mb-1">
               🔒 Opening cash stays locked while editing so the day-to-day cash
               chain isn't broken. Adjust the figures below if a sale or payout
               was entered incorrectly.
@@ -632,22 +632,22 @@ export default function DailyReportForm({
           )}
 
           {/* Cash adjustments — one merged list of taken (−) and added (+) */}
-          <div className="mt-6 mb-2 border-t border-slate-700 pt-4">
-            <h3 className="text-sm font-semibold text-slate-400 mb-3 tracking-wide">
+          <div className="mt-6 mb-2 border-t border-slate-200 pt-4">
+            <h3 className="text-sm font-semibold text-slate-500 mb-3 tracking-wide">
               Manual Cash Entries
             </h3>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <button
                 type="button"
                 onClick={() => openAdjust("taken")}
-                className="flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-red-300 border border-red-500/40 rounded-xl text-sm font-bold transition"
+                className="flex items-center justify-center gap-2 py-3 bg-slate-100 hover:bg-slate-100 active:scale-[0.98] text-red-700 border border-red-200 rounded-xl text-sm font-bold transition"
               >
                 <span className="text-lg leading-none">−</span> Cash Taken
               </button>
               <button
                 type="button"
                 onClick={() => openAdjust("added")}
-                className="flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-green-300 border border-green-500/40 rounded-xl text-sm font-bold transition"
+                className="flex items-center justify-center gap-2 py-3 bg-slate-100 hover:bg-slate-100 active:scale-[0.98] text-green-700 border border-green-200 rounded-xl text-sm font-bold transition"
               >
                 <span className="text-lg leading-none">+</span> Cash Added
               </button>
@@ -657,10 +657,10 @@ export default function DailyReportForm({
                 unmistakable (tinted bg, accent border, coloured header). */}
             {adjustType && (
               <div
-                className={`mb-3 rounded-lg border bg-slate-800 ${adjustType === "taken" ? "border-red-500/40" : "border-green-500/40"}`}
+                className={`mb-3 rounded-lg border bg-slate-100 ${adjustType === "taken" ? "border-red-200" : "border-green-200"}`}
               >
                 <div
-                  className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border-b ${adjustType === "taken" ? "text-red-300 border-red-500/30" : "text-green-300 border-green-500/30"}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border-b ${adjustType === "taken" ? "text-red-700 border-red-200" : "text-green-700 border-green-200"}`}
                 >
                   <span className="text-base leading-none">
                     {adjustType === "taken" ? "−" : "+"}
@@ -694,7 +694,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={confirmAdjust}
                       aria-label="Confirm entry"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600/20 hover:bg-green-600/40 text-green-400 border border-green-600/50 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 hover:bg-green-50 text-green-700 border border-green-200 font-bold text-lg transition"
                     >
                       ✓
                     </button>
@@ -702,7 +702,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={cancelAdjust}
                       aria-label="Discard entry"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-600/50 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-50 text-red-700 border border-red-200 font-bold text-lg transition"
                     >
                       ✕
                     </button>
@@ -717,20 +717,20 @@ export default function DailyReportForm({
                 const taken = item.kind === "taken";
                 // Full static class strings (Tailwind can't see dynamic ones).
                 const chip = taken
-                  ? "text-red-300 bg-red-600/20 border-red-600/40"
-                  : "text-green-300 bg-green-600/20 border-green-600/40";
-                const amtColor = taken ? "text-red-300" : "text-green-300";
+                  ? "text-red-700 bg-red-50 border-red-200"
+                  : "text-green-700 bg-green-50 border-green-200";
+                const amtColor = taken ? "text-red-700" : "text-green-700";
                 return (
                   <div
                     key={`${item.kind}-${item.idx}`}
-                    className="flex items-center gap-2 bg-slate-900 px-2.5 py-2 rounded-lg border border-slate-700"
+                    className="flex items-center gap-2 bg-white px-2.5 py-2 rounded-lg border border-slate-200"
                   >
                     <span
                       className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-full font-bold border ${chip}`}
                     >
                       {taken ? "−" : "+"}
                     </span>
-                    <span className="flex-1 min-w-0 text-sm text-slate-300 truncate">
+                    <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">
                       {item.reason}
                     </span>
                     <span className={`font-bold font-mono ${amtColor}`}>
@@ -741,7 +741,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={() => removeAdjust(item.kind, item.idx)}
                       aria-label="Delete entry"
-                      className="shrink-0 text-red-500 hover:text-red-400 font-bold text-lg hover:scale-110 transition"
+                      className="shrink-0 text-red-600 hover:text-red-700 font-bold text-lg hover:scale-110 transition"
                     >
                       ✕
                     </button>
@@ -751,12 +751,12 @@ export default function DailyReportForm({
             </div>
           </div>
 
-          <div className="mt-6 border-t border-slate-700 pt-4">
+          <div className="mt-6 border-t border-slate-200 pt-4">
             <div className="flex items-center justify-between py-2 mb-1">
-              <span className="text-sm font-medium text-slate-300">
+              <span className="text-sm font-medium text-slate-700">
                 Total Cash Expected
               </span>
-              <span className="text-base font-bold text-amber-300">
+              <span className="text-base font-bold text-amber-700">
                 {Number(autoCalculatedCash || 0).toFixed(2)}
               </span>
             </div>
@@ -769,7 +769,7 @@ export default function DailyReportForm({
             />
 
             {cashMismatch && (
-              <div className="bg-red-900/50 border border-red-500 text-red-200 p-3 rounded-lg mt-2 text-sm font-semibold text-center">
+              <div className="bg-red-50 border border-red-500 text-red-700 p-3 rounded-lg mt-2 text-sm font-semibold text-center">
                 Amount mismatch! Difference: {mismatchDiff.toFixed(2)}
               </div>
             )}
@@ -778,12 +778,12 @@ export default function DailyReportForm({
 
         <Card title="4. Discount Coupons" color="pink">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Coupons given for Google Review
             </label>
 
             {couponStaff.length === 0 && couponRows.length === 0 ? (
-              <p className="text-sm text-slate-500 italic bg-slate-900 border border-slate-700 rounded-lg px-3 py-3">
+              <p className="text-sm text-slate-400 italic bg-white border border-slate-200 rounded-lg px-3 py-3">
                 No employees yet. An admin can add them from the dashboard
                 (“Manage employees”).
               </p>
@@ -792,15 +792,15 @@ export default function DailyReportForm({
                 {/* Always-visible summary line (month-to-date per member,
                     resets on the 1st) + expand/collapse toggle. */}
                 <div className="flex items-start justify-between gap-3">
-                  <p className="flex-1 min-w-0 text-xs text-slate-400 break-words">
-                    <span className="text-pink-300/80 uppercase tracking-wider text-[10px] mr-1">
+                  <p className="flex-1 min-w-0 text-xs text-slate-500 break-words">
+                    <span className="text-pink-700/80 uppercase tracking-wider text-[10px] mr-1">
                       This month
                     </span>
                     {monthlySummary.map((r, i) => (
                       <span key={r.name}>
-                        {i > 0 && <span className="text-slate-600"> · </span>}
-                        <span className="text-slate-300">{r.name}</span>{" "}
-                        <span className="font-mono text-slate-200">
+                        {i > 0 && <span className="text-slate-400"> · </span>}
+                        <span className="text-slate-700">{r.name}</span>{" "}
+                        <span className="font-mono text-slate-800">
                           {r.count}
                         </span>
                       </span>
@@ -811,7 +811,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={() => setShowCouponEditor((v) => !v)}
                       aria-expanded={showCouponEditor}
-                      className="shrink-0 flex items-center gap-1 text-xs font-semibold text-pink-300 hover:text-pink-200 transition"
+                      className="shrink-0 flex items-center gap-1 text-xs font-semibold text-pink-700 hover:text-pink-700 transition"
                     >
                       {showCouponEditor ? "Done" : "Edit counts"}
                       <span
@@ -829,12 +829,12 @@ export default function DailyReportForm({
                     {couponRows.map((row) => (
                       <div
                         key={row.id ?? row.name}
-                        className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700"
+                        className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200"
                       >
-                        <span className="flex-1 min-w-0 text-sm text-slate-200 truncate">
+                        <span className="flex-1 min-w-0 text-sm text-slate-800 truncate">
                           {row.name}
                           {row.isExtra && (
-                            <span className="ml-1 text-[10px] uppercase tracking-wide text-slate-500">
+                            <span className="ml-1 text-[10px] uppercase tracking-wide text-slate-400">
                               (removed)
                             </span>
                           )}
@@ -844,18 +844,18 @@ export default function DailyReportForm({
                           onClick={() => changeCouponCount(row, -1)}
                           aria-label={`Decrease ${row.name}`}
                           disabled={(Number(row.count) || 0) <= 0}
-                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
                         >
                           −
                         </button>
-                        <span className="w-8 text-center font-bold font-mono text-pink-300">
+                        <span className="w-8 text-center font-bold font-mono text-pink-700">
                           {Number(row.count) || 0}
                         </span>
                         <button
                           type="button"
                           onClick={() => changeCouponCount(row, 1)}
                           aria-label={`Increase ${row.name}`}
-                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-pink-600/50 text-pink-300 hover:bg-pink-600/20 transition"
+                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-pink-200 text-pink-700 hover:bg-pink-50 transition"
                         >
                           +
                         </button>
@@ -875,19 +875,19 @@ export default function DailyReportForm({
                           .map((row) => (
                             <div
                               key={row.id ?? row.name}
-                              className="flex items-center justify-between gap-3 text-sm bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700"
+                              className="flex items-center justify-between gap-3 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200"
                             >
-                              <span className="text-slate-300 truncate">
+                              <span className="text-slate-700 truncate">
                                 {row.name}
                               </span>
-                              <span className="font-mono text-slate-200">
+                              <span className="font-mono text-slate-800">
                                 {Number(row.count) || 0}
                               </span>
                             </div>
                           ))}
                       </div>
                     )}
-                    <p className="text-[11px] text-slate-500 italic">
+                    <p className="text-[11px] text-slate-400 italic">
                       Coupon counts can only be added or changed on the report’s
                       own day.
                     </p>
@@ -897,7 +897,7 @@ export default function DailyReportForm({
             )}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-700">
+          <div className="mt-4 pt-4 border-t border-slate-200">
             <RadioGroup
               label="Coupon received / Discount given to customer?"
               value={data.receivedCoupons}
@@ -914,26 +914,26 @@ export default function DailyReportForm({
             />
 
           {data.receivedCoupons === "Yes" && (
-            <div className="mt-4 pt-4 border-t border-slate-700">
+            <div className="mt-4 pt-4 border-t border-slate-200">
               {/* Confirmed coupons shown as compact labels with delete */}
               {data.couponsDetails.map((coupon, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-2 mb-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700"
+                  className="flex items-center justify-between gap-2 mb-2 bg-white px-3 py-2 rounded-lg border border-slate-200"
                 >
-                  <span className="text-sm text-slate-200 min-w-0">
-                    <span className="font-bold text-pink-300">
+                  <span className="text-sm text-slate-800 min-w-0">
+                    <span className="font-bold text-pink-700">
                       {getOrdinal(idx + 1)}:
                     </span>{" "}
                     <span className="font-bold">{coupon.percentage}%</span>
-                    <span className="text-slate-400"> — Order </span>
+                    <span className="text-slate-500"> — Order </span>
                     <span className="break-words">{coupon.posOrderNumber}</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => removeCoupon(idx)}
                     aria-label="Delete coupon"
-                    className="shrink-0 text-red-500 hover:text-red-400 font-bold text-lg hover:scale-110 transition"
+                    className="shrink-0 text-red-600 hover:text-red-700 font-bold text-lg hover:scale-110 transition"
                   >
                     ✕
                   </button>
@@ -942,7 +942,7 @@ export default function DailyReportForm({
 
               {/* Draft coupon box: confirm (green ✓) or discard (red ✕) */}
               {isAddingCoupon && (
-                <div className="flex gap-2 items-end mb-2 bg-slate-900 p-3 rounded-lg border border-pink-600/40">
+                <div className="flex gap-2 items-end mb-2 bg-white p-3 rounded-lg border border-pink-200">
                   <div className="w-[42%]">
                     <Input
                       label="POS Order Number"
@@ -967,7 +967,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={confirmCoupon}
                       aria-label="Confirm coupon"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600/20 hover:bg-green-600/40 text-green-400 border border-green-600/50 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 hover:bg-green-50 text-green-700 border border-green-200 font-bold text-lg transition"
                     >
                       ✓
                     </button>
@@ -975,7 +975,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={cancelCoupon}
                       aria-label="Discard coupon"
-                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-600/50 font-bold text-lg transition"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-50 text-red-700 border border-red-200 font-bold text-lg transition"
                     >
                       ✕
                     </button>
@@ -987,14 +987,14 @@ export default function DailyReportForm({
                 <button
                   type="button"
                   onClick={openCouponBox}
-                  className="mt-1 py-2 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-semibold text-blue-400 transition w-full"
+                  className="mt-1 py-2 px-4 bg-slate-100 hover:bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-blue-700 transition w-full"
                 >
                   + Add Coupon
                 </button>
               )}
 
               {errors.discountCoupons && data.couponsDetails.length === 0 && (
-                <span className="text-red-500 text-xs mt-1 block font-semibold animate-pulse">
+                <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">
                   {errors.discountCoupons}
                 </span>
               )}
@@ -1008,10 +1008,10 @@ export default function DailyReportForm({
             className="mb-3 w-full"
             data-error={errors.comments ? "true" : undefined}
           >
-            <label className="block text-sm font-medium text-slate-300 mb-2 flex flex-col md:flex-row md:items-center gap-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2 flex flex-col md:flex-row md:items-center gap-2">
               <span>Comments</span>
               {isCommentRequired && (
-                <span className="text-red-400 font-bold text-xs bg-red-900/40 px-2 py-1 rounded border border-red-500/50">
+                <span className="text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded border border-red-200">
                   * Required: {commentReasons.join(", ")}
                 </span>
               )}
@@ -1020,10 +1020,10 @@ export default function DailyReportForm({
               value={data.comments}
               onChange={(e) => handleChange("comments", e.target.value)}
               required={isCommentRequired}
-              className={`w-full p-2 rounded-lg bg-slate-900 border outline-none transition min-h-[100px] ${errors.comments ? "border-red-500 ring-1 ring-red-500 text-slate-100 placeholder-red-400/50" : "border-slate-600 text-slate-100 focus:ring-2 focus:ring-blue-500"}`}
+              className={`w-full p-2 rounded-lg bg-white border outline-none transition min-h-[100px] ${errors.comments ? "border-red-500 ring-1 ring-red-500 text-slate-900 placeholder-red-400/50" : "border-slate-300 text-slate-900 focus:ring-2 focus:ring-blue-500"}`}
             />
             {errors.comments && (
-              <span className="text-red-500 text-xs mt-1 block font-semibold animate-pulse">
+              <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">
                 {errors.comments}
               </span>
             )}
@@ -1031,16 +1031,16 @@ export default function DailyReportForm({
           {/* Reporter is an EMPLOYEE now, not free text — dsr_reports.reporter_id
               is a real FK, so the name can never be misspelt or drift. */}
           <div className="mb-3 w-full" data-error={errors.reporterId ? "true" : undefined}>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Reporter <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Reporter <span className="text-red-600">*</span>
             </label>
             <select
               value={data.reporterId || ""}
               onChange={(e) => handleChange("reporterId", e.target.value)}
-              className={`w-full p-2 rounded-lg bg-slate-900 border transition outline-none focus:ring-2 ${
+              className={`w-full p-2 rounded-lg bg-white border transition outline-none focus:ring-2 ${
                 errors.reporterId
-                  ? "border-red-500 ring-1 ring-red-500 text-slate-100"
-                  : "border-slate-600 text-slate-100 focus:ring-blue-500"
+                  ? "border-red-500 ring-1 ring-red-500 text-slate-900"
+                  : "border-slate-300 text-slate-900 focus:ring-blue-500"
               }`}
             >
               <option value="">Select your name…</option>
@@ -1060,20 +1060,20 @@ export default function DailyReportForm({
               ))}
             </select>
             {couponStaff.length === 0 && (
-              <p className="text-xs text-slate-500 italic mt-1">
+              <p className="text-xs text-slate-400 italic mt-1">
                 No employees yet — an admin can add them from the dashboard
                 (“Manage employees”).
               </p>
             )}
             {errors.reporterId && (
-              <span className="text-red-500 text-xs mt-1 block font-semibold animate-pulse">
+              <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">
                 {errors.reporterId}
               </span>
             )}
           </div>
         </Card>
 
-        <div className="fixed bottom-0 left-0 w-full p-4 bg-slate-900 border-t border-slate-800 shadow-[0_-10px_20px_rgba(0,0,0,0.3)] z-50">
+        <div className="fixed bottom-0 left-0 w-full p-4 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.3)] z-50">
           <div className="max-w-2xl mx-auto flex gap-3">
             {/* Clean / Draft are hidden when an Admin is editing an existing record */}
             {!isEditMode && (
@@ -1082,7 +1082,7 @@ export default function DailyReportForm({
                   type="button"
                   onClick={handleCleanForm}
                   disabled={isSaving}
-                  className="w-1/4 py-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 border border-red-600/40 text-red-300 font-bold rounded-xl shadow-lg transition duration-200"
+                  className="w-1/4 py-4 bg-slate-100 hover:bg-slate-100 disabled:opacity-50 border border-red-200 text-red-700 font-bold rounded-xl shadow-lg transition duration-200"
                 >
                   🧹 Clean
                 </button>
@@ -1090,7 +1090,7 @@ export default function DailyReportForm({
                   type="button"
                   onClick={handleSaveDraft}
                   disabled={isSaving}
-                  className="w-1/4 py-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 border border-slate-600 text-slate-200 font-bold rounded-xl shadow-lg transition duration-200"
+                  className="w-1/4 py-4 bg-slate-100 hover:bg-slate-100 disabled:opacity-50 border border-slate-300 text-slate-800 font-bold rounded-xl shadow-lg transition duration-200"
                 >
                   📝 Draft
                 </button>
@@ -1100,7 +1100,7 @@ export default function DailyReportForm({
             <button
               type="submit"
               disabled={isSaving}
-              className={`${isEditMode ? "w-full" : "flex-1"} py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold rounded-xl shadow-lg transition duration-200`}
+              className={`${isEditMode ? "w-full" : "flex-1"} py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl shadow-lg transition duration-200`}
             >
               {isSaving
                 ? "Saving..."

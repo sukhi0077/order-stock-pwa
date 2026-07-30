@@ -67,6 +67,13 @@ const PATHS = {
       <path d="M16 2v4" />
     </>
   ),
+  // Daily sale report — same trend line as the home tile's icon.
+  chart: (
+    <>
+      <path d="M3 3v18h18" />
+      <path d="m7 14 3-4 3 3 5-6" />
+    </>
+  ),
 };
 
 export default function Icon({ name, size = 18, className = "" }) {

@@ -4,8 +4,8 @@ export default function RadioGroup({ label, value, onChange, error }) {
   return (
     <div className="mb-4 mt-2">
       <div className="flex flex-wrap items-center gap-4">
-        <span className="text-sm font-medium text-slate-300">
-          {label} <span className="text-red-500">*</span>
+        <span className="text-sm font-medium text-slate-700">
+          {label} <span className="text-red-600">*</span>
         </span>
         <div className="flex gap-4">
           {['Yes', 'No'].map(opt => (
@@ -16,14 +16,14 @@ export default function RadioGroup({ label, value, onChange, error }) {
                 value={opt} 
                 checked={value === opt} 
                 onChange={(e) => onChange(e.target.value)}
-                className="w-4 h-4 text-blue-500 bg-slate-900 border-slate-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                className="w-4 h-4 text-blue-600 bg-white border-slate-300 focus:ring-blue-500 focus:ring-2 cursor-pointer"
               />
-              <span className="text-sm text-slate-200">{opt}</span>
+              <span className="text-sm text-slate-800">{opt}</span>
             </label>
           ))}
         </div>
       </div>
-      {error && <span className="text-red-500 text-xs mt-1 block font-semibold animate-pulse">{error}</span>}
+      {error && <span className="text-red-600 text-xs mt-1 block font-semibold animate-pulse">{error}</span>}
     </div>
   );
 }

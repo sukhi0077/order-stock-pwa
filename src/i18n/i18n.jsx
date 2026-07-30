@@ -81,6 +81,7 @@ const STR = {
 
     // Expiry (admin)
     tab_expiry: "Expiry",
+    tab_dsr: "Sales",
     win_expired: "Expired",
     win_thisMonth: "This month",
     win_next30: "Next 30 days",
@@ -273,6 +274,7 @@ const STR = {
     removeReceipt: "यह बैच हटाएँ?",
 
     tab_expiry: "एक्सपायरी",
+    tab_dsr: "बिक्री",
     win_expired: "एक्सपायर",
     win_thisMonth: "इस माह",
     win_next30: "अगले 30 दिन",

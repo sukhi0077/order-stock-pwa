@@ -103,8 +103,8 @@ export default function EmployeeManagerModal({ onClose }) {
       key={emp.id}
       className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${
         emp.active
-          ? "bg-slate-900 border-slate-700"
-          : "bg-slate-900/40 border-slate-800"
+          ? "bg-white border-slate-200"
+          : "bg-slate-50 border-slate-200"
       }`}
     >
       {editingId === emp.id ? (
@@ -121,7 +121,7 @@ export default function EmployeeManagerModal({ onClose }) {
             }
             if (e.key === "Escape") setEditingId(null);
           }}
-          className="flex-1 min-w-0 bg-slate-950 border border-pink-500/60 rounded-md px-2 py-1 text-sm text-slate-100 focus:outline-none"
+          className="flex-1 min-w-0 bg-slate-100 border border-pink-200 rounded-md px-2 py-1 text-sm text-slate-900 focus:outline-none"
         />
       ) : (
         <button
@@ -129,8 +129,8 @@ export default function EmployeeManagerModal({ onClose }) {
           onClick={() => emp.active && startEdit(emp)}
           className={`flex-1 min-w-0 text-left text-sm truncate ${
             emp.active
-              ? "text-slate-200 hover:text-white"
-              : "text-slate-500 line-through"
+              ? "text-slate-800 hover:text-slate-900"
+              : "text-slate-400 line-through"
           }`}
           title={emp.active ? "Tap to rename" : undefined}
         >
@@ -144,8 +144,8 @@ export default function EmployeeManagerModal({ onClose }) {
         disabled={busyId === emp.id}
         className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-semibold border transition disabled:opacity-40 ${
           emp.active
-            ? "border-slate-600 text-slate-400 hover:text-red-300 hover:border-red-600/50"
-            : "border-emerald-600/50 text-emerald-400 hover:bg-emerald-600/20"
+            ? "border-slate-300 text-slate-500 hover:text-red-700 hover:border-red-200"
+            : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
         }`}
       >
         {emp.active ? "Deactivate" : "Restore"}
@@ -155,20 +155,20 @@ export default function EmployeeManagerModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 shadow-xl my-8">
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <h2 className="text-lg font-bold text-white">Manage employees</h2>
+      <div className="bg-slate-100 w-full max-w-md rounded-2xl border border-slate-200 shadow-xl my-8">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-900">Manage employees</h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-slate-400 hover:text-white text-xl leading-none"
+            className="text-slate-500 hover:text-slate-900 text-xl leading-none"
           >
             ✕
           </button>
         </div>
 
         <div className="p-4">
-          <p className="text-sm text-slate-400 mb-4">
+          <p className="text-sm text-slate-500 mb-4">
             These people appear in the report’s <strong>Reporter</strong>{" "}
             dropdown and in “Coupons given for Google Review”. Changes save
             immediately.
@@ -187,7 +187,7 @@ export default function EmployeeManagerModal({ onClose }) {
                 }
               }}
               placeholder="Add an employee…"
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-pink-500"
+              className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-pink-500"
             />
             <button
               type="button"
@@ -200,9 +200,9 @@ export default function EmployeeManagerModal({ onClose }) {
           </div>
 
           {isLoading ? (
-            <p className="text-sm text-slate-500">Loading…</p>
+            <p className="text-sm text-slate-400">Loading…</p>
           ) : employees.length === 0 ? (
-            <p className="text-sm text-slate-500 italic">
+            <p className="text-sm text-slate-400 italic">
               No employees yet. Add the first one above.
             </p>
           ) : (
@@ -211,7 +211,7 @@ export default function EmployeeManagerModal({ onClose }) {
 
               {inactive.length > 0 && (
                 <>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 pt-3 pb-1">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-400 pt-3 pb-1">
                     Inactive · hidden from the app, history kept
                   </p>
                   {inactive.map(row)}
@@ -221,11 +221,11 @@ export default function EmployeeManagerModal({ onClose }) {
           )}
 
           {error && (
-            <p className="mt-3 text-sm text-red-400 font-medium">{error}</p>
+            <p className="mt-3 text-sm text-red-700 font-medium">{error}</p>
           )}
         </div>
 
-        <div className="flex justify-end p-4 border-t border-slate-700">
+        <div className="flex justify-end p-4 border-t border-slate-200">
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-lg text-sm font-semibold bg-pink-600 hover:bg-pink-500 text-white transition"

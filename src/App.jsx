@@ -16,7 +16,6 @@ const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
 // The Daily Sale Report is a big, self-contained screen — load it only when
 // someone actually opens the tile.
 const DsrPanel = lazy(() => import("./components/dsr/DsrPanel.jsx"));
-const DsrAdmin = lazy(() => import("./components/dsr/DsrAdmin.jsx"));
 
 export default function App() {
   const { user, isAdmin, isAuthLoading, adminError, login, logout } = useAuth();
@@ -54,25 +53,19 @@ export default function App() {
 
   const reporter = user.email || user.uid;
   const showAdmin = isAdmin && isAdminView;
-  // Which admin dashboard? The one for the tile you came from — open Admin
-  // while on the Daily Sale Report and you get the DSR dashboard.
-  const isDsrAdmin = showAdmin && mode === "dsr";
   const receiveTheme = !showAdmin && mode === "receive";
   const stockTheme = !showAdmin && mode === "stock";
-  // The Daily Sale Report screen is dark, so it gets its own header + surface
-  // rather than the light chrome the other three tiles use.
-  const dsrTheme = mode === "dsr";
+  // Daily Sale Report gets a pink accent, matching its home tile — same light
+  // chrome pattern as receive (blue) and stock (amber).
+  const dsrTheme = !showAdmin && mode === "dsr";
   const coloredHeader = showAdmin || receiveTheme || stockTheme || dsrTheme;
-  // The home button also gets you out of the DSR admin dashboard.
-  const showHomeBtn = (!showAdmin || isDsrAdmin) && mode !== "home";
+  const showHomeBtn = !showAdmin && mode !== "home";
   const colBtn = coloredHeader
     ? "bg-white/20 border-white/30 text-white hover:bg-white/30"
     : "bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900";
 
   const title = showAdmin
-    ? isDsrAdmin
-      ? `${t("admin")} · ${t("dsr")}`
-      : t("admin")
+    ? t("admin")
     : mode === "dsr"
       ? t("dsr")
       : mode === "orders"
@@ -85,10 +78,16 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans ${
-        dsrTheme
-          ? "bg-slate-900 text-slate-100"
-          : `text-slate-900 ${showAdmin ? "bg-indigo-50" : receiveTheme ? "bg-blue-50" : stockTheme ? "bg-amber-50" : "bg-slate-50"}`
+      className={`min-h-screen font-sans text-slate-900 ${
+        showAdmin
+          ? "bg-indigo-50"
+          : receiveTheme
+            ? "bg-blue-50"
+            : stockTheme
+              ? "bg-amber-50"
+              : dsrTheme
+                ? "bg-pink-50"
+                : "bg-slate-50"
       }`}
     >
       {(!isOnline || pending > 0) && (
@@ -105,15 +104,15 @@ export default function App() {
 
       <header
         className={`sticky top-0 z-50 backdrop-blur border-b ${
-          dsrTheme
-            ? "bg-slate-800 border-slate-700"
-            : showAdmin
+          showAdmin
             ? "bg-indigo-600 border-indigo-700"
             : receiveTheme
               ? "bg-blue-600 border-blue-700"
               : stockTheme
                 ? "bg-amber-500 border-amber-600"
-                : "bg-white/90 border-slate-200"
+                : dsrTheme
+                  ? "bg-pink-600 border-pink-700"
+                  : "bg-white/90 border-slate-200"
         }`}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-2.5">
@@ -169,7 +168,11 @@ export default function App() {
             </div>
           }
         >
-          {isDsrAdmin ? <DsrAdmin /> : <AdminDashboard reporter={reporter} />}
+          {/* Coming from the DSR tile opens the dashboard on its DSR tab. */}
+          <AdminDashboard
+            reporter={reporter}
+            initialTab={mode === "dsr" ? "dsr" : "orders"}
+          />
         </Suspense>
       ) : (
         <div className="p-4 max-w-2xl mx-auto">
