@@ -100,55 +100,31 @@ function drawSectionHeading(doc, label, count, y) {
   return y + h + 2;
 }
 
-// Turn the rows into an autoTable body with a full-width label row inserted
-// whenever the category › sub-category group changes. The label row is what
-// tells you which group the items beneath it belong to, so the group name is
-// never repeated on every line.
+// One body row per item — no group heading rows.
 //
-// Item numbers run continuously through the whole order-type section and do NOT
-// restart at each group, so the last number is also the section's item count and
-// two rows in the same section can never share a number.
-function withGroupRows(rows) {
-  const body = [];
-  let group = null;
-  let n = 0;
-  for (const r of rows) {
-    if (r.group !== group) {
-      group = r.group;
-      body.push([
-        {
-          content: group,
-          colSpan: 6,
-          styles: {
-            fontStyle: "bold",
-            fontSize: 8,
-            // halign must be explicit: a spanning cell would otherwise pick up
-            // the alignment of the last column it covers.
-            halign: "left",
-            textColor: TEAL,
-            fillColor: [255, 255, 255],
-            cellPadding: { top: 2.2, bottom: 1, left: 1.8, right: 1.8 },
-          },
-        },
-      ]);
-    }
-    n += 1;
-    body.push([
-      String(n),
-      r.item.name,
-      String(orderNum(r.line.qty)),
-      orderUnitOf(r.item),
-      r.line.note || "",
-      "",
-    ]);
-  }
-  return body;
+// Group headings used to sit above each run of rows, but most category /
+// sub-category groups on a real order hold a SINGLE item, so the headings ended
+// up outnumbering and visually outweighing the items they labelled. The group
+// is now just a quiet right-hand column, which costs nothing for a one-item
+// group and keeps the item name the thing your eye lands on.
+//
+// Item numbers run continuously through the order-type section, so the last
+// number is also the section's item count.
+function bodyRows(rows) {
+  return rows.map((r, i) => [
+    String(i + 1),
+    r.item.name,
+    String(orderNum(r.line.qty)),
+    orderUnitOf(r.item),
+    r.line.note || "",
+    r.group,
+    "",
+  ]);
 }
 
-// A body row is a group label when it is the single spanning cell we inserted.
-function isGroupRow(row) {
-  return Array.isArray(row?.raw) && row.raw.length === 1;
-}
+// Column index of the tick-box gutter — last column, kept as a name so the
+// hooks below don't drift if the column list changes.
+const TICK_COL = 6;
 
 // Shared autoTable config. Row padding is tight so the sheet stays compact.
 function tableOptions(doc, rows, startY) {
@@ -158,8 +134,8 @@ function tableOptions(doc, rows, startY) {
     // Last column is the tick box; its header stays blank because Liberation
     // Sans has no U+2713 glyph and a missing glyph renders as a box in some
     // viewers. The empty column reads fine as a checklist gutter.
-    head: [["#", "Item", "Qty", "Unit", "Note", ""]],
-    body: withGroupRows(rows),
+    head: [["#", "Item", "Qty", "Unit", "Note", "Group", ""]],
+    body: bodyRows(rows),
     styles: {
       font: FONT,
       fontSize: 9,
@@ -177,30 +153,27 @@ function tableOptions(doc, rows, startY) {
       fillColor: [248, 250, 252],
       lineColor: FAINT,
     },
-    // Item narrowed, Note left on "auto" so it takes all the slack — notes are
-    // written on and read off the sheet, item names rarely need the room.
+    // Item gets the widest fixed column and full-size ink; Group is deliberately
+    // small and grey so it reads as a reference, not a heading. Note stays on
+    // "auto" so it absorbs whatever width is left.
     columnStyles: {
-      0: { cellWidth: 10, halign: "right", textColor: FAINT },
-      1: { cellWidth: 58 },
-      2: { cellWidth: 15, halign: "right", fontStyle: "bold" },
-      3: { cellWidth: 18 },
+      0: { cellWidth: 9, halign: "right", textColor: FAINT },
+      1: { cellWidth: 56 },
+      2: { cellWidth: 13, halign: "right" },
+      3: { cellWidth: 15 },
       4: { cellWidth: "auto" },
-      5: { cellWidth: 12 },
+      5: { cellWidth: 30, fontSize: 7.5, textColor: FAINT },
+      6: { cellWidth: 9 },
     },
     didParseCell: (data) => {
-      // A group label spans the table: keep it left-aligned and unboxed rather
-      // than letting it inherit the item-row borders and column alignment.
-      if (data.section === "body" && isGroupRow(data.row)) {
-        data.cell.styles.lineWidth = 0;
-        data.cell.styles.halign = "left";
-        return;
-      }
-      if (data.column.index === 5) data.cell.styles.halign = "center";
+      // Shrink the Group header too, so the column reads as secondary in the
+      // header row as well as the body.
+      if (data.column.index === 5) data.cell.styles.fontSize = 7.5;
+      if (data.column.index === TICK_COL) data.cell.styles.halign = "center";
     },
     // Empty tick box for checking items off on delivery.
     didDrawCell: (data) => {
-      if (data.section !== "body" || data.column.index !== 5) return;
-      if (isGroupRow(data.row)) return;
+      if (data.section !== "body" || data.column.index !== TICK_COL) return;
       const s = 3.4;
       const x = data.cell.x + (data.cell.width - s) / 2;
       const cy = data.cell.y + (data.cell.height - s) / 2;

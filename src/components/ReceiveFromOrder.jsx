@@ -23,6 +23,27 @@ function orderedKeys(keys, preferred) {
   return [...known, ...extra];
 }
 
+// A quick category / sub-category filter chip. `small` is the sub-category
+// variant, one step down in weight so the two rows read as a hierarchy.
+function FilterChip({ active, onClick, small = false, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`shrink-0 rounded-full border transition ${
+        small ? "text-[11px] px-2.5 py-1" : "text-xs font-semibold px-3 py-1.5"
+      } ${
+        active
+          ? "bg-blue-500 border-blue-500 text-white"
+          : "bg-white border-slate-200 text-slate-600 hover:border-blue-300"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 // One submitted order's items, grouped category -> sub-category, each with the
 // normal receive controls.
 function OrderReceiveView({ order, items, batchesByItem, onAdd, onDelete, adding, onBack }) {
@@ -47,7 +68,26 @@ function OrderReceiveView({ order, items, batchesByItem, onAdd, onDelete, adding
     return g;
   }, [order, itemsById]);
 
-  const cats = orderedKeys(Object.keys(groups), CATEGORY_ORDER);
+  const allCats = orderedKeys(Object.keys(groups), CATEGORY_ORDER);
+
+  // Quick filters. A delivery usually arrives in crates of one kind, so being
+  // able to narrow to "Veg" (and then "Root") beats scrolling the whole order.
+  // null = no filter. Picking a category clears any sub-category from the
+  // previous one, which would otherwise silently hide everything.
+  const [filterCat, setFilterCat] = useState(null);
+  const [filterSub, setFilterSub] = useState(null);
+  const activeCat = filterCat && groups[filterCat] ? filterCat : null;
+  const subsForCat = activeCat
+    ? orderedKeys(Object.keys(groups[activeCat]), SUBCATEGORY_ORDER[activeCat] || [])
+    : [];
+  const activeSub = activeCat && filterSub && groups[activeCat][filterSub] ? filterSub : null;
+
+  const cats = activeCat ? [activeCat] : allCats;
+  const subsOf = (cat) => {
+    const list = orderedKeys(Object.keys(groups[cat]), SUBCATEGORY_ORDER[cat] || []);
+    return cat === activeCat && activeSub ? [activeSub] : list;
+  };
+
   const lineCount = Object.keys(order.lines || {}).length;
   // How many of the order's items already have at least one batch logged. A
   // rough "how far along am I" signal, not an exact quantity reconciliation.
@@ -78,13 +118,59 @@ function OrderReceiveView({ order, items, batchesByItem, onAdd, onDelete, adding
         </div>
       </div>
 
-      {cats.length === 0 && (
+      {allCats.length === 0 && (
         <p className="text-center text-slate-400 py-8">{t("noReceivableItems")}</p>
+      )}
+
+      {allCats.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+            <FilterChip
+              active={!activeCat}
+              onClick={() => {
+                setFilterCat(null);
+                setFilterSub(null);
+              }}
+            >
+              {t("all")}
+            </FilterChip>
+            {allCats.map((c) => (
+              <FilterChip
+                key={c}
+                active={activeCat === c}
+                onClick={() => {
+                  setFilterCat(c);
+                  setFilterSub(null);
+                }}
+              >
+                {tc(c)}
+              </FilterChip>
+            ))}
+          </div>
+
+          {subsForCat.length > 1 && (
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+              <FilterChip active={!activeSub} onClick={() => setFilterSub(null)} small>
+                {t("all")}
+              </FilterChip>
+              {subsForCat.map((s) => (
+                <FilterChip
+                  key={s}
+                  active={activeSub === s}
+                  onClick={() => setFilterSub(s)}
+                  small
+                >
+                  {ts(s)}
+                </FilterChip>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {cats.map((cat) => (
         <div key={cat} className="space-y-1.5">
-          {orderedKeys(Object.keys(groups[cat]), SUBCATEGORY_ORDER[cat] || []).map((sub) => (
+          {subsOf(cat).map((sub) => (
             <div key={sub} className="space-y-1.5">
               <h3 className="px-1 pt-1 text-[11px] font-bold uppercase tracking-wide text-slate-400">
                 {tc(cat)} · {ts(sub)}
