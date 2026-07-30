@@ -2,7 +2,7 @@
 import React from "react";
 import { useT } from "../i18n/i18n.jsx";
 import { useTheme } from "../theme/ThemeContext.jsx";
-import { THEMES, swatchesFor, accentVars } from "../theme/themes.js";
+import { THEMES, swatchesFor, hueHex } from "../theme/themes.js";
 
 const ICONS = {
   dsr: (
@@ -35,16 +35,20 @@ const ICONS = {
   ),
 };
 
-// Each tile wears ITS OWN section's hue, not the home screen's, so the four
-// colours you see here are the four you will meet inside the app.
+// Each tile wears ITS OWN section's hue, so the four colours here are the four
+// you will meet inside the app. The icon is coloured inline rather than with an
+// accent-* class: those resolve against :root, so a per-tile override of the
+// accent variables would be ignored.
 function Tile({ mode, title, desc, onChoose, hue }) {
   return (
     <button
       onClick={() => onChoose(mode)}
-      style={accentVars(hue)}
       className="w-full bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-4 transition text-left hover:border-accent-300 hover:bg-accent-50"
     >
-      <span className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl text-white bg-accent-600">
+      <span
+        className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl text-white"
+        style={{ backgroundColor: hueHex(hue) }}
+      >
         <svg
           width="28"
           height="28"

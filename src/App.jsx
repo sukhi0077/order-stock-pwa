@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import StaffPanel from "./components/StaffPanel.jsx";
 import OrderPanel from "./components/OrderPanel.jsx";
 import ReceivePanel from "./components/ReceivePanel.jsx";
@@ -11,8 +11,7 @@ import { useOfflineSync } from "./hooks/useOfflineSync.js";
 import { useBusinessDay } from "./hooks/useBusinessDay.js";
 import { useT } from "./i18n/i18n.jsx";
 import LangToggle from "./components/ui/LangToggle.jsx";
-import { useTheme } from "./theme/ThemeContext.jsx";
-import { accentVars } from "./theme/themes.js";
+import { useTheme, applyAccent } from "./theme/ThemeContext.jsx";
 
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
 // The Daily Sale Report is a big, self-contained screen — load it only when
@@ -32,6 +31,16 @@ export default function App() {
   );
   // Landing: 'home' | 'orders' | 'receive' | 'stock' | 'dsr'
   const [mode, setMode] = useState(() => sessionStorage.getItem("appMode") || "home");
+
+  // Paint the active section's hue onto <html>, where the accent utilities
+  // resolve. Declared above the early returns below so the hook order is
+  // stable, and derived defensively because `user` may not be loaded yet.
+  const activeSection =
+    isAdmin && isAdminView ? "admin" : mode === "home" ? "orders" : mode;
+  const activeHue = (theme[activeSection] || theme.orders).hue;
+  useEffect(() => {
+    applyAccent(activeHue);
+  }, [activeHue]);
 
   const chooseMode = (m) => {
     setMode(m);
@@ -64,11 +73,7 @@ export default function App() {
   // (see src/theme/themes.js) rather than being hard-coded here, so switching
   // schemes restyles the whole app. Home and Orders keep the plain white
   // header, hence coloredHeader.
-  const section = showAdmin ? "admin" : mode === "home" ? "orders" : mode;
-  const sec = theme[section] || theme.orders;
-  // Every accent-* utility in the app resolves through these variables, so one
-  // assignment here recolours every page for the chosen scheme.
-  const accent = accentVars(sec.hue);
+  const sec = theme[activeSection] || theme.orders;
   const coloredHeader = !sec.plainHeader;
   const showHomeBtn = !showAdmin && mode !== "home";
   const colBtn = coloredHeader
@@ -92,7 +97,6 @@ export default function App() {
       className={`min-h-screen font-sans text-slate-900 ${
         sec.plainHeader ? "bg-slate-50" : "bg-accent-50"
       }`}
-      style={accent}
     >
       {(!isOnline || pending > 0) && (
         <div

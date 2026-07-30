@@ -74,6 +74,14 @@ export function swatchesFor(theme) {
   return SECTIONS.map((s) => (RAMPS[theme[s].hue] || RAMPS.teal)[6]);
 }
 
+// One shade of a hue as a hex string. For the rare element that must show a
+// hue OTHER than the active section's (the home tiles), where the accent-*
+// utilities cannot help: they resolve on :root, so a local override is ignored.
+export function hueHex(hue, shade = 600) {
+  const ramp = RAMPS[hue] || RAMPS.teal;
+  return ramp[Math.max(0, SHADES.indexOf(shade))];
+}
+
 export const DEFAULT_THEME = "classic";
 export function getTheme(id) {
   return THEMES[id] || THEMES[DEFAULT_THEME];
