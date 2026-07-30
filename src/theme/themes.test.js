@@ -94,15 +94,23 @@ describe("neutralVars", () => {
     expect(brightness(dark["--n-900"])).toBeGreaterThan(brightness(light["--n-900"]));
   });
 
-  it("keeps the page darker than the cards that sit on it", () => {
+  it("reproduces the standalone dsr-pwa palette exactly", () => {
+    // Taken from that app's markup, not approximated: page bg-slate-900,
+    // cards bg-slate-800, border-slate-700 hairlines, text-slate-300 body,
+    // text-slate-100 headings.
     const dark = neutralVars("dark");
-    expect(brightness(dark["--n-50"])).toBeLessThan(brightness(dark["--n-0"]));
+    expect(dark["--n-50"]).toBe("#0f172a"); // slate-900 — page
+    expect(dark["--n-0"]).toBe("#1e293b"); // slate-800 — card
+    expect(dark["--n-200"]).toBe("#334155"); // slate-700 — hairline
+    expect(dark["--n-700"]).toBe("#cbd5e1"); // slate-300 — body text
+    expect(dark["--n-900"]).toBe("#f1f5f9"); // slate-100 — headings
   });
 
-  it("uses the DSR app's original palette for the dark ramp", () => {
+  it("puts cards LIGHTER than the page in the dark ramp, unlike the light one", () => {
     const dark = neutralVars("dark");
-    expect(dark["--n-0"]).toBe("#0f172a"); // slate-900, the old DSR card
-    expect(dark["--n-200"]).toBe("#334155"); // slate-700, the old hairline
+    const light = neutralVars("light");
+    expect(brightness(dark["--n-0"])).toBeGreaterThan(brightness(dark["--n-50"]));
+    expect(brightness(light["--n-0"])).toBeGreaterThan(brightness(light["--n-50"]));
   });
 
   it("falls back to light for an unknown mode", () => {

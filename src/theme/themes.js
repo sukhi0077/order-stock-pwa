@@ -22,6 +22,7 @@ const RAMPS = {
   indigo: ["#eef2ff","#e0e7ff","#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5","#4338ca","#3730a3","#312e81"],
   sky:    ["#f0f9ff","#e0f2fe","#bae6fd","#7dd3fc","#38bdf8","#0ea5e9","#0284c7","#0369a1","#075985","#0c4a6e"],
   cyan:   ["#ecfeff","#cffafe","#a5f3fc","#67e8f9","#22d3ee","#06b6d4","#0891b2","#0e7490","#155e75","#164e63"],
+  emerald:["#ecfdf5","#d1fae5","#a7f3d0","#6ee7b7","#34d399","#10b981","#059669","#047857","#065f46","#064e3b"],
   slate:  ["#f8fafc","#f1f5f9","#e2e8f0","#cbd5e1","#94a3b8","#64748b","#475569","#334155","#1e293b","#0f172a"],
 };
 const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -41,22 +42,26 @@ const NEUTRALS = {
     400: "#94a3b8", 500: "#64748b", 600: "#475569", 700: "#334155",
     800: "#1e293b", 900: "#0f172a",
   },
-  // The Daily Sale Report's original palette, before it was converted to the
-  // light theme: Tailwind slate, cards on slate-900 over a slate-950 page,
-  // slate-700 hairlines, slate-300 body text. Reusing those exact values means
-  // Midnight is the DSR app people already know, applied to the whole product.
+  // Lifted from the standalone dsr-pwa, so Midnight is that app's palette
+  // exactly. Checked against its markup rather than guessed:
+  //   App shell  bg-slate-900  -> the PAGE
+  //   cards      bg-slate-800  -> the CARD surface
+  //   borders    border-slate-700 (57 uses, the dominant hairline)
+  //   body text  text-slate-300 (56 uses), headings text-slate-100
+  // Note the page is slate-900 and cards sit LIGHTER on top of it, which is
+  // the opposite of the light ramp — hence n-0 being lighter than n-50 here.
   dark: {
-    0: "#0f172a",  // slate-900  — card surface (DSR cards)
-    50: "#020617", // slate-950  — page behind the cards
-    100: "#1e293b", // slate-800 — secondary surface, chip tracks
-    200: "#334155", // slate-700 — hairlines (the old border-slate-700)
+    0: "#1e293b",   // slate-800 — card surface
+    50: "#0f172a",  // slate-900 — the page behind the cards
+    100: "#334155", // slate-700 — chip tracks, nested rows
+    200: "#334155", // slate-700 — hairlines
     300: "#475569", // slate-600 — stronger borders, inputs
-    400: "#94a3b8", // slate-400 — muted text
+    400: "#64748b", // slate-500 — dimmest text
     500: "#94a3b8", // slate-400 — secondary text
-    600: "#cbd5e1", // slate-300 — the old body text
-    700: "#cbd5e1", // slate-300
+    600: "#cbd5e1", // slate-300 — body text
+    700: "#cbd5e1", // slate-300 — body text
     800: "#e2e8f0", // slate-200
-    900: "#f1f5f9", // slate-100 — primary text
+    900: "#f1f5f9", // slate-100 — headings
   },
 };
 const N_SHADES = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -106,8 +111,10 @@ export const THEMES = {
     id: "midnight",
     label: "Midnight",
     neutrals: "dark",
-    orders: S("teal"),
-    receive: S("sky"),
+    // dsr-pwa's own accents: blue-600 for primary actions, with emerald /
+    // violet / cyan alongside it on the section cards.
+    orders: S("emerald"),
+    receive: S("blue"),
     stock: S("cyan"),
     dsr: S("violet"),
     admin: S("indigo"),
