@@ -32,15 +32,16 @@ export function accentVars(hue) {
   return Object.fromEntries(SHADES.map((s, i) => [`--accent-${s}`, ramp[i]]));
 }
 
-// `plainHeader` keeps the white header on the two screens that have always had
-// it (home and the order builder); everywhere else the header takes the accent.
-const S = (hue, plainHeader = false) => ({ hue, plainHeader });
+// A section is just its hue. The plain white header belongs to the home screen
+// alone and is decided in App, not here — it is a property of that one screen,
+// not of any section.
+const S = (hue) => ({ hue });
 
 export const THEMES = {
   classic: {
     id: "classic",
     label: "Classic",
-    orders: S("teal", true),
+    orders: S("teal"),
     receive: S("blue"),
     stock: S("amber"),
     dsr: S("violet"),
@@ -49,7 +50,7 @@ export const THEMES = {
   ocean: {
     id: "ocean",
     label: "Ocean",
-    orders: S("teal", true),
+    orders: S("teal"),
     receive: S("sky"),
     stock: S("cyan"),
     dsr: S("indigo"),
@@ -60,7 +61,7 @@ export const THEMES = {
   graphite: {
     id: "graphite",
     label: "Graphite",
-    orders: S("slate", true),
+    orders: S("slate"),
     receive: S("slate"),
     stock: S("slate"),
     dsr: S("slate"),

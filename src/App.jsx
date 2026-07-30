@@ -69,12 +69,10 @@ export default function App() {
 
   const reporter = user.email || user.uid;
   const showAdmin = isAdmin && isAdminView;
-  // Which section's chrome to wear. Colours come from the user's chosen scheme
-  // (see src/theme/themes.js) rather than being hard-coded here, so switching
-  // schemes restyles the whole app. Home and Orders keep the plain white
-  // header, hence coloredHeader.
-  const sec = theme[activeSection] || theme.orders;
-  const coloredHeader = !sec.plainHeader;
+  // Only the home screen keeps the white header; every task screen wears its
+  // section colour so you can tell at a glance which one you are in.
+  const isHome = !showAdmin && mode === "home";
+  const coloredHeader = !isHome;
   const showHomeBtn = !showAdmin && mode !== "home";
   const colBtn = coloredHeader
     ? "bg-white/20 border-white/30 text-white hover:bg-white/30"
@@ -95,7 +93,7 @@ export default function App() {
   return (
     <div
       className={`min-h-screen font-sans text-slate-900 ${
-        sec.plainHeader ? "bg-slate-50" : "bg-accent-50"
+        isHome ? "bg-slate-50" : "bg-accent-50"
       }`}
     >
       {(!isOnline || pending > 0) && (
@@ -112,7 +110,7 @@ export default function App() {
 
       <header
         className={`sticky top-0 z-50 backdrop-blur border-b ${
-          sec.plainHeader ? "bg-white/90 border-slate-200" : "bg-accent-600 border-accent-700"
+          isHome ? "bg-white/90 border-slate-200" : "bg-accent-600 border-accent-700"
         }`}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-2.5">
