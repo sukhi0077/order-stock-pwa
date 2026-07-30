@@ -100,6 +100,56 @@ function drawSectionHeading(doc, label, count, y) {
   return y + h + 2;
 }
 
+// Turn the rows into an autoTable body with a full-width label row inserted
+// whenever the category › sub-category group changes. The label row is what
+// tells you which group the items beneath it belong to, so the group name is
+// never repeated on every line.
+//
+// Item numbering restarts inside each group: on the shop floor you work one
+// group at a time, so "Dairy #3" is easier to call out than a running total.
+function withGroupRows(rows) {
+  const body = [];
+  let group = null;
+  let n = 0;
+  for (const r of rows) {
+    if (r.group !== group) {
+      group = r.group;
+      n = 0;
+      body.push([
+        {
+          content: group,
+          colSpan: 6,
+          styles: {
+            fontStyle: "bold",
+            fontSize: 8,
+            // halign must be explicit: a spanning cell would otherwise pick up
+            // the alignment of the last column it covers.
+            halign: "left",
+            textColor: TEAL,
+            fillColor: [255, 255, 255],
+            cellPadding: { top: 2.2, bottom: 1, left: 1.8, right: 1.8 },
+          },
+        },
+      ]);
+    }
+    n += 1;
+    body.push([
+      String(n),
+      r.item.name,
+      String(orderNum(r.line.qty)),
+      orderUnitOf(r.item),
+      r.line.note || "",
+      "",
+    ]);
+  }
+  return body;
+}
+
+// A body row is a group label when it is the single spanning cell we inserted.
+function isGroupRow(row) {
+  return Array.isArray(row?.raw) && row.raw.length === 1;
+}
+
 // Shared autoTable config. Row padding is tight so the sheet stays compact.
 function tableOptions(doc, rows, startY) {
   return {
@@ -109,14 +159,7 @@ function tableOptions(doc, rows, startY) {
     // Sans has no U+2713 glyph and a missing glyph renders as a box in some
     // viewers. The empty column reads fine as a checklist gutter.
     head: [["#", "Item", "Qty", "Unit", "Note", ""]],
-    body: rows.map(({ item, line }, i) => [
-      String(i + 1),
-      item.name,
-      String(orderNum(line.qty)),
-      orderUnitOf(item),
-      line.note || "",
-      "",
-    ]),
+    body: withGroupRows(rows),
     styles: {
       font: FONT,
       fontSize: 9,
@@ -145,11 +188,19 @@ function tableOptions(doc, rows, startY) {
       5: { cellWidth: 12 },
     },
     didParseCell: (data) => {
+      // A group label spans the table: keep it left-aligned and unboxed rather
+      // than letting it inherit the item-row borders and column alignment.
+      if (data.section === "body" && isGroupRow(data.row)) {
+        data.cell.styles.lineWidth = 0;
+        data.cell.styles.halign = "left";
+        return;
+      }
       if (data.column.index === 5) data.cell.styles.halign = "center";
     },
     // Empty tick box for checking items off on delivery.
     didDrawCell: (data) => {
       if (data.section !== "body" || data.column.index !== 5) return;
+      if (isGroupRow(data.row)) return;
       const s = 3.4;
       const x = data.cell.x + (data.cell.width - s) / 2;
       const cy = data.cell.y + (data.cell.height - s) / 2;

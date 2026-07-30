@@ -61,11 +61,23 @@ export function orderTypesOnOrder(items, lines) {
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
+// The category / sub-category label an item is grouped under in the exports.
+// One string rather than two columns: it reads as a single "where in the shop"
+// indicator, which is what the person walking the aisles actually wants.
+// The separator is a plain ASCII slash on purpose: fancier glyphs like "›"
+// (U+203A) are outside the bundled PDF font subset and would silently vanish.
+export function groupOf(item) {
+  const cat = (item.category || "").trim();
+  const sub = (item.subCategory || "").trim();
+  if (cat && sub) return `${cat} / ${sub}`;
+  return cat || sub || UNGROUPED;
+}
+
+export const UNGROUPED = "Other";
+
 // Ordered items, optionally narrowed to a selection of order types and with
-// individual items excluded, sorted by order type -> item name. Category /
-// sub-category are deliberately NOT part of the sort: the exports no longer
-// show them, so grouping by an invisible key would make the row order look
-// arbitrary.
+// individual items excluded. Sorted order type -> category -> sub-category ->
+// item name, so rows arrive already grouped for both exports.
 //
 // `selected`   — order types to include; array or Set. null/undefined = all.
 // `excludedIds`— item ids to leave OUT of this export; array or Set.
@@ -78,34 +90,44 @@ export function selectOrderRows(items, lines, selected, excludedIds) {
   const skip = excludedIds == null ? null : new Set(excludedIds);
   return items
     .filter((item) => isOrdered(lines?.[item.id]))
-    .map((item) => ({ item, orderType: orderTypeOf(item), line: lines[item.id] }))
+    .map((item) => ({
+      item,
+      orderType: orderTypeOf(item),
+      group: groupOf(item),
+      line: lines[item.id],
+    }))
     .filter((r) => !only || only.has(r.orderType))
     .filter((r) => !skip || !skip.has(r.item.id))
     .sort(
       (a, b) =>
-        a.orderType.localeCompare(b.orderType) || a.item.name.localeCompare(b.item.name),
+        a.orderType.localeCompare(b.orderType) ||
+        (a.item.category || "").localeCompare(b.item.category || "") ||
+        (a.item.subCategory || "").localeCompare(b.item.subCategory || "") ||
+        a.item.name.localeCompare(b.item.name),
     );
 }
 
 // ---------------------------------------------------------------------------
 // ORDER CSV
-// Columns: Order type, Item, Quantity, Unit, Note.
-// Category / sub-category, order ref and status are intentionally omitted — the
-// sheet is for placing orders, not for browsing the catalogue, and the order ref
-// is already in the filename. Only items on the order (qty > 0) are exported,
-// and only those whose order type is in `selected` (null = all), minus any id
-// in `excludedIds`.
+// Columns: Order type, Group, Item, Quantity, Unit, Note.
+// "Group" is the category › sub-category indicator; rows arrive sorted by it so
+// the sheet is already grouped, and the column tells you which group a row
+// belongs to (and lets you pivot / filter on it in a spreadsheet). Order ref and
+// status are omitted — the ref is already in the filename. Only items on the
+// order (qty > 0) are exported, and only those whose order type is in `selected`
+// (null = all), minus any id in `excludedIds`.
 // `order` is unused by the body but kept in the signature so callers stay
 // uniform with downloadOrderCsv / the PDF builder.
 export function buildOrderCsv(order, items, lines, selected = null, excludedIds = null) {
-  const header = ["Order type", "Item", "Quantity", "Unit", "Note"];
+  const header = ["Order type", "Group", "Item", "Quantity", "Unit", "Note"];
 
   const ordered = selectOrderRows(items, lines, selected, excludedIds);
 
   const rows = [header];
-  for (const { item, orderType, line } of ordered) {
+  for (const { item, orderType, group, line } of ordered) {
     rows.push([
       orderType,
+      group,
       item.name,
       orderNum(line.qty),
       orderUnitOf(item),
