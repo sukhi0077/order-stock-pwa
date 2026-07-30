@@ -1,6 +1,10 @@
 import React from "react";
 
-// Each section gets its own colour so it's easy to tell cards apart: a soft
+// Each section gets its own colour so it's easy to tell cards apart.
+// Amber, orange and pink are deliberately absent: those read as warning /
+// error everywhere else in the app, and a decorative amber card was being
+// mistaken for a caution.
+// a soft
 // tint with a bold left accent, matching the light chrome the rest of the app
 // uses (white surfaces, slate-200 hairlines, rounded-2xl).
 const COLORS = {
@@ -16,13 +20,13 @@ const COLORS = {
     wrap: "bg-violet-50 border-violet-200 border-l-violet-500",
     title: "text-violet-700",
   },
-  amber: {
-    wrap: "bg-amber-50 border-amber-200 border-l-amber-500",
-    title: "text-amber-700",
+  teal: {
+    wrap: "bg-teal-50 border-teal-200 border-l-teal-500",
+    title: "text-teal-700",
   },
-  pink: {
-    wrap: "bg-pink-50 border-pink-200 border-l-pink-500",
-    title: "text-pink-700",
+  indigo: {
+    wrap: "bg-indigo-50 border-indigo-200 border-l-indigo-500",
+    title: "text-indigo-700",
   },
   cyan: {
     wrap: "bg-cyan-50 border-cyan-200 border-l-cyan-500",

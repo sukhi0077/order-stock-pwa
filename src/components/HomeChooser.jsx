@@ -66,7 +66,7 @@ export default function HomeChooser({ onChoose }) {
           onClick={() => onChoose("dsr")}
           className="w-full bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-4 hover:border-teal-300 hover:bg-teal-50/40 transition text-left"
         >
-          <span className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl bg-pink-600 text-white">
+          <span className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl bg-violet-600 text-white">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 3v18h18" />
               <path d="m7 14 3-4 3 3 5-6" />

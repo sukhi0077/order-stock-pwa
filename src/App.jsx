@@ -55,8 +55,9 @@ export default function App() {
   const showAdmin = isAdmin && isAdminView;
   const receiveTheme = !showAdmin && mode === "receive";
   const stockTheme = !showAdmin && mode === "stock";
-  // Daily Sale Report gets a pink accent, matching its home tile — same light
-  // chrome pattern as receive (blue) and stock (amber).
+  // Daily Sale Report gets a violet accent, matching its home tile. Not pink or
+  // orange: those read as warning/error elsewhere in the app and were being
+  // misread as an alert on the DSR screens.
   const dsrTheme = !showAdmin && mode === "dsr";
   const coloredHeader = showAdmin || receiveTheme || stockTheme || dsrTheme;
   const showHomeBtn = !showAdmin && mode !== "home";
@@ -86,7 +87,7 @@ export default function App() {
             : stockTheme
               ? "bg-amber-50"
               : dsrTheme
-                ? "bg-pink-50"
+                ? "bg-violet-50"
                 : "bg-slate-50"
       }`}
     >
@@ -111,7 +112,7 @@ export default function App() {
               : stockTheme
                 ? "bg-amber-500 border-amber-600"
                 : dsrTheme
-                  ? "bg-pink-600 border-pink-700"
+                  ? "bg-violet-600 border-violet-700"
                   : "bg-white/90 border-slate-200"
         }`}
       >

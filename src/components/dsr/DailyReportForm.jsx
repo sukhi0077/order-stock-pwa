@@ -563,7 +563,7 @@ export default function DailyReportForm({
           )}
         </Card>
 
-        <Card title="3. Cash Calculations" color="amber">
+        <Card title="3. Cash Calculations" color="teal">
           {/* Manual-entry notice only applies to NEW reports */}
           {!isEditMode && prevDataError && (
             <div className="bg-amber-50 border border-amber-500 text-amber-700 p-3 rounded-lg mb-4 text-sm">
@@ -598,10 +598,10 @@ export default function DailyReportForm({
                     handleChange("cashFromYesterday", e.target.value)
                   }
                   placeholder="0.00"
-                  className="w-28 text-right p-1.5 rounded-lg bg-white border border-amber-200 text-amber-700 font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-28 text-right p-1.5 rounded-lg bg-white border border-teal-200 text-teal-700 font-bold outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
-                <span className="text-base font-bold text-amber-700">
+                <span className="text-base font-bold text-teal-700">
                   {isLoadingPrevData
                     ? "…"
                     : Number(data.cashFromYesterday || 0).toFixed(2)}
@@ -617,7 +617,7 @@ export default function DailyReportForm({
                   {todayStr()}
                 </span>
               </span>
-              <span className="text-base font-bold text-amber-700">
+              <span className="text-base font-bold text-teal-700">
                 {Number(data.cashSalePOS || 0).toFixed(2)}
               </span>
             </div>
@@ -756,7 +756,7 @@ export default function DailyReportForm({
               <span className="text-sm font-medium text-slate-700">
                 Total Cash Expected
               </span>
-              <span className="text-base font-bold text-amber-700">
+              <span className="text-base font-bold text-teal-700">
                 {Number(autoCalculatedCash || 0).toFixed(2)}
               </span>
             </div>
@@ -776,7 +776,7 @@ export default function DailyReportForm({
           </div>
         </Card>
 
-        <Card title="4. Discount Coupons" color="pink">
+        <Card title="4. Discount Coupons" color="indigo">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Coupons given for Google Review
@@ -793,7 +793,7 @@ export default function DailyReportForm({
                     resets on the 1st) + expand/collapse toggle. */}
                 <div className="flex items-start justify-between gap-3">
                   <p className="flex-1 min-w-0 text-xs text-slate-500 break-words">
-                    <span className="text-pink-700/80 uppercase tracking-wider text-[10px] mr-1">
+                    <span className="text-indigo-700/80 uppercase tracking-wider text-[10px] mr-1">
                       This month
                     </span>
                     {monthlySummary.map((r, i) => (
@@ -811,7 +811,7 @@ export default function DailyReportForm({
                       type="button"
                       onClick={() => setShowCouponEditor((v) => !v)}
                       aria-expanded={showCouponEditor}
-                      className="shrink-0 flex items-center gap-1 text-xs font-semibold text-pink-700 hover:text-pink-700 transition"
+                      className="shrink-0 flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-700 transition"
                     >
                       {showCouponEditor ? "Done" : "Edit counts"}
                       <span
@@ -848,14 +848,14 @@ export default function DailyReportForm({
                         >
                           −
                         </button>
-                        <span className="w-8 text-center font-bold font-mono text-pink-700">
+                        <span className="w-8 text-center font-bold font-mono text-indigo-700">
                           {Number(row.count) || 0}
                         </span>
                         <button
                           type="button"
                           onClick={() => changeCouponCount(row, 1)}
                           aria-label={`Increase ${row.name}`}
-                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-pink-200 text-pink-700 hover:bg-pink-50 transition"
+                          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition"
                         >
                           +
                         </button>
@@ -922,7 +922,7 @@ export default function DailyReportForm({
                   className="flex items-center justify-between gap-2 mb-2 bg-white px-3 py-2 rounded-lg border border-slate-200"
                 >
                   <span className="text-sm text-slate-800 min-w-0">
-                    <span className="font-bold text-pink-700">
+                    <span className="font-bold text-indigo-700">
                       {getOrdinal(idx + 1)}:
                     </span>{" "}
                     <span className="font-bold">{coupon.percentage}%</span>
@@ -942,7 +942,7 @@ export default function DailyReportForm({
 
               {/* Draft coupon box: confirm (green ✓) or discard (red ✕) */}
               {isAddingCoupon && (
-                <div className="flex gap-2 items-end mb-2 bg-white p-3 rounded-lg border border-pink-200">
+                <div className="flex gap-2 items-end mb-2 bg-white p-3 rounded-lg border border-indigo-200">
                   <div className="w-[42%]">
                     <Input
                       label="POS Order Number"

@@ -153,10 +153,10 @@ function AdminTrends({ reports }) {
             <div className="relative flex items-end gap-1 h-44">
               {/* Average reference line (90% scale leaves headroom for labels) */}
               <div
-                className="absolute left-0 right-0 border-t border-dashed border-amber-200 z-10 pointer-events-none"
+                className="absolute left-0 right-0 border-t border-dashed border-teal-200 z-10 pointer-events-none"
                 style={{ bottom: `${(avgDay / maxDay) * 90}%` }}
               >
-                <span className="absolute -top-4 right-0 text-[9px] text-amber-700/80 font-semibold">
+                <span className="absolute -top-4 right-0 text-[9px] text-teal-700/80 font-semibold">
                   avg {money(avgDay)}
                 </span>
               </div>

@@ -272,7 +272,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                       ))}
                       <div className="flex items-center justify-between gap-3 text-sm border-t border-slate-200 mt-1 pt-1">
                         <span className="text-slate-500">Total</span>
-                        <span className="font-mono text-pink-700 font-bold">
+                        <span className="font-mono text-indigo-700 font-bold">
                           {total}
                         </span>
                       </div>
@@ -293,7 +293,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                         key={idx}
                         className="flex justify-between items-center bg-slate-100 px-2 py-1.5 rounded text-sm"
                       >
-                        <span className="text-pink-700 font-bold">
+                        <span className="text-indigo-700 font-bold">
                           {c.percentage}%
                         </span>
                         <span className="text-slate-500">

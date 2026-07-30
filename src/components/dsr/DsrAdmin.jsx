@@ -617,8 +617,8 @@ export default function AdminDashboard() {
           {
             label: "Cash in Box",
             value: currentCashInBox,
-            dot: "bg-amber-500",
-            text: "text-amber-700",
+            dot: "bg-teal-500",
+            text: "text-teal-700",
             isSnapshot: true,
           },
           {
@@ -647,10 +647,10 @@ export default function AdminDashboard() {
           },
           {
             label: "Coupons",
-            dot: "bg-pink-500",
-            text: "text-pink-700",
+            dot: "bg-indigo-500",
+            text: "text-indigo-700",
             custom: (
-              <span className="text-pink-700">
+              <span className="text-indigo-700">
                 {totalCouponsGiven}
                 <span className="text-xs font-medium text-slate-500">
                   {" "}
@@ -693,7 +693,7 @@ export default function AdminDashboard() {
             </h3>
             <span className="text-xs text-slate-400">
               {viewMode} total ·{" "}
-              <span className="text-pink-700 font-mono">
+              <span className="text-indigo-700 font-mono">
                 {couponsByStaff.reduce((s, e) => s + e.count, 0)}
               </span>
             </span>
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
                 <span className="text-sm text-slate-700 truncate">
                   {e.name}
                 </span>
-                <span className="text-sm font-bold font-mono text-pink-700">
+                <span className="text-sm font-bold font-mono text-indigo-700">
                   {e.count}
                 </span>
               </div>
@@ -754,10 +754,10 @@ export default function AdminDashboard() {
                   <th className="p-4 font-semibold text-slate-700 text-emerald-700">
                     Bank Transfer
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-pink-700">
+                  <th className="p-4 font-semibold text-slate-700 text-indigo-700">
                     Coupons given
                   </th>
-                  <th className="p-4 font-semibold text-slate-700 text-amber-700">
+                  <th className="p-4 font-semibold text-slate-700 text-teal-700">
                     Coupons Rcvd
                   </th>
                   <th className="p-4 font-semibold text-slate-700">
@@ -791,12 +791,12 @@ export default function AdminDashboard() {
                     <td className="p-4 text-emerald-700">
                       {money(report.onlineSalePOS)}
                     </td>
-                    <td className="p-4 text-pink-700">
+                    <td className="p-4 text-indigo-700">
                       {(report.couponsGiven || [])
                         .map((e) => `${e.name} - ${e.count}`)
                         .join(", ") || "—"}
                     </td>
-                    <td className="p-4 text-amber-700">
+                    <td className="p-4 text-teal-700">
                       {report.receivedCoupons || 0}
                     </td>
                     <td className="p-4 font-bold text-green-700">
