@@ -41,10 +41,22 @@ const NEUTRALS = {
     400: "#94a3b8", 500: "#64748b", 600: "#475569", 700: "#334155",
     800: "#1e293b", 900: "#0f172a",
   },
+  // The Daily Sale Report's original palette, before it was converted to the
+  // light theme: Tailwind slate, cards on slate-900 over a slate-950 page,
+  // slate-700 hairlines, slate-300 body text. Reusing those exact values means
+  // Midnight is the DSR app people already know, applied to the whole product.
   dark: {
-    0: "#111827", 50: "#0b1220", 100: "#1f2937", 200: "#374151", 300: "#4b5563",
-    400: "#9ca3af", 500: "#cbd5e1", 600: "#d1d5db", 700: "#e5e7eb",
-    800: "#f3f4f6", 900: "#f9fafb",
+    0: "#0f172a",  // slate-900  — card surface (DSR cards)
+    50: "#020617", // slate-950  — page behind the cards
+    100: "#1e293b", // slate-800 — secondary surface, chip tracks
+    200: "#334155", // slate-700 — hairlines (the old border-slate-700)
+    300: "#475569", // slate-600 — stronger borders, inputs
+    400: "#94a3b8", // slate-400 — muted text
+    500: "#94a3b8", // slate-400 — secondary text
+    600: "#cbd5e1", // slate-300 — the old body text
+    700: "#cbd5e1", // slate-300
+    800: "#e2e8f0", // slate-200
+    900: "#f1f5f9", // slate-100 — primary text
   },
 };
 const N_SHADES = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -86,27 +98,17 @@ export const THEMES = {
     dsr: S("indigo"),
     admin: S("slate"),
   },
-  // Monochrome: sections separated by weight rather than hue. Nothing in this
-  // scheme can be mistaken for a status colour.
-  graphite: {
-    id: "graphite",
-    label: "Graphite",
-    neutrals: "light",
-    orders: S("slate"),
-    receive: S("slate"),
-    stock: S("slate"),
-    dsr: S("slate"),
-    admin: S("slate"),
-  },
   // The only scheme that flips the neutral ramp. Every surface and text colour
   // comes from n-*, so nothing else has to change to make the app dark.
+  // Accents are the DSR-era hues, kept off amber/pink so nothing reads as a
+  // warning on a dark card.
   midnight: {
     id: "midnight",
     label: "Midnight",
     neutrals: "dark",
     orders: S("teal"),
     receive: S("sky"),
-    stock: S("amber"),
+    stock: S("cyan"),
     dsr: S("violet"),
     admin: S("indigo"),
   },

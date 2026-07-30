@@ -2,7 +2,7 @@
 import React from "react";
 import { useT } from "../i18n/i18n.jsx";
 import { useTheme } from "../theme/ThemeContext.jsx";
-import { THEMES, swatchesFor, hueHex } from "../theme/themes.js";
+import { THEMES, swatchesFor, hueHex, neutralVars } from "../theme/themes.js";
 
 const ICONS = {
   dsr: (
@@ -95,12 +95,16 @@ function ThemePicker() {
                   : "border-n-200 bg-n-0 hover:border-n-400"
               }`}
             >
-              {/* Dark schemes get a dark strip behind the dots, so the picker
-                  shows at a glance that the whole app changes, not just hues. */}
+              {/* Dark schemes preview their actual page colour behind the
+                  dots, so the picker shows that the whole app changes and not
+                  just the hues. */}
               <span
-                className={`flex justify-center gap-1 mb-1.5 rounded-md py-1 ${
-                  th.neutrals === "dark" ? "bg-slate-900" : ""
-                }`}
+                className="flex justify-center gap-1 mb-1.5 rounded-md py-1"
+                style={
+                  th.neutrals === "dark"
+                    ? { backgroundColor: neutralVars("dark")["--n-50"] }
+                    : undefined
+                }
               >
                 {swatchesFor(th).map((hex, i) => (
                   <span
