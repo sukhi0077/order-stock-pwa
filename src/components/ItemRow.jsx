@@ -31,7 +31,7 @@ function ItemRow({ item, value, prev, disabled, onCommit }) {
   return (
     <div
       className={`flex items-center gap-3 py-2.5 pl-3 pr-2 rounded-xl border transition ${
-        counted ? "bg-accent-50 border-accent-200" : "bg-n-0 border-n-200"
+        counted ? "bg-accent-50 dark:bg-accent-900/20 border-accent-200 dark:border-accent-700/40" : "bg-n-0 border-n-200"
       }`}
     >
       <div className="min-w-0 flex-1">
@@ -55,7 +55,7 @@ function ItemRow({ item, value, prev, disabled, onCommit }) {
                 setVal(String(num(prev)));
                 commit(String(num(prev)));
               }}
-              className="text-[11px] text-accent-600 hover:text-accent-700 disabled:opacity-40"
+              className="text-[11px] text-accent-600 hover:text-accent-700 dark:hover:text-accent-300 disabled:opacity-40"
               title="Tap to use last month's closing"
             >
               {t("last", { v: num(prev) })}

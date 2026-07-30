@@ -121,7 +121,7 @@ export default function EmployeeManagerModal({ onClose }) {
             }
             if (e.key === "Escape") setEditingId(null);
           }}
-          className="flex-1 min-w-0 bg-n-100 border border-accent-200 rounded-md px-2 py-1 text-sm text-n-900 focus:outline-none"
+          className="flex-1 min-w-0 bg-n-100 border border-accent-200 dark:border-accent-700/40 rounded-md px-2 py-1 text-sm text-n-900 focus:outline-none"
         />
       ) : (
         <button

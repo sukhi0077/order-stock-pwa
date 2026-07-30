@@ -39,7 +39,7 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
 
   return (
     <div
-      className={`rounded-xl border transition ${on ? "bg-accent-50/70 border-accent-200" : "bg-n-0 border-n-200"}`}
+      className={`rounded-xl border transition ${on ? "bg-accent-50/70 dark:bg-accent-900/20 border-accent-200 dark:border-accent-700/40" : "bg-n-0 border-n-200"}`}
     >
       <div className="flex items-center gap-3 py-2.5 pl-3 pr-2">
         <div className="min-w-0 flex-1">
@@ -91,7 +91,7 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
             onChange={(e) => setNote(e.target.value)}
             onBlur={() => commit(qty, note)}
             placeholder={t("notePlaceholder")}
-            className="w-full text-sm px-3 py-2 rounded-lg bg-n-0 border border-accent-200 text-n-700 outline-none focus:ring-2 focus:ring-accent-500"
+            className="w-full text-sm px-3 py-2 rounded-lg bg-n-0 border border-accent-200 dark:border-accent-700/40 text-n-700 outline-none focus:ring-2 focus:ring-accent-500"
           />
         </div>
       )}

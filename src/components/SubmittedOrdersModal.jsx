@@ -77,7 +77,7 @@ function OrderView({ order, itemsById, onBack }) {
                         <div className="text-sm font-medium text-n-800 break-words">{ti(it.name, it)}</div>
                         {line.note && <div className="text-[11px] text-n-400 truncate">{line.note}</div>}
                       </div>
-                      <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
+                      <span className="text-sm font-semibold text-accent-700 dark:text-accent-300 shrink-0 whitespace-nowrap">
                         {num(line.qty)}{" "}
                         <span className="text-[11px] text-n-400 font-normal">{orderUnitOf(it)}</span>
                       </span>
@@ -142,11 +142,11 @@ export default function SubmittedOrdersModal({ items, onClose }) {
                     <button
                       key={o.id}
                       onClick={() => setOpenId(o.id)}
-                      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
+                      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 dark:hover:bg-accent-900/20 transition"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-n-900">{orderRef(o)}</span>
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-50 text-accent-700">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-50 dark:bg-accent-900/20 text-accent-700 dark:text-accent-300">
                           {t("status_submitted")}
                         </span>
                       </div>

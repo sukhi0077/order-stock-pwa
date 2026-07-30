@@ -26,7 +26,7 @@ function Tile({ iconName, iconId, label, count, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
+      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 dark:hover:bg-accent-900/20 transition"
     >
       <div className="flex items-center gap-2">
         <span className="text-accent-600">
@@ -39,7 +39,7 @@ function Tile({ iconName, iconId, label, count, onClick }) {
           ›
         </span>
       </div>
-      <div className={`mt-2 text-[11px] font-medium ${has ? "text-accent-700" : "text-n-400"}`}>
+      <div className={`mt-2 text-[11px] font-medium ${has ? "text-accent-700 dark:text-accent-300" : "text-n-400"}`}>
         {has ? t("receivedCount", { n: count }) : t("noneYet")}
       </div>
     </button>

@@ -27,7 +27,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
   const has = batches && batches.length > 0;
 
   return (
-    <div className={`rounded-xl border p-3 ${has ? "bg-accent-50/60 border-accent-200" : "bg-n-0 border-n-200"}`}>
+    <div className={`rounded-xl border p-3 ${has ? "bg-accent-50/60 dark:bg-accent-900/20 border-accent-200 dark:border-accent-700/40" : "bg-n-0 border-n-200"}`}>
       <div className="flex items-baseline justify-between gap-2 mb-2">
         <span className="text-base font-medium text-n-800 leading-tight break-words min-w-0">
           {ti(item.name, item)}
@@ -37,7 +37,7 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null
 
       {ordered && (
         <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="rounded-md bg-accent-100 px-1.5 py-0.5 text-[11px] font-semibold text-accent-800">
+          <span className="rounded-md bg-accent-100 dark:bg-accent-900/30 px-1.5 py-0.5 text-[11px] font-semibold text-accent-800 dark:text-accent-200">
             {t("orderedQty", { qty: ordered.qty, unit: ordered.unit })}
           </span>
           {ordered.note && (

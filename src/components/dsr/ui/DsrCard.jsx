@@ -25,13 +25,18 @@ const COLORS = {
     wrap: "bg-violet-50 border-violet-200 border-l-violet-500 dark:bg-violet-900/20 dark:border-violet-700/40 dark:border-l-violet-500",
     title: "text-violet-700 dark:text-violet-300",
   },
-  teal: {
-    wrap: "bg-teal-50 border-teal-200 border-l-teal-500 dark:bg-teal-900/20 dark:border-teal-700/40 dark:border-l-teal-500",
-    title: "text-teal-700 dark:text-teal-300",
+  // These two keep dsr-pwa's names because that is the colour they wear on the
+  // dark scheme. On the LIGHT scheme they substitute a different hue: a pale
+  // amber card was being read as a caution, and pink sat too close to the error
+  // red. Neither confusion exists at bg-<hue>-900/20 with <hue>-300 text on a
+  // slate-900 page, so Midnight keeps the originals.
+  amber: {
+    wrap: "bg-teal-50 border-teal-200 border-l-teal-500 dark:bg-amber-900/20 dark:border-amber-700/40 dark:border-l-amber-500",
+    title: "text-teal-700 dark:text-amber-300",
   },
-  indigo: {
-    wrap: "bg-indigo-50 border-indigo-200 border-l-indigo-500 dark:bg-indigo-900/20 dark:border-indigo-700/40 dark:border-l-indigo-500",
-    title: "text-indigo-700 dark:text-indigo-300",
+  pink: {
+    wrap: "bg-indigo-50 border-indigo-200 border-l-indigo-500 dark:bg-pink-900/20 dark:border-pink-700/40 dark:border-l-pink-500",
+    title: "text-indigo-700 dark:text-pink-300",
   },
   cyan: {
     wrap: "bg-cyan-50 border-cyan-200 border-l-cyan-500 dark:bg-cyan-900/20 dark:border-cyan-700/40 dark:border-l-cyan-500",

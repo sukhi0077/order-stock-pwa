@@ -33,7 +33,7 @@ function Tile({ iconName, iconId, label, done, total, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
+      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 dark:hover:bg-accent-900/20 transition"
     >
       <div className="flex items-center gap-2">
         <span className={complete ? "text-emerald-600 dark:text-emerald-400" : "text-accent-600"}>
@@ -237,7 +237,7 @@ export default function CountNavigator({
                                 >
                                   {ti(it.name, it)}
                                 </button>
-                                <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
+                                <span className="text-sm font-semibold text-accent-700 dark:text-accent-300 shrink-0 whitespace-nowrap">
                                   {num(counts[it.id])}{" "}
                                   <span className="text-[11px] text-n-400 font-normal">{it.unit}</span>
                                 </span>
@@ -352,7 +352,7 @@ export default function CountNavigator({
         </div>
         <span
           className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-            sp.done === sp.total ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300" : "bg-accent-100 text-accent-700"
+            sp.done === sp.total ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300" : "bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300"
           }`}
         >
           {sp.done}/{sp.total}

@@ -20,7 +20,7 @@ function StatusPill({ status }) {
   const { t } = useT();
   const map = {
     draft: { text: t("status_draft"), cls: "bg-n-100 text-n-600" },
-    submitted: { text: t("status_submitted"), cls: "bg-accent-50 text-accent-700" },
+    submitted: { text: t("status_submitted"), cls: "bg-accent-50 dark:bg-accent-900/20 text-accent-700 dark:text-accent-300" },
   };
   const s = map[status] || map.draft;
   return (
@@ -86,7 +86,7 @@ function ExportBar({ order, items, lines }) {
         <button
           type="button"
           onClick={() => setPicked(allOn ? [] : types)}
-          className="text-[11px] font-semibold text-accent-700 hover:underline"
+          className="text-[11px] font-semibold text-accent-700 dark:text-accent-300 hover:underline"
         >
           {allOn ? t("selectNone") : t("selectAll")}
         </button>
@@ -134,7 +134,7 @@ function ExportBar({ order, items, lines }) {
                 <button
                   type="button"
                   onClick={() => setAllItems(true)}
-                  className="text-[11px] font-semibold text-accent-700 hover:underline"
+                  className="text-[11px] font-semibold text-accent-700 dark:text-accent-300 hover:underline"
                 >
                   {t("selectAll")}
                 </button>
@@ -295,7 +295,7 @@ export default function OrdersAdmin({ reporter }) {
           <button
             key={o.id}
             onClick={() => setOpenId(o.id)}
-            className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
+            className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 dark:hover:bg-accent-900/20 transition"
           >
             <div className="flex items-center justify-between">
               <span className="font-semibold text-n-900">{orderRef(o)}</span>

@@ -257,7 +257,7 @@ export default function ReceiveFromOrder({ items, batchesByItem, onAdd, onDelete
             key={o.id}
             type="button"
             onClick={() => setOpenId(o.id)}
-            className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 transition"
+            className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3.5 hover:border-accent-300 hover:bg-accent-50/40 dark:hover:bg-accent-900/20 transition"
           >
             <div className="flex items-center gap-2">
               <span className="flex-1 min-w-0 font-semibold text-n-900 truncate">
@@ -265,7 +265,7 @@ export default function ReceiveFromOrder({ items, batchesByItem, onAdd, onDelete
               </span>
               <span
                 className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  complete ? "bg-accent-100 text-accent-800" : "bg-n-100 text-n-600"
+                  complete ? "bg-accent-100 dark:bg-accent-900/30 text-accent-800 dark:text-accent-200" : "bg-n-100 text-n-600"
                 }`}
               >
                 {t("receivedOfOrdered", { done, total: ids.length })}

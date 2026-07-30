@@ -229,7 +229,7 @@ export default function ItemManagerModal({ items, onBack }) {
                     if (base === "pack")
                       return <span className="text-[11px] text-n-500">pack</span>;
                     return (
-                      <div className="inline-flex rounded-lg border border-accent-200 overflow-hidden">
+                      <div className="inline-flex rounded-lg border border-accent-200 dark:border-accent-700/40 overflow-hidden">
                         {[base, "pack"].map((u) => (
                           <button
                             key={u}

@@ -571,7 +571,7 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium">
             <button
               onClick={() => setIsAddingNew(true)}
-              className="text-accent-700 hover:text-accent-700 transition"
+              className="text-accent-700 dark:text-accent-300 hover:text-accent-700 dark:hover:text-accent-300 transition"
             >
               + Add
             </button>
@@ -618,14 +618,14 @@ export default function AdminDashboard() {
             label: "Cash in Box",
             value: currentCashInBox,
             dot: "bg-accent-500",
-            text: "text-accent-700",
+            text: "text-accent-700 dark:text-accent-300",
             isSnapshot: true,
           },
           {
             label: "Total Sale",
             value: totalSale,
             dot: "bg-accent-500",
-            text: "text-accent-700",
+            text: "text-accent-700 dark:text-accent-300",
           },
           {
             label: "Cash Sales",
@@ -637,20 +637,20 @@ export default function AdminDashboard() {
             label: "Online Sales",
             value: totalOnline,
             dot: "bg-accent-500",
-            text: "text-accent-700",
+            text: "text-accent-700 dark:text-accent-300",
           },
           {
             label: "Card Sales",
             value: totalCard,
             dot: "bg-accent-500",
-            text: "text-accent-700",
+            text: "text-accent-700 dark:text-accent-300",
           },
           {
             label: "Coupons",
             dot: "bg-accent-500",
-            text: "text-accent-700",
+            text: "text-accent-700 dark:text-accent-300",
             custom: (
-              <span className="text-accent-700">
+              <span className="text-accent-700 dark:text-accent-300">
                 {totalCouponsGiven}
                 <span className="text-xs font-medium text-n-500">
                   {" "}
@@ -693,7 +693,7 @@ export default function AdminDashboard() {
             </h3>
             <span className="text-xs text-n-400">
               {viewMode} total ·{" "}
-              <span className="text-accent-700 font-mono">
+              <span className="text-accent-700 dark:text-accent-300 font-mono">
                 {couponsByStaff.reduce((s, e) => s + e.count, 0)}
               </span>
             </span>
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
                 <span className="text-sm text-n-700 truncate">
                   {e.name}
                 </span>
-                <span className="text-sm font-bold font-mono text-accent-700">
+                <span className="text-sm font-bold font-mono text-accent-700 dark:text-accent-300">
                   {e.count}
                 </span>
               </div>
@@ -748,16 +748,16 @@ export default function AdminDashboard() {
                   <th className="p-4 font-semibold text-n-700 text-green-700 dark:text-green-300">
                     Cash
                   </th>
-                  <th className="p-4 font-semibold text-n-700 text-accent-700">
+                  <th className="p-4 font-semibold text-n-700 text-accent-700 dark:text-accent-300">
                     Card
                   </th>
                   <th className="p-4 font-semibold text-n-700 text-emerald-700 dark:text-emerald-300">
                     Bank Transfer
                   </th>
-                  <th className="p-4 font-semibold text-n-700 text-accent-700">
+                  <th className="p-4 font-semibold text-n-700 text-accent-700 dark:text-accent-300">
                     Coupons given
                   </th>
-                  <th className="p-4 font-semibold text-n-700 text-accent-700">
+                  <th className="p-4 font-semibold text-n-700 text-accent-700 dark:text-accent-300">
                     Coupons Rcvd
                   </th>
                   <th className="p-4 font-semibold text-n-700">
@@ -785,18 +785,18 @@ export default function AdminDashboard() {
                     <td className="p-4 text-green-700 dark:text-green-300">
                       {money(report.cashSalePOS)}
                     </td>
-                    <td className="p-4 text-accent-700">
+                    <td className="p-4 text-accent-700 dark:text-accent-300">
                       {money(report.cardSalePOS)}
                     </td>
                     <td className="p-4 text-emerald-700 dark:text-emerald-300">
                       {money(report.onlineSalePOS)}
                     </td>
-                    <td className="p-4 text-accent-700">
+                    <td className="p-4 text-accent-700 dark:text-accent-300">
                       {(report.couponsGiven || [])
                         .map((e) => `${e.name} - ${e.count}`)
                         .join(", ") || "—"}
                     </td>
-                    <td className="p-4 text-accent-700">
+                    <td className="p-4 text-accent-700 dark:text-accent-300">
                       {report.receivedCoupons || 0}
                     </td>
                     <td className="p-4 font-bold text-green-700 dark:text-green-300">
@@ -842,7 +842,7 @@ export default function AdminDashboard() {
                     <td className="p-4 flex items-center justify-center gap-2">
                       <button
                         onClick={() => setViewingRecord(report)}
-                        className="px-3 py-1 bg-accent-50 hover:bg-accent-50 text-accent-700 border border-accent-200 rounded transition text-sm"
+                        className="px-3 py-1 bg-accent-50 dark:bg-accent-900/20 hover:bg-accent-50 dark:hover:bg-accent-900/20 text-accent-700 dark:text-accent-300 border border-accent-200 dark:border-accent-700/40 rounded transition text-sm"
                       >
                         👁️ View
                       </button>

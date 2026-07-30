@@ -94,7 +94,11 @@ export default function App() {
   return (
     <div
       className={`min-h-screen font-sans text-n-900 ${
-        isHome ? "bg-n-50" : "bg-accent-50"
+        // Light schemes tint the page with the section's accent; the dark
+        // scheme uses the neutral page, matching dsr-pwa's slate-900 shell and
+        // giving the translucent card washes the surface they were designed
+        // against.
+        isHome ? "bg-n-50" : "bg-accent-50 dark:bg-n-50"
       }`}
     >
       {(!isOnline || pending > 0) && (

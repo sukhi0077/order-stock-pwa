@@ -62,7 +62,7 @@ export default function MonthDetailsModal({ monthId, items, counts, onClose }) {
           )}
           {cats.map((cat) => (
             <div key={cat}>
-              <h4 className="text-sm font-bold text-accent-700 mb-1">{tc(cat)}</h4>
+              <h4 className="text-sm font-bold text-accent-700 dark:text-accent-300 mb-1">{tc(cat)}</h4>
               <table className="w-full text-sm">
                 <tbody>
                   {rowsByCat[cat].map(({ item, closing }) => (

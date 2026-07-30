@@ -43,7 +43,7 @@ function Tile({ mode, title, desc, onChoose, hue }) {
   return (
     <button
       onClick={() => onChoose(mode)}
-      className="w-full bg-n-0 border border-n-200 rounded-2xl p-6 flex items-center gap-4 transition text-left hover:border-accent-300 hover:bg-accent-50"
+      className="w-full bg-n-0 border border-n-200 rounded-2xl p-6 flex items-center gap-4 transition text-left hover:border-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
     >
       <span
         className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl text-white"

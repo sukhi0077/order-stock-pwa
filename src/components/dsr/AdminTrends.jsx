@@ -126,7 +126,7 @@ function AdminTrends({ reports }) {
           </h3>
           <div className="text-xs text-n-500">
             Total{" "}
-            <span className="text-accent-700 font-bold">{money(periodTotal)}</span>
+            <span className="text-accent-700 dark:text-accent-300 font-bold">{money(periodTotal)}</span>
             <span className="mx-1.5 text-n-400">·</span>
             Avg/day <span className="text-n-800 font-semibold">
               {money(avgDay)}
@@ -141,7 +141,7 @@ function AdminTrends({ reports }) {
         </div>
 
         {days.length === 1 ? (
-          <p className="text-3xl font-bold text-accent-700">
+          <p className="text-3xl font-bold text-accent-700 dark:text-accent-300">
             {money(days[0].total)}
             <span className="text-sm text-n-500 font-medium ml-2">
               on {days[0].date}
@@ -153,10 +153,10 @@ function AdminTrends({ reports }) {
             <div className="relative flex items-end gap-1 h-44">
               {/* Average reference line (90% scale leaves headroom for labels) */}
               <div
-                className="absolute left-0 right-0 border-t border-dashed border-accent-200 z-10 pointer-events-none"
+                className="absolute left-0 right-0 border-t border-dashed border-accent-200 dark:border-accent-700/40 z-10 pointer-events-none"
                 style={{ bottom: `${(avgDay / maxDay) * 90}%` }}
               >
-                <span className="absolute -top-4 right-0 text-[9px] text-accent-700/80 font-semibold">
+                <span className="absolute -top-4 right-0 text-[9px] text-accent-700/80 dark:text-accent-300/80 font-semibold">
                   avg {money(avgDay)}
                 </span>
               </div>
@@ -174,7 +174,7 @@ function AdminTrends({ reports }) {
                     </span>
                   )}
                   <div
-                    className="w-full bg-accent-50 hover:bg-accent-400 rounded-t transition-colors"
+                    className="w-full bg-accent-50 dark:bg-accent-900/20 hover:bg-accent-400 rounded-t transition-colors"
                     style={{
                       height: `${Math.max(2, (d.total / maxDay) * 90)}%`,
                     }}

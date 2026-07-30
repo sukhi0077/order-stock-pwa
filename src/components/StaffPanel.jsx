@@ -59,7 +59,7 @@ export default function StaffPanel({ reporter, isOnline }) {
 
   const statusPill = {
     [STATUS.DRAFT]: { text: t("status_draft"), cls: "bg-n-100 text-n-600" },
-    [STATUS.SUBMITTED]: { text: t("status_submitted"), cls: "bg-accent-50 text-accent-700" },
+    [STATUS.SUBMITTED]: { text: t("status_submitted"), cls: "bg-accent-50 dark:bg-accent-900/20 text-accent-700 dark:text-accent-300" },
     [STATUS.FINALIZED]: { text: t("status_finalized"), cls: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300" },
   }[status];
 
@@ -93,7 +93,7 @@ export default function StaffPanel({ reporter, isOnline }) {
           {Object.keys(sc.prevClosing).length > 0 && !isFinalized && (
             <button
               onClick={sc.fillFromLastMonth}
-              className="w-full py-2 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-accent-700 hover:bg-accent-50"
+              className="w-full py-2 rounded-lg bg-n-0 border border-n-200 text-xs font-semibold text-accent-700 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
             >
               {t("prefillLast")}
             </button>

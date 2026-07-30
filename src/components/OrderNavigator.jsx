@@ -24,7 +24,7 @@ function Tile({ iconName, iconId, label, onOrder, total, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 transition"
+      className="w-full text-left bg-n-0 border border-n-200 rounded-2xl p-3 hover:border-accent-300 hover:bg-accent-50/40 dark:hover:bg-accent-900/20 transition"
     >
       <div className="flex items-center gap-2">
         <span className="text-accent-600">
@@ -225,7 +225,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
                                 <div className="text-[11px] text-n-400 truncate">{line.note}</div>
                               )}
                             </button>
-                            <span className="text-sm font-semibold text-accent-700 shrink-0 whitespace-nowrap">
+                            <span className="text-sm font-semibold text-accent-700 dark:text-accent-300 shrink-0 whitespace-nowrap">
                               {num(line.qty)}{" "}
                               <span className="text-[11px] text-n-400 font-normal">
                                 {orderUnitOf(item)}
@@ -327,7 +327,7 @@ export default function OrderNavigator({ items, lines, onAdd, onRemove, onSubmit
           <div className="text-[11px] text-n-400 truncate">{tc(cat)}</div>
           <div className="text-base font-bold text-n-900 leading-tight truncate">{ts(sub)}</div>
         </div>
-        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700">
+        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300">
           {t("onOrderN", { n: sp.onOrder })}
         </span>
       </div>
