@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DailyReportModel } from "../models/DailyReportModel.js";
 import { DailyReportService } from "../services/DailyReportService.js";
 import { dsrOfflineQueue } from "../utils/dsrOfflineQueue.js";
+import { isNetworkError } from "../utils/networkError.js";
 import { useDeliveryPlatforms } from "./useDeliveryPlatforms.js";
 
 const DRAFT_STORAGE_KEY = "daily_report_draft";
@@ -139,16 +140,21 @@ export function useDailyReport(initialData = null, options = {}) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (error) => {
-      // If the save failed due to a network problem, queue it offline rather
-      // than losing it (only for normal new submissions).
-      const networkish =
-        (typeof navigator !== "undefined" && navigator.onLine === false) ||
-        /timed out|network|unavailable|offline|fetch/i.test(error?.message || "");
-      if (canQueueOffline && networkish && lastPayloadRef.current) {
+      // If the save failed because of the network, queue it rather than lose
+      // it. The check lives in one place because it has to recognise every
+      // browser's wording — Safari says "Load failed", which the old inline
+      // regex missed, so iPhone users lost the report they had just typed.
+      if (canQueueOffline && isNetworkError(error) && lastPayloadRef.current) {
         queueOffline(lastPayloadRef.current);
         return;
       }
-      alert(`Error saving report: ${error.message}`);
+      // Not a network failure, so the report was genuinely rejected. Show the
+      // reason rather than the browser's wording for it.
+      alert(
+        isNetworkError(error)
+          ? "Couldn't reach the server. Check your connection and try again — nothing has been lost."
+          : `The report was not saved.\n\n${error.message}`,
+      );
     },
   });
 

@@ -11,6 +11,7 @@
 // Writes go through the save_dsr_report RPC so the header and all three child
 // tables land in a single transaction.
 import { supabase } from "../supabase.js";
+import { asAppError } from "../utils/networkError.js";
 import { todayStr, daysAgoStr } from "../utils/dateUtils.js";
 
 // Reject if a network call takes too long, so the UI shows an error/retry
@@ -245,7 +246,10 @@ export class DailyReportRepository {
       return { id: data, dateString: data };
     } catch (error) {
       console.error("Repository Error saving report:", error);
-      throw new Error(error.message || "Failed to save report to database.");
+      // asAppError, not new Error: a rejected fetch is a TypeError, and
+      // rebuilding it as a plain Error would drop the one signal the caller
+      // uses to decide whether to queue the report instead of losing it.
+      throw asAppError(error, "Failed to save report to database.");
     }
   }
 
@@ -269,7 +273,7 @@ export class DailyReportRepository {
       return (data || []).map(toAppShape);
     } catch (error) {
       console.error("Repository Error fetching reports:", error);
-      throw new Error("Failed to fetch reports. " + error.message);
+      throw asAppError(error, "Failed to fetch reports.");
     }
   }
 
