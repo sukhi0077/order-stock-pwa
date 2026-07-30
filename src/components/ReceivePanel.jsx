@@ -1,7 +1,8 @@
 // src/components/ReceivePanel.jsx
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Spinner from "./ui/Spinner.jsx";
 import ReceiveNavigator from "./ReceiveNavigator.jsx";
+import ReceiveFromOrder from "./ReceiveFromOrder.jsx";
 import { useItems } from "../hooks/useItems.js";
 import { useReceipts, useAddReceipt, useDeleteReceipt } from "../hooks/useReceipts.js";
 import { useT } from "../i18n/i18n.jsx";
@@ -13,10 +14,25 @@ export default function ReceivePanel({ reporter }) {
   const addReceipt = useAddReceipt();
   const delReceipt = useDeleteReceipt();
 
+  // "order" = work off a submitted order; "browse" = the category drill-down.
+  // Defaults to the order list because a delivery normally arrives against an
+  // order; browsing is the fallback for anything unexpected in the van.
+  const [mode, setMode] = useState("order");
+
   const activeItems = useMemo(
     () => (itemsQuery.data || []).filter((i) => i.active !== false),
     [itemsQuery.data],
   );
+
+  // itemId -> batches, sorted soonest-expiry first. Lives here so both modes
+  // show the same already-received state.
+  const batchesByItem = useMemo(() => {
+    const m = {};
+    for (const r of receiptsQuery.data || []) (m[r.itemId] = m[r.itemId] || []).push(r);
+    for (const k of Object.keys(m))
+      m[k].sort((a, b) => String(a.expiry).localeCompare(String(b.expiry)));
+    return m;
+  }, [receiptsQuery.data]);
 
   const handleAdd = (item, qty, expiry) =>
     addReceipt.mutateAsync({ item, qty, expiry, reporter });
@@ -51,13 +67,44 @@ export default function ReceivePanel({ reporter }) {
         </div>
       </div>
 
-      <ReceiveNavigator
-        items={activeItems}
-        receipts={receiptsQuery.data || []}
-        onAdd={handleAdd}
-        onDelete={handleDelete}
-        adding={addReceipt.isPending}
-      />
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          ["order", t("fromOrder")],
+          ["browse", t("browseAllItems")],
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={mode === key}
+            onClick={() => setMode(key)}
+            className={`py-2 rounded-xl border text-sm font-semibold transition ${
+              mode === key
+                ? "bg-blue-500 border-blue-500 text-white"
+                : "bg-white border-slate-200 text-slate-600 hover:border-blue-300"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "order" ? (
+        <ReceiveFromOrder
+          items={activeItems}
+          batchesByItem={batchesByItem}
+          onAdd={handleAdd}
+          onDelete={handleDelete}
+          adding={addReceipt.isPending}
+        />
+      ) : (
+        <ReceiveNavigator
+          items={activeItems}
+          receipts={receiptsQuery.data || []}
+          onAdd={handleAdd}
+          onDelete={handleDelete}
+          adding={addReceipt.isPending}
+        />
+      )}
     </div>
   );
 }

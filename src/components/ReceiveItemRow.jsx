@@ -6,8 +6,12 @@ import { formatDay } from "../utils/monthUtils.js";
 import { useT } from "../i18n/i18n.jsx";
 
 // One item in the receive drill-down: add a batch (qty + expiry) and see this
-// item's existing batches. Amber theme.
-function ReceiveItemRow({ item, batches, onAdd, onDelete, adding }) {
+// item's existing batches.
+//
+// `ordered` is optional: when the row is shown while receiving against a
+// submitted order it carries { qty, unit, note } from that order, so staff can
+// see what was asked for next to what they are logging.
+function ReceiveItemRow({ item, batches, onAdd, onDelete, adding, ordered = null }) {
   const { t, ti } = useT();
   const [qty, setQty] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -31,8 +35,25 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding }) {
         <span className="text-[11px] text-slate-400 shrink-0">{item.unit}</span>
       </div>
 
-      <div className="flex items-end gap-2">
-        <label className="flex flex-col gap-1 w-16 shrink-0">
+      {ordered && (
+        <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="rounded-md bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold text-blue-800">
+            {t("orderedQty", { qty: ordered.qty, unit: ordered.unit })}
+          </span>
+          {ordered.note && (
+            <span className="min-w-0 flex-1 truncate text-[11px] text-slate-500">
+              {ordered.note}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Grid, not flex: a native date input has a wide minimum intrinsic size
+          that ignores flex shrinking, so on a narrow phone it used to push the
+          Add button off the row and overlap it. Below `sm` the button gets its
+          own full-width line; from `sm` up all three sit side by side. */}
+      <div className="grid grid-cols-[4rem_minmax(0,1fr)] sm:grid-cols-[4rem_minmax(0,1fr)_auto] gap-2 items-end">
+        <label className="flex flex-col gap-1 min-w-0">
           <span className="text-[10px] uppercase tracking-wide text-slate-400">{t("quantity")}</span>
           <input
             type="number"
@@ -41,23 +62,23 @@ function ReceiveItemRow({ item, batches, onAdd, onDelete, adding }) {
             step="any"
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="h-10 text-center rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-10 w-full text-center rounded-lg bg-white border border-slate-300 text-slate-900 text-base outline-none focus:ring-2 focus:ring-blue-500"
           />
         </label>
-        <label className="flex flex-col gap-1 flex-1 min-w-0">
+        <label className="flex flex-col gap-1 min-w-0">
           <span className="text-[10px] uppercase tracking-wide text-slate-400">{t("expiryDate")}</span>
           <input
             type="date"
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="h-10 w-full rounded-lg bg-white border border-slate-300 text-slate-900 text-base px-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-10 w-full min-w-0 rounded-lg bg-white border border-slate-300 text-slate-900 text-base px-2 outline-none focus:ring-2 focus:ring-blue-500"
           />
         </label>
         <button
           type="button"
           onClick={add}
           disabled={!valid || adding}
-          className="h-10 px-3 rounded-lg bg-blue-500 hover:bg-blue-400 text-white font-bold text-sm disabled:opacity-40 shrink-0"
+          className="col-span-2 sm:col-span-1 h-10 px-4 rounded-lg bg-blue-500 hover:bg-blue-400 text-white font-bold text-sm disabled:opacity-40"
         >
           {t("addBatch")}
         </button>

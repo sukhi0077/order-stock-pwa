@@ -55,6 +55,12 @@ const STR = {
     receive_desc: "Log items received and their expiry dates",
 
     // Receiving
+    fromOrder: "From an order",
+    browseAllItems: "Browse all items",
+    noSubmittedOrders: "No submitted orders to receive against yet.",
+    noReceivableItems: "None of this order's items are active any more.",
+    receivedOfOrdered: "{done} of {total} received",
+    orderedQty: "Ordered: {qty} {unit}",
     findItem: "Search or browse for an item",
     addBatch: "Add",
     quantity: "Quantity",
@@ -240,6 +246,12 @@ const STR = {
     receive: "ऑर्डर प्राप्ति",
     receive_desc: "प्राप्त आइटम और उनकी एक्सपायरी तारीख़ दर्ज करें",
 
+    fromOrder: "ऑर्डर से",
+    browseAllItems: "सभी आइटम देखें",
+    noSubmittedOrders: "अभी कोई सबमिट किया गया ऑर्डर नहीं है।",
+    noReceivableItems: "इस ऑर्डर का कोई आइटम अब सक्रिय नहीं है।",
+    receivedOfOrdered: "{total} में से {done} प्राप्त",
+    orderedQty: "ऑर्डर: {qty} {unit}",
     findItem: "आइटम खोजें या ब्राउज़ करें",
     addBatch: "जोड़ें",
     quantity: "मात्रा",
