@@ -145,7 +145,9 @@ export default function App() {
                 onClick={toggleView}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${colBtn}`}
               >
-                {showAdmin ? t("countApp") : t("admin")}
+                {/* Labels name the destination, not the current view: in admin
+                    you tap StaffMode to leave, and vice versa. */}
+                {showAdmin ? t("staffMode") : t("adminMode")}
               </button>
             )}
             <button
