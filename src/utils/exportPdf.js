@@ -105,8 +105,9 @@ function drawSectionHeading(doc, label, count, y) {
 // tells you which group the items beneath it belong to, so the group name is
 // never repeated on every line.
 //
-// Item numbering restarts inside each group: on the shop floor you work one
-// group at a time, so "Dairy #3" is easier to call out than a running total.
+// Item numbers run continuously through the whole order-type section and do NOT
+// restart at each group, so the last number is also the section's item count and
+// two rows in the same section can never share a number.
 function withGroupRows(rows) {
   const body = [];
   let group = null;
@@ -114,7 +115,6 @@ function withGroupRows(rows) {
   for (const r of rows) {
     if (r.group !== group) {
       group = r.group;
-      n = 0;
       body.push([
         {
           content: group,
