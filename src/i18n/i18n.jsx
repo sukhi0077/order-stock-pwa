@@ -30,6 +30,7 @@ const STR = {
     noItemsOnOrder: "No items on this order yet.",
     retry: "Retry",
     language: "Language",
+    colourScheme: "Colour scheme",
 
     // Login
     login_title: "myRestro",
@@ -229,6 +230,7 @@ const STR = {
     noItemsOnOrder: "इस ऑर्डर में अभी कोई आइटम नहीं है।",
     retry: "फिर से कोशिश करें",
     language: "भाषा",
+    colourScheme: "रंग योजना",
 
     login_title: "myRestro",
     login_subtitle: "जारी रखने के लिए साइन इन करें",

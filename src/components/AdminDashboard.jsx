@@ -23,7 +23,7 @@ const DsrAdmin = lazy(() => import("./dsr/DsrAdmin.jsx"));
 // `initialTab` lets App open the dashboard on the tab matching the tile the
 // admin came from, so switching to Admin while on the Daily Sale Report still
 // lands on the DSR dashboard.
-export default function AdminDashboard({ reporter, initialTab = "orders" }) {
+export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
   const { t, tMonth } = useT();
   const qc = useQueryClient();
   const thisMonth = currentMonthId();
@@ -125,13 +125,13 @@ export default function AdminDashboard({ reporter, initialTab = "orders" }) {
         </button>
       </div>
 
-      {/* Orders / Stock / Expiry / DSR tabs */}
+      {/* DSR / Orders / Stock / Expiry tabs */}
       <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
         {[
+          { id: "dsr", icon: "chart", label: t("tab_dsr") },
           { id: "orders", icon: "cart", label: t("tab_orders") },
           { id: "stock", icon: "stock", label: t("tab_stock") },
           { id: "expiry", icon: "calendar", label: t("tab_expiry") },
-          { id: "dsr", icon: "chart", label: t("tab_dsr") },
         ].map((tb) => (
           <button
             key={tb.id}

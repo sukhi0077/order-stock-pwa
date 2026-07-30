@@ -11,6 +11,7 @@ import { useOfflineSync } from "./hooks/useOfflineSync.js";
 import { useBusinessDay } from "./hooks/useBusinessDay.js";
 import { useT } from "./i18n/i18n.jsx";
 import LangToggle from "./components/ui/LangToggle.jsx";
+import { useTheme } from "./theme/ThemeContext.jsx";
 
 const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
 // The Daily Sale Report is a big, self-contained screen — load it only when
@@ -23,6 +24,7 @@ export default function App() {
   // Warsaw business date — used to remount the DSR panel at midnight.
   const businessDay = useBusinessDay();
   const { t } = useT();
+  const { theme } = useTheme();
 
   const [isAdminView, setIsAdminView] = useState(
     () => sessionStorage.getItem("isAdminView") === "true",
@@ -53,13 +55,13 @@ export default function App() {
 
   const reporter = user.email || user.uid;
   const showAdmin = isAdmin && isAdminView;
-  const receiveTheme = !showAdmin && mode === "receive";
-  const stockTheme = !showAdmin && mode === "stock";
-  // Daily Sale Report gets a violet accent, matching its home tile. Not pink or
-  // orange: those read as warning/error elsewhere in the app and were being
-  // misread as an alert on the DSR screens.
-  const dsrTheme = !showAdmin && mode === "dsr";
-  const coloredHeader = showAdmin || receiveTheme || stockTheme || dsrTheme;
+  // Which section's chrome to wear. Colours come from the user's chosen scheme
+  // (see src/theme/themes.js) rather than being hard-coded here, so switching
+  // schemes restyles the whole app. Home and Orders keep the plain white
+  // header, hence coloredHeader.
+  const section = showAdmin ? "admin" : mode === "home" ? "orders" : mode;
+  const sec = theme[section] || theme.orders;
+  const coloredHeader = showAdmin || ["receive", "stock", "dsr"].includes(mode);
   const showHomeBtn = !showAdmin && mode !== "home";
   const colBtn = coloredHeader
     ? "bg-white/20 border-white/30 text-white hover:bg-white/30"
@@ -79,17 +81,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans text-slate-900 ${
-        showAdmin
-          ? "bg-indigo-50"
-          : receiveTheme
-            ? "bg-blue-50"
-            : stockTheme
-              ? "bg-amber-50"
-              : dsrTheme
-                ? "bg-violet-50"
-                : "bg-slate-50"
-      }`}
+      className={`min-h-screen font-sans text-slate-900 ${sec.surface}`}
     >
       {(!isOnline || pending > 0) && (
         <div
@@ -104,17 +96,7 @@ export default function App() {
       )}
 
       <header
-        className={`sticky top-0 z-50 backdrop-blur border-b ${
-          showAdmin
-            ? "bg-indigo-600 border-indigo-700"
-            : receiveTheme
-              ? "bg-blue-600 border-blue-700"
-              : stockTheme
-                ? "bg-amber-500 border-amber-600"
-                : dsrTheme
-                  ? "bg-violet-600 border-violet-700"
-                  : "bg-white/90 border-slate-200"
-        }`}
+        className={`sticky top-0 z-50 backdrop-blur border-b ${sec.header}`}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-2 min-w-0">
@@ -171,10 +153,10 @@ export default function App() {
             </div>
           }
         >
-          {/* Coming from the DSR tile opens the dashboard on its DSR tab. */}
+          {/* DSR leads the dashboard; arriving from the Orders tile opens Orders. */}
           <AdminDashboard
             reporter={reporter}
-            initialTab={mode === "dsr" ? "dsr" : "orders"}
+            initialTab={mode === "orders" ? "orders" : "dsr"}
           />
         </Suspense>
       ) : (

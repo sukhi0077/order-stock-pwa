@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "./i18n/i18n.jsx";
+import { ThemeProvider } from "./theme/ThemeContext.jsx";
 
 // Bounded cache so paging through many months doesn't pile up cached arrays.
 const queryClient = new QueryClient({
@@ -20,9 +21,11 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <LanguageProvider>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </ThemeProvider>
     </LanguageProvider>
   </React.StrictMode>,
 );
