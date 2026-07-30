@@ -226,7 +226,7 @@ export default function DailyReportForm({
   const adjustments = [
     ...cashTaken.map((e, idx) => ({ ...e, kind: "taken", idx })),
     ...cashAdded.map((e, idx) => ({ ...e, kind: "added", idx })),
-  ].sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  ].sort((a, b) => (a.seq || 0) - (b.seq || 0));
 
   const openAdjust = (kind) => {
     const list = kind === "taken" ? cashTaken : cashAdded;
@@ -258,12 +258,13 @@ export default function DailyReportForm({
     const field = adjustType === "taken" ? "cashTakenList" : "cashAddedList";
     const list = adjustType === "taken" ? cashTaken : cashAdded;
     // Monotonic order key (one above the current max) so the merged list keeps
-    // add-order without an impure Date.now() call.
-    const maxTs = [...cashTaken, ...cashAdded].reduce(
-      (m, e) => Math.max(m, e.ts || 0),
+    // add-order without an impure Date.now() call. Stored in an int column —
+    // it is a sequence, not a timestamp.
+    const maxSeq = [...cashTaken, ...cashAdded].reduce(
+      (m, e) => Math.max(m, e.seq || 0),
       0,
     );
-    const next = [...list, { amount: amt, reason, ts: maxTs + 1 }];
+    const next = [...list, { amount: amt, reason, seq: maxSeq + 1 }];
     handleChange(field, next);
     setDraftAdjust({ amount: "", reason: "" });
     if (next.length >= MAX_ADJUST) setAdjustType(null);

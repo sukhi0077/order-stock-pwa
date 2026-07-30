@@ -44,7 +44,7 @@ const SELECT = `
   reporter_id, submitted_by, created_at, updated_at,
   reporter:employees!dsr_reports_reporter_id_fkey ( id, name ),
   dsr_platform_delivery ( online, cash, card, delivery_platforms ( name ) ),
-  dsr_cash_movements ( direction, amount, reason, ts ),
+  dsr_cash_movements ( direction, amount, reason, seq, ts ),
   dsr_coupons ( kind, percentage, pos_order_number, qty, employee_id, employees ( name ) )
 `;
 
@@ -62,7 +62,13 @@ function toAppShape(row) {
   const cashTakenList = [];
   const cashAddedList = [];
   for (const m of row.dsr_cash_movements || []) {
-    const entry = { amount: num(m.amount), reason: m.reason || "", ts: m.ts || null };
+    // `seq` is the entry-order key. Rows written before the timestamptz bug
+    // was fixed carry the same integer in `ts`, so fall back to it.
+    const entry = {
+      amount: num(m.amount),
+      reason: m.reason || "",
+      seq: m.seq ?? (Number.isFinite(Number(m.ts)) ? Number(m.ts) : null),
+    };
     (m.direction === "added" ? cashAddedList : cashTakenList).push(entry);
   }
 
@@ -209,13 +215,13 @@ export class DailyReportRepository {
               direction: "taken",
               amount: m.amount,
               reason: m.reason,
-              ts: m.ts || null,
+              seq: m.seq ?? null,
             })),
             ...(payload.cashAddedList || []).map((m) => ({
               direction: "added",
               amount: m.amount,
               reason: m.reason,
-              ts: m.ts || null,
+              seq: m.seq ?? null,
             })),
           ],
           p_coupons: [

@@ -151,7 +151,7 @@ export default function ReportDetailsModal({ report, onClose, embedded = false }
                   ...e,
                   kind: "added",
                 })),
-              ].sort((a, b) => (a.ts || 0) - (b.ts || 0));
+              ].sort((a, b) => (a.seq || 0) - (b.seq || 0));
               if (adjustments.length === 0) return null;
               return (
                 <div className="bg-n-0 p-4 rounded-xl border border-n-200">

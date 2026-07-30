@@ -362,7 +362,7 @@ export class DailyReportModel {
         .map((item) => ({
           amount: round2(safeNum(item.amount)),
           reason: String(item.reason).trim(),
-          ...(item.ts ? { ts: item.ts } : {}),
+          ...(item.seq != null ? { seq: item.seq } : {}),
         })),
 
       cashAddedList: (data.cashAddedList || [])
@@ -374,7 +374,7 @@ export class DailyReportModel {
         .map((item) => ({
           amount: round2(safeNum(item.amount)),
           reason: String(item.reason).trim(),
-          ...(item.ts ? { ts: item.ts } : {}),
+          ...(item.seq != null ? { seq: item.seq } : {}),
         })),
 
       couponsDetails:

@@ -133,9 +133,17 @@ create table if not exists public.dsr_cash_movements (
   direction   text not null check (direction in ('taken', 'added')),
   amount      numeric(12,2) not null check (amount > 0),
   reason      text not null check (char_length(btrim(reason)) > 0),
+  -- ORDER KEY, not a time. The form numbers adjustments 1, 2, 3... as they are
+  -- added so the merged taken/added list can be shown in entry order without an
+  -- impure Date.now() call. It was declared timestamptz, and casting "1" to a
+  -- timestamp is what made every save fail with
+  --   invalid input syntax for type timestamp with time zone: "1"
+  -- `ts` is kept nullable and unused so rows written before the fix still load.
+  seq         int,
   ts          timestamptz,
   created_at  timestamptz not null default now()
 );
+alter table public.dsr_cash_movements add column if not exists seq int;
 create index if not exists dsr_cm_report_idx on public.dsr_cash_movements (report_date);
 
 -- -----------------------------------------------------------------------------
@@ -394,9 +402,9 @@ begin
     join public.delivery_platforms dp on dp.name = e->>'platform';
 
   delete from public.dsr_cash_movements where report_date = v_date;
-  insert into public.dsr_cash_movements (report_date, direction, amount, reason, ts)
+  insert into public.dsr_cash_movements (report_date, direction, amount, reason, seq)
     select v_date, e->>'direction', (e->>'amount')::numeric,
-           btrim(e->>'reason'), (e->>'ts')::timestamptz
+           btrim(e->>'reason'), nullif(e->>'seq', '')::int
     from jsonb_array_elements(coalesce(p_cash, '[]'::jsonb)) e
     where (e->>'amount')::numeric > 0;
 
