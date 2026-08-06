@@ -83,11 +83,13 @@ const STR = {
     // Expiry (admin)
     tab_expiry: "Expiry",
     tab_dsr: "Sales",
+    win_all: "All",
     win_expired: "Expired",
     win_thisMonth: "This month",
     win_next30: "Next 30 days",
     win_nextMonth: "Next month",
     win_next2Months: "Next 2 months",
+    win_thisYear: "This year",
     noExpiring: "Nothing in this window.",
     totalQty: "{qty} {unit}",
 
@@ -267,11 +269,13 @@ const STR = {
 
     tab_expiry: "एक्सपायरी",
     tab_dsr: "बिक्री",
+    win_all: "सभी",
     win_expired: "एक्सपायर",
     win_thisMonth: "इस माह",
     win_next30: "अगले 30 दिन",
     win_nextMonth: "अगले माह",
     win_next2Months: "अगले 2 माह",
+    win_thisYear: "इस वर्ष",
     noExpiring: "इस अवधि में कुछ नहीं।",
     totalQty: "{qty} {unit}",
 

@@ -25,8 +25,18 @@ export function daysLeft(expiry, today = todayStr()) {
   return diffDays(today, expiry);
 }
 
-// Expiry-window filters offered to the admin.
-export const WINDOWS = ["expired", "thisMonth", "next30", "nextMonth", "next2Months"];
+// Expiry-window filters offered to the admin, in the order the chips appear.
+// "all" leads because it is the way in when you do not yet know what you are
+// looking for; "thisYear" trails because it is the widest bounded window.
+export const WINDOWS = [
+  "all",
+  "expired",
+  "thisMonth",
+  "next30",
+  "nextMonth",
+  "next2Months",
+  "thisYear",
+];
 
 // Does an expiry date fall in the given window?
 export function inWindow(expiry, win, today = todayStr()) {
@@ -34,6 +44,15 @@ export function inWindow(expiry, win, today = todayStr()) {
   const cur = currentMonthId();
   const m = monthOf(expiry);
   switch (win) {
+    case "all":
+      // Everything on record, expired included — the only window that does not
+      // filter. Still requires a valid date, so junk never shows up.
+      return true;
+    case "thisYear":
+      // The whole CALENDAR year, not the next twelve months: an admin asking
+      // "what expires this year" means January to December, and that includes
+      // the months already gone.
+      return expiry.slice(0, 4) === today.slice(0, 4);
     case "expired":
       return expiry < today;
     case "next30":

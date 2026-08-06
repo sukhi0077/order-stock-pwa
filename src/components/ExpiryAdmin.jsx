@@ -5,6 +5,19 @@ import CategoryIcon from "./ui/CategoryIcon.jsx";
 import { useItems } from "../hooks/useItems.js";
 import { useReceipts, useDeleteReceipt } from "../hooks/useReceipts.js";
 import { inWindow, WINDOWS, num, daysLeft } from "../models/ReceiptModel.js";
+
+// Window id -> i18n key. A map rather than the chain of ternaries this used to
+// be: with seven windows that was unreadable, and adding one meant editing an
+// expression rather than a list.
+const WINDOW_LABEL = {
+  all: "win_all",
+  expired: "win_expired",
+  thisMonth: "win_thisMonth",
+  next30: "win_next30",
+  nextMonth: "win_nextMonth",
+  next2Months: "win_next2Months",
+  thisYear: "win_thisYear",
+};
 import { formatDay } from "../utils/monthUtils.js";
 import { useT } from "../i18n/i18n.jsx";
 
@@ -74,17 +87,7 @@ export default function ExpiryAdmin() {
                 : "bg-n-0 border-n-200 text-n-600"
             }`}
           >
-            {t(
-              w === "expired"
-                ? "win_expired"
-                : w === "thisMonth"
-                  ? "win_thisMonth"
-                  : w === "next30"
-                    ? "win_next30"
-                    : w === "nextMonth"
-                      ? "win_nextMonth"
-                      : "win_next2Months",
-            )}
+            {t(WINDOW_LABEL[w])}
           </button>
         ))}
       </div>
