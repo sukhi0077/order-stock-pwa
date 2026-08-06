@@ -703,8 +703,16 @@ begin
     reporter     = excluded.reporter,
     status       = excluded.status,
     updated_at   = v_now,
-    submitted_at = case when p_status = 'submitted' then v_now else sc.submitted_at end,
-    finalized_at = case when p_status = 'finalized' then v_now else sc.finalized_at end;
+    -- Same rule as orders: these record the FIRST transition into each state,
+    -- so editing a submitted month does not make it look freshly submitted.
+    submitted_at = case
+                     when p_status = 'submitted' then coalesce(sc.submitted_at, v_now)
+                     else sc.submitted_at
+                   end,
+    finalized_at = case
+                     when p_status = 'finalized' then coalesce(sc.finalized_at, v_now)
+                     else sc.finalized_at
+                   end;
 
   delete from public.stock_count_lines where month_id = p_month_id;
   insert into public.stock_count_lines (month_id, item_id, qty)
@@ -753,7 +761,17 @@ begin
       reporter     = p_reporter,
       status       = p_status,
       updated_at   = v_now,
-      submitted_at = case when p_status = 'submitted' then v_now else submitted_at end
+      -- coalesce, NOT v_now: submitted_at records WHEN THE ORDER WAS SUBMITTED
+      -- and must survive later edits. An admin fixing a quantity on a submitted
+      -- order sends status='submitted' again to keep it submitted, and the
+      -- previous `then v_now` re-stamped it every time — so the order appeared
+      -- to have been placed today, and its reference (ORD-<date>-<id>, which
+      -- reads submitted_at) silently changed on the supplier's paperwork.
+      -- updated_at is what tracks the edit.
+      submitted_at = case
+                       when p_status = 'submitted' then coalesce(submitted_at, v_now)
+                       else submitted_at
+                     end
     where id = v_id;
   end if;
 
