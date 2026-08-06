@@ -85,17 +85,28 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
           <div className="text-base font-medium text-n-800 leading-tight break-words">
             {ti(item.name, item)}
           </div>
+          {/* Each half is a real tap target: this gets used mid-service with
+              wet hands, so it is sized for a thumb rather than for the tiny
+              unit caption it replaced. */}
           {scalable ? (
             <button
               type="button"
               onClick={toggleUnit}
               aria-label={`switch to ${inSmall ? unit : small}`}
-              className="mt-0.5 inline-flex overflow-hidden rounded-md border border-n-300 text-[10px] font-bold leading-none"
+              className="mt-1 inline-flex overflow-hidden rounded-lg border border-n-300 text-xs font-bold leading-none"
             >
-              <span className={`px-1.5 py-1 ${!inSmall ? "bg-accent-600 text-white" : "text-n-500"}`}>
+              <span
+                className={`min-w-[2.5rem] px-3 py-2 ${
+                  !inSmall ? "bg-accent-600 text-white" : "text-n-500"
+                }`}
+              >
                 {unit}
               </span>
-              <span className={`px-1.5 py-1 ${inSmall ? "bg-accent-600 text-white" : "text-n-500"}`}>
+              <span
+                className={`min-w-[2.5rem] px-3 py-2 ${
+                  inSmall ? "bg-accent-600 text-white" : "text-n-500"
+                }`}
+              >
                 {small}
               </span>
             </button>
