@@ -224,7 +224,7 @@ export default function ItemManagerModal({ items, onBack }) {
                   <span className="text-[11px] text-n-400 shrink-0">{t("orderType")}</span>
                   <OrderTypeField item={item} options={orderTypeOptions} onSave={saveOrderType} />
                 </div>
-                <div className="mt-1.5 flex items-center gap-2">
+                <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                   <span className="text-[11px] text-n-400 shrink-0">{t("orderUnit")}</span>
                   {(() => {
                     const base = item.unit || "";
@@ -249,34 +249,38 @@ export default function ItemManagerModal({ items, onBack }) {
                       </div>
                     );
                   })()}
-                </div>
 
-                {/* Grams entry: only offered where the unit actually divides,
-                    so the control never appears on a bottle or a pack. */}
-                {isScalable(item.orderUnit || item.unit) && (
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-[11px] text-n-400 shrink-0">
-                      {t("subUnitEntry", { small: smallUnitOf(item.orderUnit || item.unit) })}
-                    </span>
-                    <div className="inline-flex rounded-lg border border-accent-200 dark:border-accent-700/40 overflow-hidden">
-                      {[true, false].map((v) => (
-                        <button
-                          key={String(v)}
-                          type="button"
-                          onClick={() => saveAllowSubUnit(item.id, v)}
-                          aria-pressed={(item.allowSubUnit !== false) === v}
-                          className={`text-[11px] font-semibold px-2.5 py-1 transition ${
-                            (item.allowSubUnit !== false) === v
-                              ? "bg-accent-600 text-white"
-                              : "bg-n-0 text-n-500"
-                          }`}
-                        >
-                          {v ? t("on") : t("off")}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  {/* Sits in the same row as Order unit — the two decisions are
+                      about the same thing, "what unit is this ordered in".
+                      Only offered where the unit actually divides, so a bottle
+                      or a pack never grows a setting that could do nothing. */}
+                  {isScalable(item.orderUnit || item.unit) && (
+                    <>
+                      <span className="text-[11px] text-n-400 shrink-0 ml-1">
+                        {t("subUnitEntry", {
+                          small: smallUnitOf(item.orderUnit || item.unit),
+                        })}
+                      </span>
+                      <div className="inline-flex rounded-lg border border-accent-200 dark:border-accent-700/40 overflow-hidden">
+                        {[true, false].map((v) => (
+                          <button
+                            key={String(v)}
+                            type="button"
+                            onClick={() => saveAllowSubUnit(item.id, v)}
+                            aria-pressed={item.allowSubUnit === v}
+                            className={`text-[11px] font-semibold px-2.5 py-1 transition ${
+                              item.allowSubUnit === v
+                                ? "bg-accent-600 text-white"
+                                : "bg-n-0 text-n-500"
+                            }`}
+                          >
+                            {v ? t("on") : t("off")}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             );
           })}

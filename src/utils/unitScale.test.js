@@ -124,14 +124,17 @@ describe("SMALL_STEP", () => {
 });
 
 describe("canEnterSubUnit — the per-item switch in Manage Items", () => {
-  it("is on by default, so existing items keep today's behaviour", () => {
-    expect(canEnterSubUnit({ unit: "kg" })).toBe(true);
-    expect(canEnterSubUnit({ unit: "ltr" })).toBe(true);
+  it("is OFF unless an admin switches it on", () => {
+    // Opt-in: rice, onions and flour are the majority and go out in whole
+    // kilos, so the toggle would be noise on nearly every row.
+    expect(canEnterSubUnit({ unit: "kg" })).toBe(false);
+    expect(canEnterSubUnit({ unit: "ltr" })).toBe(false);
+    expect(canEnterSubUnit({ unit: "kg", allowSubUnit: false })).toBe(false);
   });
 
-  it("is off when an admin turns it off", () => {
-    // Rice and onions go out in whole kilos; the toggle is noise there.
-    expect(canEnterSubUnit({ unit: "kg", allowSubUnit: false })).toBe(false);
+  it("is on once an admin switches it on", () => {
+    expect(canEnterSubUnit({ unit: "kg", allowSubUnit: true })).toBe(true);
+    expect(canEnterSubUnit({ unit: "ltr", allowSubUnit: true })).toBe(true);
   });
 
   it("stays off for a unit that cannot divide, however the switch is set", () => {
@@ -140,8 +143,8 @@ describe("canEnterSubUnit — the per-item switch in Manage Items", () => {
   });
 
   it("follows the ORDER unit when one is set — a kg item ordered by the pack cannot split", () => {
-    expect(canEnterSubUnit({ unit: "kg", orderUnit: "pack" })).toBe(false);
-    expect(canEnterSubUnit({ unit: "pack", orderUnit: "kg" })).toBe(true);
+    expect(canEnterSubUnit({ unit: "kg", orderUnit: "pack", allowSubUnit: true })).toBe(false);
+    expect(canEnterSubUnit({ unit: "pack", orderUnit: "kg", allowSubUnit: true })).toBe(true);
   });
 
   it("is false for no item at all rather than throwing", () => {

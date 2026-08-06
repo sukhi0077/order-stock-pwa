@@ -108,8 +108,10 @@ create table if not exists public.items (
   -- (Manage Items). Deliberately NOT normalised into a master table — the
   -- option list lives in the client (ORDER_TYPES), so the column is plain text.
   order_type  text,
-  -- Show the kg/g entry toggle on this item's order row? See the ALTER below.
-  allow_sub_unit boolean not null default true,
+  -- Show the kg/g entry toggle on this item's order row? Opt-IN: most items
+  -- are ordered in whole units, so the toggle would be noise on nearly every
+  -- row. See the ALTER below.
+  allow_sub_unit boolean not null default false,
   -- supplier is NORMALISED: items reference a supplier row via
   -- primary_supplier_id (added in the MASTER DATA section). The old free-text
   -- `supplier` column is migrated into suppliers + that FK, then DROPPED (see
@@ -131,10 +133,12 @@ create index if not exists items_name_lower_idx on public.items (lower(name));
 -- For existing databases (create table above is a no-op once items exists):
 alter table public.items add column if not exists osp_active boolean not null default true;
 alter table public.items add column if not exists order_type text;
--- Per-item switch for the kg/g (ltr/ml) entry toggle on the order row. Default
--- true so every existing item keeps today's behaviour; an admin turns it off
--- for things always ordered in whole units, where the toggle is just noise.
-alter table public.items add column if not exists allow_sub_unit boolean not null default true;
+-- Per-item switch for the kg/g (ltr/ml) entry toggle on the order row.
+-- Opt-IN: an admin turns it on for the handful of items actually bought in
+-- grams (spices, herbs, saffron); everything else is ordered in whole units.
+alter table public.items add column if not exists allow_sub_unit boolean not null default false;
+alter table public.items alter column allow_sub_unit set default false;
+
 create index if not exists items_order_type_idx on public.items (order_type);
 
 -- -----------------------------------------------------------------------------
@@ -903,6 +907,19 @@ grant select on public.merge_receipts        to authenticated;
 -- promote your admin:  update public.profiles set role='admin' where email='...';
 -- Sign in as admin in the app and click "Load items" to seed the master list.
 -- =============================================================================
+
+-- The column first shipped defaulting to TRUE, so any row created in that
+-- window is on. Flip those once. Guarded by app_meta, NOT a bare UPDATE:
+-- this file is re-run after every change, and an unguarded update would wipe
+-- the admin's choices every single time.
+do $$
+begin
+  if not exists (select 1 from public.app_meta where key = 'sub_unit_off_by_default') then
+    update public.items set allow_sub_unit = false;
+    insert into public.app_meta (key, done) values ('sub_unit_off_by_default', true)
+      on conflict (key) do nothing;
+  end if;
+end $$;
 
 -- =============================================================================
 -- RELOAD THE API SCHEMA CACHE

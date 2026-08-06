@@ -63,14 +63,15 @@ export function formatQty(qty, unit) {
 //
 // Two conditions, and both matter:
 //   - the unit has to divide at all (kg does, bottle does not), and
-//   - an admin has to have left it enabled in Manage Items.
-// Rice and onions are ordered in whole kilos every time, so the toggle is
-// noise on those rows; saffron and herbs are the opposite. Defaults to ON, so
-// existing items keep the behaviour they have today and an admin only has to
-// touch the ones where it is a distraction.
+//   - an admin has to have switched it on for this item in Manage Items.
+//
+// Opt-IN, not opt-out: rice, onions and flour are ordered in whole kilos every
+// time, and they are the majority. Defaulting on would put a toggle nobody
+// uses on ~91 rows to serve the handful — spices, herbs, saffron — that need
+// it. So the default is off and the admin marks the exceptions.
 export function canEnterSubUnit(item) {
   if (!item) return false;
-  if (item.allowSubUnit === false) return false;
+  if (item.allowSubUnit !== true) return false;
   return isScalable(item.orderUnit || item.unit);
 }
 

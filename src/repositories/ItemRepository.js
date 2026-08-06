@@ -24,8 +24,9 @@ function fromRow(r) {
     unit: r.units?.code || "",
     orderUnit: r.order_unit || "",
     orderType: r.order_type || "",
-    // Defaults to true for rows written before the column existed.
-    allowSubUnit: r.allow_sub_unit !== false,
+    // Opt-in: anything not explicitly true is off, including rows written
+    // before the column existed.
+    allowSubUnit: r.allow_sub_unit === true,
     supplier: r.suppliers?.name || "",
     supplierId: r.primary_supplier_id || null,
     sortOrder: r.sort_order ?? 0,
