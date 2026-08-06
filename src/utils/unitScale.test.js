@@ -1,6 +1,7 @@
 // src/utils/unitScale.test.js
 import { describe, it, expect } from "vitest";
 import {
+  canEnterSubUnit,
   smallUnitOf,
   isScalable,
   toSmall,
@@ -119,5 +120,33 @@ describe("SMALL_STEP", () => {
     expect(SMALL_STEP).toBe(100);
     // Three taps of + from empty is 300 g, i.e. 0.3 kg stored.
     expect(fromSmall(SMALL_STEP * 3, "kg")).toBe(0.3);
+  });
+});
+
+describe("canEnterSubUnit — the per-item switch in Manage Items", () => {
+  it("is on by default, so existing items keep today's behaviour", () => {
+    expect(canEnterSubUnit({ unit: "kg" })).toBe(true);
+    expect(canEnterSubUnit({ unit: "ltr" })).toBe(true);
+  });
+
+  it("is off when an admin turns it off", () => {
+    // Rice and onions go out in whole kilos; the toggle is noise there.
+    expect(canEnterSubUnit({ unit: "kg", allowSubUnit: false })).toBe(false);
+  });
+
+  it("stays off for a unit that cannot divide, however the switch is set", () => {
+    expect(canEnterSubUnit({ unit: "bottle" })).toBe(false);
+    expect(canEnterSubUnit({ unit: "bottle", allowSubUnit: true })).toBe(false);
+  });
+
+  it("follows the ORDER unit when one is set — a kg item ordered by the pack cannot split", () => {
+    expect(canEnterSubUnit({ unit: "kg", orderUnit: "pack" })).toBe(false);
+    expect(canEnterSubUnit({ unit: "pack", orderUnit: "kg" })).toBe(true);
+  });
+
+  it("is false for no item at all rather than throwing", () => {
+    expect(canEnterSubUnit(null)).toBe(false);
+    expect(canEnterSubUnit(undefined)).toBe(false);
+    expect(canEnterSubUnit({})).toBe(false);
   });
 });

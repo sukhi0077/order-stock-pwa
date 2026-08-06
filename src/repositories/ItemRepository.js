@@ -24,6 +24,8 @@ function fromRow(r) {
     unit: r.units?.code || "",
     orderUnit: r.order_unit || "",
     orderType: r.order_type || "",
+    // Defaults to true for rows written before the column existed.
+    allowSubUnit: r.allow_sub_unit !== false,
     supplier: r.suppliers?.name || "",
     supplierId: r.primary_supplier_id || null,
     sortOrder: r.sort_order ?? 0,
@@ -46,6 +48,7 @@ function baseRow(obj = {}) {
     nameHi: "name_hi",
     orderUnit: "order_unit",
     orderType: "order_type",
+    allowSubUnit: "allow_sub_unit",
     sortOrder: "sort_order",
     active: "active",
   };

@@ -1,7 +1,7 @@
 // src/components/OrderItemRow.jsx
 import React, { useState } from "react";
 import { isOrdered, num, orderUnitOf } from "../models/OrderModel.js";
-import { isScalable, smallUnitOf, toSmall, fromSmall, SMALL_STEP } from "../utils/unitScale.js";
+import { canEnterSubUnit, smallUnitOf, toSmall, fromSmall, SMALL_STEP } from "../utils/unitScale.js";
 import { useT } from "../i18n/i18n.jsx";
 
 // One item's order row: a −/＋ quantity stepper that auto-saves the order on
@@ -15,7 +15,7 @@ function OrderItemRow({ item, line, onAdd, onRemove }) {
   // Sub-unit entry: kg items can be typed in grams so nobody has to enter
   // "0.1" on a phone keypad. The stored value stays in the base unit.
   const small = smallUnitOf(unit);
-  const scalable = isScalable(unit);
+  const scalable = canEnterSubUnit(item);
   // Start in grams when the saved amount is already sub-kilo — that is the
   // unit the person last thought in.
   const [inSmall, setInSmall] = useState(

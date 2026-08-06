@@ -108,6 +108,8 @@ create table if not exists public.items (
   -- (Manage Items). Deliberately NOT normalised into a master table — the
   -- option list lives in the client (ORDER_TYPES), so the column is plain text.
   order_type  text,
+  -- Show the kg/g entry toggle on this item's order row? See the ALTER below.
+  allow_sub_unit boolean not null default true,
   -- supplier is NORMALISED: items reference a supplier row via
   -- primary_supplier_id (added in the MASTER DATA section). The old free-text
   -- `supplier` column is migrated into suppliers + that FK, then DROPPED (see
@@ -129,6 +131,10 @@ create index if not exists items_name_lower_idx on public.items (lower(name));
 -- For existing databases (create table above is a no-op once items exists):
 alter table public.items add column if not exists osp_active boolean not null default true;
 alter table public.items add column if not exists order_type text;
+-- Per-item switch for the kg/g (ltr/ml) entry toggle on the order row. Default
+-- true so every existing item keeps today's behaviour; an admin turns it off
+-- for things always ordered in whole units, where the toggle is just noise.
+alter table public.items add column if not exists allow_sub_unit boolean not null default true;
 create index if not exists items_order_type_idx on public.items (order_type);
 
 -- -----------------------------------------------------------------------------

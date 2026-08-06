@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useSetItemActive, useUpdateItem } from "../hooks/useItems.js";
 import { useMasterData } from "../hooks/useMasterData.js";
 import { ORDER_TYPES } from "../data/orderTypes.js";
+import { isScalable, smallUnitOf } from "../utils/unitScale.js";
 import { useT } from "../i18n/i18n.jsx";
 
 // A small filter chip.
@@ -84,6 +85,8 @@ export default function ItemManagerModal({ items, onBack }) {
   }, [items]);
   const saveOrderType = (id, orderType) => updateItem.mutate({ id, patch: { orderType } });
   const saveOrderUnit = (id, orderUnit) => updateItem.mutate({ id, patch: { orderUnit } });
+  const saveAllowSubUnit = (id, allowSubUnit) =>
+    updateItem.mutate({ id, patch: { allowSubUnit } });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -247,6 +250,33 @@ export default function ItemManagerModal({ items, onBack }) {
                     );
                   })()}
                 </div>
+
+                {/* Grams entry: only offered where the unit actually divides,
+                    so the control never appears on a bottle or a pack. */}
+                {isScalable(item.orderUnit || item.unit) && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="text-[11px] text-n-400 shrink-0">
+                      {t("subUnitEntry", { small: smallUnitOf(item.orderUnit || item.unit) })}
+                    </span>
+                    <div className="inline-flex rounded-lg border border-accent-200 dark:border-accent-700/40 overflow-hidden">
+                      {[true, false].map((v) => (
+                        <button
+                          key={String(v)}
+                          type="button"
+                          onClick={() => saveAllowSubUnit(item.id, v)}
+                          aria-pressed={(item.allowSubUnit !== false) === v}
+                          className={`text-[11px] font-semibold px-2.5 py-1 transition ${
+                            (item.allowSubUnit !== false) === v
+                              ? "bg-accent-600 text-white"
+                              : "bg-n-0 text-n-500"
+                          }`}
+                        >
+                          {v ? t("on") : t("off")}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

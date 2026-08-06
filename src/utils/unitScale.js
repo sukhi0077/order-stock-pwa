@@ -59,6 +59,21 @@ export function formatQty(qty, unit) {
   return `${d.qty} ${d.unit}`.trim();
 }
 
+// May THIS item be entered in its small unit?
+//
+// Two conditions, and both matter:
+//   - the unit has to divide at all (kg does, bottle does not), and
+//   - an admin has to have left it enabled in Manage Items.
+// Rice and onions are ordered in whole kilos every time, so the toggle is
+// noise on those rows; saffron and herbs are the opposite. Defaults to ON, so
+// existing items keep the behaviour they have today and an admin only has to
+// touch the ones where it is a distraction.
+export function canEnterSubUnit(item) {
+  if (!item) return false;
+  if (item.allowSubUnit === false) return false;
+  return isScalable(item.orderUnit || item.unit);
+}
+
 // The step the -/+ buttons should take. Whole units normally; in small mode a
 // round 100 g / 100 ml, because that is how kitchens actually count.
 export const SMALL_STEP = 100;
