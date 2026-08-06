@@ -1,5 +1,6 @@
 // src/components/OrdersAdmin.jsx
 import React, { useMemo, useState } from "react";
+import { formatQty } from "../utils/unitScale.js";
 import Spinner from "./ui/Spinner.jsx";
 import OrderNavigator from "./OrderNavigator.jsx";
 import { useItems } from "../hooks/useItems.js";
@@ -172,7 +173,7 @@ function ExportBar({ order, items, lines }) {
                           {item.name}
                         </span>
                         <span className="shrink-0 text-[11px] font-semibold text-n-500">
-                          {line.qty} {orderUnitOf(item)}
+                          {formatQty(line.qty, orderUnitOf(item))}
                         </span>
                       </label>
                     </li>

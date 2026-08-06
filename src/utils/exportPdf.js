@@ -12,6 +12,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { orderRef, selectOrderRows } from "./exportCsv.js";
 import { num as orderNum, orderUnitOf } from "../models/OrderModel.js";
+import { displayQty } from "./unitScale.js";
 import { LIBERATION_SANS_REGULAR, LIBERATION_SANS_BOLD } from "../fonts/liberationSans.js";
 
 // Business letterhead printed at the top of every order sheet.
@@ -116,14 +117,19 @@ export function buildOrderSheet(order, items, lines, selected = null, excludedId
     sections: groups.map((g) => ({
       orderType: g.orderType,
       count: g.rows.length,
-      rows: g.rows.map((r, i) => ({
+      rows: g.rows.map((r, i) => {
+        // Sub-kilo lines read as grams: "100 g" is easier to pick than
+        // "0.1 kg". The stored value is untouched — this is presentation.
+        const shown = displayQty(orderNum(r.line.qty), orderUnitOf(r.item));
+        return {
         n: i + 1,
         name: r.item.name,
-        qty: orderNum(r.line.qty),
-        unit: orderUnitOf(r.item),
+        qty: shown.qty,
+        unit: shown.unit,
         note: r.line.note || "",
         group: r.group,
-      })),
+        };
+      }),
     })),
   };
 }

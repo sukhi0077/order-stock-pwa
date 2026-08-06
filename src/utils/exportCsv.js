@@ -9,6 +9,7 @@
 // Only items that were actually counted are exported.
 import { isCounted, num } from "../models/StockCountModel.js";
 import { isOrdered, num as orderNum, orderUnitOf } from "../models/OrderModel.js";
+import { displayQty } from "./unitScale.js";
 import { monthEndDate } from "./monthUtils.js";
 
 function csvEscape(v) {
@@ -125,12 +126,14 @@ export function buildOrderCsv(order, items, lines, selected = null, excludedIds 
 
   const rows = [header];
   for (const { item, orderType, group, line } of ordered) {
+    // Sub-kilo lines are written as grams, matching the PDF.
+    const shown = displayQty(orderNum(line.qty), orderUnitOf(item));
     rows.push([
       orderType,
       group,
       item.name,
-      orderNum(line.qty),
-      orderUnitOf(item),
+      shown.qty,
+      shown.unit,
       line.note || "",
     ]);
   }

@@ -118,6 +118,22 @@ describe("buildOrderCsv", () => {
     expect(body(buildOrderCsv({ id: "x" }, items, lines, []))).toEqual([]);
   });
 
+  it("writes a sub-kilo line in grams, so the picker reads 100 g not 0.1 kg", () => {
+    const kg = [item("k", { name: "Saffron", unit: "kg" })];
+    const row = body(buildOrderCsv({ id: "x" }, kg, { k: { qty: 0.1 } }))[0];
+    expect(row).toContain("Saffron,100,g");
+  });
+
+  it("leaves a whole kilo in kilos", () => {
+    const kg = [item("k", { name: "Rice", unit: "kg" })];
+    expect(body(buildOrderCsv({ id: "x" }, kg, { k: { qty: 5 } }))[0]).toContain("Rice,5,kg");
+  });
+
+  it("never converts a countable unit", () => {
+    const b = [item("b", { name: "Beer", unit: "bottle" })];
+    expect(body(buildOrderCsv({ id: "x" }, b, { b: { qty: 0.5 } }))[0]).toContain("Beer,0.5,bottle");
+  });
+
   it("uses CRLF line endings, which Excel expects", () => {
     expect(buildOrderCsv({ id: "x" }, items, lines)).toContain("\r\n");
   });

@@ -106,6 +106,23 @@ describe("buildOrderSheet", () => {
     expect(s.sections[0].orderType).toBe("Unassigned");
   });
 
+  it("shows a sub-kilo quantity in grams", () => {
+    const kg = [item("k", { name: "Saffron", unit: "kg" })];
+    const row = buildOrderSheet(order, kg, { k: { qty: 0.1 } }).sections[0].rows[0];
+    expect(row.qty).toBe(100);
+    expect(row.unit).toBe("g");
+  });
+
+  it("leaves a whole kilo, and any countable unit, alone", () => {
+    const mixed = [
+      item("a", { name: "Rice", unit: "kg" }),
+      item("b", { name: "Beer", unit: "bottle" }),
+    ];
+    const rows = buildOrderSheet(order, mixed, { a: { qty: 5 }, b: { qty: 0.5 } }).sections[0].rows;
+    expect(rows.find((r) => r.name === "Rice")).toMatchObject({ qty: 5, unit: "kg" });
+    expect(rows.find((r) => r.name === "Beer")).toMatchObject({ qty: 0.5, unit: "bottle" });
+  });
+
   it("does not mutate the items or lines it is given", () => {
     const snapshot = JSON.stringify({ items, lines });
     buildOrderSheet(order, items, lines, ["Makro"], ["b"]);

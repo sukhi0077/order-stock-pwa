@@ -8,6 +8,7 @@
 // order itself is never modified, so an order stays exactly as submitted no
 // matter how much of it has arrived.
 import React, { useMemo, useState } from "react";
+import { displayQty } from "../utils/unitScale.js";
 import Spinner from "./ui/Spinner.jsx";
 import ReceiveItemRow from "./ReceiveItemRow.jsx";
 import { useOrders } from "../hooks/useOrders.js";
@@ -184,8 +185,8 @@ function OrderReceiveView({ order, items, batchesByItem, onAdd, onDelete, adding
                   onDelete={onDelete}
                   adding={adding}
                   ordered={{
-                    qty: orderNum(line.qty),
-                    unit: orderUnitOf(it),
+                    // Same reading as the order sheet the delivery arrived with.
+                    ...displayQty(orderNum(line.qty), orderUnitOf(it)),
                     note: line.note || "",
                   }}
                 />
