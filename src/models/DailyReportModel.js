@@ -135,6 +135,9 @@ export class DailyReportModel {
       isMatchingING: "",
       cashSalePOS: "",
       cashFromYesterday: "",
+      // Counted in the box first thing today. Recorded, not calculated with —
+      // see cleanPayloadForDatabase and calculateExpectedCash.
+      morningCash: "",
       cashTakenList: [],
       cashAddedList: [],
       totalCashInBox: "",
@@ -352,6 +355,13 @@ export class DailyReportModel {
           },
         ]),
       ),
+
+      // Optional: an empty box stays empty rather than becoming 0, so a blank
+      // is distinguishable from a genuine zero float.
+      morningCash:
+        String(data.morningCash ?? "").trim() === ""
+          ? null
+          : round2(safeNum(data.morningCash)),
 
       cashTakenList: (data.cashTakenList || [])
         .filter(

@@ -42,7 +42,7 @@ const SELECT = `
   is_matching_fiskalne, is_matching_ing,
   cash_from_yesterday, total_cash_in_box,
   received_coupons, comments,
-  reporter_id, submitted_by, created_at, updated_at,
+  morning_cash, reporter_id, submitted_by, created_at, updated_at,
   reporter:employees!dsr_reports_reporter_id_fkey ( id, name ),
   dsr_platform_delivery ( online, cash, card, delivery_platforms ( name ) ),
   dsr_cash_movements ( direction, amount, reason, seq, ts ),
@@ -127,6 +127,9 @@ function toAppShape(row) {
     isMatchingING: fromBool(row.is_matching_ing),
 
     cashFromYesterday: num(row.cash_from_yesterday),
+    // Optional, so null stays null rather than collapsing to 0 — a blank and a
+    // genuine zero float mean different things.
+    morningCash: row.morning_cash == null ? "" : num(row.morning_cash),
     totalCashInBox: num(row.total_cash_in_box),
 
     receivedCoupons: fromBool(row.received_coupons),
@@ -198,6 +201,7 @@ export class DailyReportRepository {
             is_matching_fiskalne: toBool(payload.isMatchingFiskalne),
             is_matching_ing: toBool(payload.isMatchingING),
             cash_from_yesterday: payload.cashFromYesterday,
+            morning_cash: payload.morningCash,
             total_cash_in_box: payload.totalCashInBox,
             received_coupons: toBool(payload.receivedCoupons),
             comments: payload.comments,

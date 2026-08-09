@@ -610,6 +610,28 @@ export default function DailyReportForm({
               )}
             </div>
 
+            {/* Today Morning Cash — what was actually counted in the box
+                this morning. Sits under yesterday's closing because the two
+                are meant to be compared; it is recorded, not calculated with,
+                so an odd float never silently moves the expected total. */}
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <span className="text-sm font-medium text-n-700">
+                Today Morning Cash
+                <span className="block text-xs text-n-400 mt-0.5">
+                  Counted in the box this morning (optional)
+                </span>
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="any"
+                value={data.morningCash ?? ""}
+                onChange={(e) => handleChange("morningCash", e.target.value)}
+                placeholder="0.00"
+                className="w-28 text-right p-1.5 rounded-lg bg-n-0 border border-accent-200 dark:border-accent-700/40 text-accent-700 dark:text-accent-300 font-bold outline-none focus:ring-2 focus:ring-accent-500"
+              />
+            </div>
+
             {/* Today's Cash Sale — mirrors the Cash Sale entered in card 1 */}
             <div className="flex items-center justify-between px-3 py-2.5">
               <span className="text-sm font-medium text-n-700">

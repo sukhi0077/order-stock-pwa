@@ -81,6 +81,12 @@ create table if not exists public.dsr_reports (
 
   -- Card 3: cash box.
   cash_from_yesterday numeric(12,2) not null default 0,
+  -- What was actually counted in the box this morning. Recorded alongside
+  -- cash_from_yesterday rather than replacing it: yesterday's closing is the
+  -- figure the cash chain is built on, and this is the observation that can
+  -- disagree with it. Kept OUT of the expected-cash arithmetic on purpose —
+  -- see save_dsr_report and the app's calculateExpectedCash.
+  morning_cash numeric(12,2),
   total_cash_in_box   numeric(12,2) not null default 0 check (total_cash_in_box >= 0),
 
   -- Card 4: did any customer redeem a discount coupon today?
@@ -105,6 +111,7 @@ create table if not exists public.dsr_reports (
   -- No future-dated reports (+1 day cushion for the Warsaw/UTC boundary).
   constraint dsr_reports_not_future check (report_date <= (current_date + 1))
 );
+alter table public.dsr_reports add column if not exists morning_cash numeric(12,2);
 create index if not exists dsr_reports_reporter_idx on public.dsr_reports (reporter_id);
 create index if not exists dsr_reports_created_idx  on public.dsr_reports (created_at desc);
 
@@ -362,8 +369,8 @@ begin
   -- One row per day: insert, or update the existing day in place.
   insert into public.dsr_reports as r (
     report_date, total_sale_pos, online_sale_pos, card_sale_pos, cash_sale_pos,
-    is_matching_fiskalne, is_matching_ing, cash_from_yesterday, total_cash_in_box,
-    received_coupons, comments, reporter_id, submitted_by)
+    is_matching_fiskalne, is_matching_ing, cash_from_yesterday, morning_cash,
+    total_cash_in_box, received_coupons, comments, reporter_id, submitted_by)
   values (
     v_date,
     (p_header->>'total_sale_pos')::numeric,  (p_header->>'online_sale_pos')::numeric,
@@ -371,6 +378,8 @@ begin
     (p_header->>'is_matching_fiskalne')::boolean,
     (p_header->>'is_matching_ing')::boolean,
     (p_header->>'cash_from_yesterday')::numeric,
+    -- nullif: the field is optional, and '' would fail the numeric cast.
+    nullif(p_header->>'morning_cash', '')::numeric,
     (p_header->>'total_cash_in_box')::numeric,
     (p_header->>'received_coupons')::boolean,
     coalesce(p_header->>'comments', ''),
@@ -384,6 +393,7 @@ begin
     is_matching_fiskalne = excluded.is_matching_fiskalne,
     is_matching_ing      = excluded.is_matching_ing,
     cash_from_yesterday  = excluded.cash_from_yesterday,
+    morning_cash         = excluded.morning_cash,
     total_cash_in_box    = excluded.total_cash_in_box,
     received_coupons     = excluded.received_coupons,
     comments             = excluded.comments,

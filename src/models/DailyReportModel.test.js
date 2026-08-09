@@ -81,3 +81,40 @@ describe("getInitialState", () => {
     expect(d.cashAddedList).toEqual([]);
   });
 });
+
+describe("morningCash — what was counted in the box this morning", () => {
+  it("is null when left blank, not 0", () => {
+    // A blank box and a genuine zero float are different facts; collapsing
+    // them would make an unfilled field look like a counted empty till.
+    const out = DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "" });
+    expect(out.morningCash).toBeNull();
+    expect(DailyReportModel.cleanPayloadForDatabase({ ...base() }).morningCash).toBeNull();
+    expect(
+      DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "   " }).morningCash,
+    ).toBeNull();
+  });
+
+  it("keeps a real zero", () => {
+    expect(
+      DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "0" }).morningCash,
+    ).toBe(0);
+  });
+
+  it("rounds to 2 decimals, like every other money field", () => {
+    expect(
+      DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "120.456" }).morningCash,
+    ).toBe(120.46);
+  });
+
+  it("starts blank on a fresh report", () => {
+    expect(DailyReportModel.getInitialState().morningCash).toBe("");
+  });
+
+  it("does NOT feed the expected-cash calculation", () => {
+    // It is an observation that may disagree with yesterday's closing; the
+    // cash chain is built on cashFromYesterday alone. If this ever changes it
+    // should be a deliberate decision, not a silent one.
+    const withCash = DailyReportModel.calculateExpectedCash(100, 50, [], []);
+    expect(withCash).toBe(150);
+  });
+});
