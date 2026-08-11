@@ -53,24 +53,75 @@ export function monthLabel(monthId) {
   return name ? `${name} ${y}` : String(monthId || "");
 }
 
+// Left: who is paying. Right: who is being paid, and for which month.
+//
+// The name on the right is set as large as the business name, because that is
+// what someone flicking through a stack of these sheets is looking for.
 function drawLetterhead(doc, title, subtitle) {
   const right = doc.internal.pageSize.getWidth() - MARGIN;
   let y = MARGIN;
 
-  doc.setFont(FONT, "bold").setFontSize(15).setTextColor(...INK);
+  doc.setFont(FONT, "bold").setFontSize(13).setTextColor(...INK);
   doc.text(BUSINESS.name, MARGIN, y);
-  doc.setFontSize(10);
   doc.text(title, right, y, { align: "right" });
 
-  y += 5;
-  doc.setFont(FONT, "normal").setFontSize(9).setTextColor(...MUTED);
-  doc.text(`${BUSINESS.address} · ${BUSINESS.nip}`, MARGIN, y);
+  y += 4.5;
+  doc.setFont(FONT, "normal").setFontSize(8.5).setTextColor(...MUTED);
+  doc.text(BUSINESS.address, MARGIN, y);
   doc.text(subtitle, right, y, { align: "right" });
+
+  y += 4;
+  doc.text(BUSINESS.nip, MARGIN, y);
 
   y += 3;
   doc.setDrawColor(...INK).setLineWidth(0.5);
   doc.line(MARGIN, y, right, y);
   return y + 6;
+}
+
+// Somewhere to sign, at the foot of an employee's own sheet.
+//
+// The sentence above the line is the point of it: a signature under nothing in
+// particular settles nothing, whereas one under "these hours are correct" is
+// the employee agreeing the month before it is paid. The date line sits beside
+// it because a signature with no date cannot be tied to a payroll run.
+// Height the block needs, declaration through to the labels under the lines.
+export const SIGNATURE_HEIGHT_MM = 32;
+
+// Where the block goes: on this page if it fits whole, otherwise a fresh one.
+// Split across a page break, the declaration and the line it refers to end up
+// on different sheets, and either half on its own means nothing.
+export function signaturePlacement(y, pageHeight) {
+  return y + SIGNATURE_HEIGHT_MM > pageHeight - MARGIN
+    ? { newPage: true, y: MARGIN }
+    : { newPage: false, y };
+}
+
+function drawSignature(doc, startY) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const right = pageWidth - MARGIN;
+
+  const place = signaturePlacement(startY, pageHeight);
+  if (place.newPage) doc.addPage();
+  let y = place.y;
+
+  y += 14;
+  doc.setFont(FONT, "normal").setFontSize(8.5).setTextColor(...MUTED);
+  doc.text("I confirm the hours recorded above are correct.", MARGIN, y);
+
+  y += 14;
+  const dateWidth = 46;
+  const signEnd = right - dateWidth - 10;
+  doc.setDrawColor(...FAINT).setLineWidth(0.3);
+  doc.line(MARGIN, y, signEnd, y);
+  doc.line(right - dateWidth, y, right, y);
+
+  y += 4;
+  doc.setFontSize(8).setTextColor(...FAINT);
+  doc.text("Employee signature", MARGIN, y);
+  doc.text("Date", right - dateWidth, y);
+  return y;
 }
 
 const TABLE_STYLE = {
@@ -107,7 +158,6 @@ export function buildEmployeeSheet(employee, entries, monthId) {
         date: i === 0 ? day.date : "",
         start: e.startTime,
         end: e.endTime,
-        breakMinutes: e.breakMinutes || 0,
         worked: formatMinutes(entryMinutes(e)),
         note: e.note || "",
       })),
@@ -162,24 +212,16 @@ export function buildEmployeePdf(employee, entries, monthId) {
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
-    head: [["Date", "Start", "End", "Break", "Worked", "Note"]],
-    body: sheet.rows.map((r) => [
-      r.date,
-      r.start,
-      r.end,
-      r.breakMinutes ? `${r.breakMinutes}m` : "",
-      r.worked,
-      r.note,
-    ]),
+    head: [["Date", "Start", "End", "Worked", "Note"]],
+    body: sheet.rows.map((r) => [r.date, r.start, r.end, r.worked, r.note]),
     styles: TABLE_STYLE,
     headStyles: HEAD_STYLE,
     columnStyles: {
       0: { cellWidth: 24 },
-      1: { cellWidth: 16, halign: "right" },
-      2: { cellWidth: 16, halign: "right" },
-      3: { cellWidth: 16, halign: "right", textColor: FAINT },
-      4: { cellWidth: 22, halign: "right", fontStyle: "bold" },
-      5: { cellWidth: "auto" },
+      1: { cellWidth: 18, halign: "right" },
+      2: { cellWidth: 18, halign: "right" },
+      3: { cellWidth: 22, halign: "right", fontStyle: "bold" },
+      4: { cellWidth: "auto" },
     },
   });
 
@@ -187,7 +229,10 @@ export function buildEmployeePdf(employee, entries, monthId) {
   y = drawTotal(doc, `${sheet.daysWorked} days worked`, sheet.totalFormatted, y);
 
   doc.setFont(FONT, "normal").setFontSize(8).setTextColor(...MUTED);
-  doc.text(`${sheet.totalDecimal} decimal hours`, MARGIN, y + 5);
+  y += 5;
+  doc.text(`${sheet.totalDecimal} decimal hours`, MARGIN, y);
+
+  drawSignature(doc, y);
   return doc;
 }
 

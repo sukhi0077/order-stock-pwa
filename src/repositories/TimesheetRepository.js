@@ -21,18 +21,24 @@ function fromRow(r) {
     workDate: r.work_date,
     startTime: hhmm(r.start_time),
     endTime: hhmm(r.end_time),
+    // Still read: breaks are no longer entered, but rows saved before the
+    // field was dropped carry one, and their totals depend on it.
     breakMinutes: r.break_minutes ?? 0,
     note: r.note || "",
   };
 }
 
+// break_minutes is deliberately absent. On an insert the column takes its
+// default of 0; on an update the stored value is left alone, so correcting the
+// end time of an old row cannot quietly hand back the break it already had
+// deducted. The column stays in the schema because dropping it would destroy
+// the history behind hours that have already been paid.
 function toRow(e) {
   return {
     employee_id: e.employeeId,
     work_date: e.workDate,
     start_time: e.startTime,
     end_time: e.endTime,
-    break_minutes: e.breakMinutes ?? 0,
     note: e.note || "",
   };
 }

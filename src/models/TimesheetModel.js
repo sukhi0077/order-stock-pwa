@@ -8,7 +8,6 @@
 // DST handling for no benefit, and would make the two nights of the year when
 // Warsaw shifts its clocks quietly wrong.
 
-export const MAX_BREAK_MINUTES = 12 * 60;
 // A single stretch longer than this is almost certainly a typo — an end time
 // entered as 07:00 instead of 19:00, or a forgotten date.
 export const MAX_SHIFT_MINUTES = 16 * 60;
@@ -33,12 +32,16 @@ export function toTime(minutes) {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
 
-// Minutes worked in one stretch, break already deducted.
+// Minutes worked in one stretch.
 //
 // An end at or before the start means the shift crossed midnight — 22:00 to
 // 02:00 is four hours, not minus twenty. Equal times are read as a full 24h
 // rather than zero, because nobody records a zero-length shift, and a 24h
 // total is loud enough to get noticed and corrected.
+//
+// Breaks are no longer recorded, but a stored break is still subtracted: rows
+// saved before the field was dropped were totalled with it deducted, and
+// silently paying those minutes back would change hours already signed off.
 export function entryMinutes(entry) {
   const start = toMinutes(entry?.startTime);
   const end = toMinutes(entry?.endTime);
@@ -79,13 +82,8 @@ export function validateEntry(entry) {
   if (!isValidTime(entry?.startTime)) errors.push("Enter a start time as HH:MM.");
   if (!isValidTime(entry?.endTime)) errors.push("Enter an end time as HH:MM.");
 
-  const brk = Math.round(Number(entry?.breakMinutes) || 0);
-  if (brk < 0) errors.push("A break cannot be negative.");
-  if (brk > MAX_BREAK_MINUTES) errors.push("That break looks too long.");
-
   if (isValidTime(entry?.startTime) && isValidTime(entry?.endTime)) {
     const worked = entryMinutes(entry);
-    if (worked <= 0) errors.push("The break is longer than the shift.");
     if (worked > MAX_SHIFT_MINUTES) errors.push("That shift is longer than 16 hours — check the times.");
   }
   return { ok: errors.length === 0, errors };
@@ -99,7 +97,6 @@ export function buildEntryPayload(entry) {
     workDate: entry.workDate,
     startTime: toTime(toMinutes(entry.startTime)),
     endTime: toTime(toMinutes(entry.endTime)),
-    breakMinutes: Math.max(0, Math.round(Number(entry.breakMinutes) || 0)),
     note: String(entry.note || "").trim().slice(0, 200),
   };
 }

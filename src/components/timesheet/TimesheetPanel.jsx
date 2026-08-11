@@ -125,7 +125,6 @@ const blankEntry = () => ({
   workDate: todayStr(),
   startTime: "",
   endTime: "",
-  breakMinutes: "",
   note: "",
 });
 
@@ -170,7 +169,9 @@ function HoursTab({ employee }) {
           onChange={(e) => set("workDate", e.target.value)}
           className="w-full h-11 px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
         />
-        <div className="grid grid-cols-3 gap-2">
+        {/* Start and end only — the two fields now share the row that used to
+            hold a break, so each gets a wider, easier tap target. */}
+        <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1">
             <span className="text-[10px] uppercase tracking-wide text-n-400">{t("ts_start")}</span>
             <input
@@ -187,18 +188,6 @@ function HoursTab({ employee }) {
               value={draft.endTime}
               onChange={(e) => set("endTime", e.target.value)}
               className="h-11 px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wide text-n-400">{t("ts_break")}</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min="0"
-              placeholder="0"
-              value={draft.breakMinutes}
-              onChange={(e) => set("breakMinutes", e.target.value)}
-              className="h-11 px-2 text-center rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
             />
           </label>
         </div>

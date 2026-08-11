@@ -1,10 +1,10 @@
 // src/models/TimesheetModel.test.js
 //
 // These numbers become wages, so the edges are covered explicitly: shifts that
-// cross midnight, breaks that swallow the shift, and a day made of two rows.
+// cross midnight, a day made of two rows, and rows saved back when breaks were
+// still recorded.
 import { describe, it, expect } from "vitest";
 import {
-  MAX_BREAK_MINUTES,
   isValidTime,
   toMinutes,
   toTime,
@@ -69,7 +69,10 @@ describe("entryMinutes", () => {
     expect(entryMinutes(shift())).toBe(480);
   });
 
-  it("subtracts the break", () => {
+  it("still subtracts a break stored before the field was dropped", () => {
+    // Breaks are no longer entered, but old rows carry one and were totalled
+    // with it deducted. Ignoring it now would retrospectively add hours to
+    // months that have already been paid.
     expect(entryMinutes(shift({ breakMinutes: 30 }))).toBe(450);
   });
 
@@ -85,7 +88,7 @@ describe("entryMinutes", () => {
     expect(entryMinutes(shift({ startTime: "09:00", endTime: "09:00" }))).toBe(1440);
   });
 
-  it("never goes negative when the break is longer than the shift", () => {
+  it("never goes negative when an old break is longer than the shift", () => {
     expect(entryMinutes(shift({ startTime: "09:00", endTime: "10:00", breakMinutes: 120 }))).toBe(0);
   });
 
@@ -129,16 +132,6 @@ describe("validateEntry", () => {
     expect(r.errors.length).toBeGreaterThanOrEqual(4);
   });
 
-  it("rejects a break longer than the shift", () => {
-    const r = validateEntry(shift({ startTime: "09:00", endTime: "10:00", breakMinutes: 90 }));
-    expect(r.ok).toBe(false);
-    expect(r.errors.join(" ")).toMatch(/break is longer/i);
-  });
-
-  it("rejects an implausible break", () => {
-    expect(validateEntry(shift({ breakMinutes: MAX_BREAK_MINUTES + 1 })).ok).toBe(false);
-  });
-
   it("flags a shift over 16 hours as a likely typo", () => {
     // 09:00 to 08:00 next day is 23h — nearly always an am/pm slip.
     const r = validateEntry(shift({ startTime: "09:00", endTime: "08:00" }));
@@ -149,15 +142,19 @@ describe("validateEntry", () => {
 
 describe("buildEntryPayload", () => {
   it("normalises and trims", () => {
-    const p = buildEntryPayload(shift({ note: "  covered for Ravi  ", breakMinutes: "30" }));
+    const p = buildEntryPayload(shift({ note: "  covered for Ravi  " }));
     expect(p).toEqual({
       employeeId: "e1",
       workDate: "2026-08-10",
       startTime: "09:00",
       endTime: "17:00",
-      breakMinutes: 30,
       note: "covered for Ravi",
     });
+  });
+
+  it("carries no break, even when one is handed to it", () => {
+    // The column stays in the database for history; nothing new writes to it.
+    expect(buildEntryPayload(shift({ breakMinutes: "30" }))).not.toHaveProperty("breakMinutes");
   });
 
   it("caps a runaway note", () => {

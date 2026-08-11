@@ -9,6 +9,8 @@ import {
   buildTeamSheet,
   buildEmployeePdf,
   buildTeamPdf,
+  signaturePlacement,
+  SIGNATURE_HEIGHT_MM,
 } from "./exportTimesheetPdf.js";
 
 const emp = { id: "e1", name: "Ravi Kumar" };
@@ -60,10 +62,11 @@ describe("buildEmployeeSheet", () => {
     expect(sheet.totalMinutes).toBe(960);
   });
 
-  it("shows a break only when there is one", () => {
-    const withBreak = sheet.rows.find((r) => r.start === "09:00");
-    expect(withBreak.breakMinutes).toBe(30);
-    expect(sheet.rows.find((r) => r.start === "11:00").breakMinutes).toBe(0);
+  it("carries no break column", () => {
+    // Breaks are not recorded any more. An old row's stored break is still
+    // deducted from `worked`, but the sheet never prints it as its own figure.
+    expect(sheet.rows.every((r) => !("breakMinutes" in r))).toBe(true);
+    expect(sheet.rows.find((r) => r.start === "09:00").worked).toBe("7h 30m");
   });
 
   it("survives an unknown employee and an empty month", () => {
@@ -90,6 +93,22 @@ describe("buildTeamSheet", () => {
 
   it("totals the team", () => {
     expect(buildTeamSheet(employees, all, "2026-08").totalFormatted).toBe("26h");
+  });
+});
+
+describe("signature block", () => {
+  const A4 = 297; // mm
+
+  it("stays on the page when there is room", () => {
+    expect(signaturePlacement(200, A4)).toEqual({ newPage: false, y: 200 });
+  });
+
+  it("moves to a new page rather than being split or drawn off the edge", () => {
+    // The last position that still fits, and the first that does not.
+    const last = A4 - 14 - SIGNATURE_HEIGHT_MM;
+    expect(signaturePlacement(last, A4).newPage).toBe(false);
+    expect(signaturePlacement(last + 1, A4).newPage).toBe(true);
+    expect(signaturePlacement(last + 1, A4).y).toBe(14);
   });
 });
 
