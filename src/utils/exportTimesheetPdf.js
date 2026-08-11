@@ -12,8 +12,6 @@ import { LIBERATION_SANS_REGULAR, LIBERATION_SANS_BOLD } from "../fonts/liberati
 import {
   monthlySummary,
   monthlyByEmployee,
-  formatMinutes,
-  toDecimalHours,
   entryMinutes,
 } from "../models/TimesheetModel.js";
 
@@ -74,6 +72,18 @@ export function monthLabelPl(monthId) {
   return name ? `${name} ${y}` : String(monthId || "");
 }
 
+// "32h 30min". The app writes "30m", which is fine in English, but on a Polish
+// page a bare "m" is metres — "min" is the abbreviation a Pole expects, and it
+// costs two characters. A whole number of hours prints without "0min".
+export function formatDuration(minutes) {
+  const m = Math.max(0, Math.round(Number(minutes) || 0));
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  if (h === 0) return `${rem}min`;
+  if (rem === 0) return `${h}h`;
+  return `${h}h ${rem}min`;
+}
+
 export function monthLabelBoth(monthId) {
   const pl = monthLabelPl(monthId);
   const en = monthLabel(monthId);
@@ -97,7 +107,6 @@ const T = {
   total: "Razem · Total",
   // Days worked, phrased to sidestep Polish plurals: 1 dzień, 2 dni, 5 dni.
   daysWorked: (n) => `Przepracowane dni: ${n} · ${n} days worked`,
-  decimalHours: (n) => `Godziny dziesiętnie: ${n} · ${n} decimal hours`,
   empty: "Brak zarejestrowanych godzin w tym miesiącu.",
   emptyEn: "No hours recorded for this month.",
   declaration: "Potwierdzam, że powyższe godziny są prawidłowe.",
@@ -219,14 +228,16 @@ export function buildEmployeeSheet(employee, entries, monthId) {
         date: i === 0 ? day.date : "",
         start: e.startTime,
         end: e.endTime,
-        worked: formatMinutes(entryMinutes(e)),
+        worked: formatDuration(entryMinutes(e)),
         note: e.note || "",
       })),
     ),
     daysWorked: summary.daysWorked,
     totalMinutes: summary.minutes,
-    totalFormatted: summary.formatted,
-    totalDecimal: toDecimalHours(summary.minutes),
+    // Hours and minutes, and nothing else. The employee signing this wants to
+    // recognise their own shifts; a decimal alongside is a second number to
+    // reconcile, and the one place a disagreement can start.
+    totalFormatted: formatDuration(summary.minutes),
   };
 }
 
@@ -241,11 +252,13 @@ export function buildTeamSheet(employees, entries, monthId) {
     rows: rows.map((r) => ({
       employeeName: r.employeeName,
       daysWorked: r.daysWorked,
-      worked: r.formatted,
+      worked: formatDuration(r.minutes),
+      // Kept only here: this is the sheet payroll works from, and decimal is
+      // what an hourly wage gets multiplied by.
       decimal: r.hours,
     })),
     totalMinutes: rows.reduce((n, r) => n + r.minutes, 0),
-    totalFormatted: formatMinutes(rows.reduce((n, r) => n + r.minutes, 0)),
+    totalFormatted: formatDuration(rows.reduce((n, r) => n + r.minutes, 0)),
   };
 }
 
@@ -294,10 +307,6 @@ export function buildEmployeePdf(employee, entries, monthId) {
 
   y = doc.lastAutoTable.finalY + 5;
   y = drawTotal(doc, T.daysWorked(sheet.daysWorked), sheet.totalFormatted, y);
-
-  doc.setFont(FONT, "normal").setFontSize(8).setTextColor(...MUTED);
-  y += 5;
-  doc.text(T.decimalHours(sheet.totalDecimal), MARGIN, y);
 
   drawSignature(doc, y);
   return doc;

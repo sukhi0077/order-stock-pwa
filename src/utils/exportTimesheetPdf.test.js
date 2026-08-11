@@ -11,6 +11,7 @@ import {
   buildTeamPdf,
   monthLabelPl,
   monthLabelBoth,
+  formatDuration,
   signaturePlacement,
   SIGNATURE_HEIGHT_MM,
 } from "./exportTimesheetPdf.js";
@@ -51,6 +52,24 @@ describe("monthLabel", () => {
   });
 });
 
+describe("formatDuration", () => {
+  it("writes minutes as min, not m", () => {
+    expect(formatDuration(1952)).toBe("32h 32min");
+    expect(formatDuration(450)).toBe("7h 30min");
+    expect(formatDuration(45)).toBe("45min");
+  });
+
+  it("leaves off a zero remainder rather than printing 32h 0min", () => {
+    expect(formatDuration(1920)).toBe("32h");
+    expect(formatDuration(0)).toBe("0min");
+  });
+
+  it("does not go negative or NaN on junk", () => {
+    expect(formatDuration(-60)).toBe("0min");
+    expect(formatDuration(undefined)).toBe("0min");
+  });
+});
+
 describe("buildEmployeeSheet", () => {
   const sheet = buildEmployeeSheet(emp, entries, "2026-08");
 
@@ -75,25 +94,31 @@ describe("buildEmployeeSheet", () => {
     expect(third[1].date).toBe("");
   });
 
-  it("totals the month in both forms", () => {
+  it("totals the month as hours and minutes only", () => {
     // 4h + 4h30 on the 3rd, 7h30 on the 4th = 16h.
     expect(sheet.totalFormatted).toBe("16h");
-    expect(sheet.totalDecimal).toBe(16);
     expect(sheet.totalMinutes).toBe(960);
+    // No decimal figure anywhere on an employee's own sheet — one number to
+    // check, not two to reconcile.
+    expect(sheet).not.toHaveProperty("totalDecimal");
+  });
+
+  it("writes each row's hours the same way as the total", () => {
+    expect(sheet.rows.find((r) => r.start === "18:00").worked).toBe("4h 30min");
   });
 
   it("carries no break column", () => {
     // Breaks are not recorded any more. An old row's stored break is still
     // deducted from `worked`, but the sheet never prints it as its own figure.
     expect(sheet.rows.every((r) => !("breakMinutes" in r))).toBe(true);
-    expect(sheet.rows.find((r) => r.start === "09:00").worked).toBe("7h 30m");
+    expect(sheet.rows.find((r) => r.start === "09:00").worked).toBe("7h 30min");
   });
 
   it("survives an unknown employee and an empty month", () => {
     expect(buildEmployeeSheet(null, entries, "2026-08").employeeName).toBe("Unknown");
     const empty = buildEmployeeSheet(emp, entries, "2026-02");
     expect(empty.rows).toEqual([]);
-    expect(empty.totalFormatted).toBe("0m");
+    expect(empty.totalFormatted).toBe("0min");
   });
 });
 
