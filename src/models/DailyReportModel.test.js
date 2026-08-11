@@ -83,31 +83,108 @@ describe("getInitialState", () => {
 });
 
 describe("morningCash — what was counted in the box this morning", () => {
+  // Typed in by hand: the tick is off and the box is the only source.
+  const typed = (over = {}) => ({ ...base(), morningCashAuto: false, ...over });
+
   it("is null when left blank, not 0", () => {
     // A blank box and a genuine zero float are different facts; collapsing
     // them would make an unfilled field look like a counted empty till.
-    const out = DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "" });
-    expect(out.morningCash).toBeNull();
-    expect(DailyReportModel.cleanPayloadForDatabase({ ...base() }).morningCash).toBeNull();
     expect(
-      DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "   " }).morningCash,
+      DailyReportModel.cleanPayloadForDatabase(typed({ morningCash: "" })).morningCash,
+    ).toBeNull();
+    expect(DailyReportModel.cleanPayloadForDatabase(typed()).morningCash).toBeNull();
+    expect(
+      DailyReportModel.cleanPayloadForDatabase(typed({ morningCash: "   " })).morningCash,
     ).toBeNull();
   });
 
   it("keeps a real zero", () => {
     expect(
-      DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "0" }).morningCash,
+      DailyReportModel.cleanPayloadForDatabase(typed({ morningCash: "0" })).morningCash,
     ).toBe(0);
   });
 
   it("rounds to 2 decimals, like every other money field", () => {
     expect(
-      DailyReportModel.cleanPayloadForDatabase({ ...base(), morningCash: "120.456" }).morningCash,
+      DailyReportModel.cleanPayloadForDatabase(typed({ morningCash: "120.456" })).morningCash,
     ).toBe(120.46);
   });
 
   it("starts blank on a fresh report", () => {
     expect(DailyReportModel.getInitialState().morningCash).toBe("");
+  });
+
+  describe("the 'same as yesterday' tick", () => {
+    it("is on for a fresh report — the ordinary morning", () => {
+      expect(DailyReportModel.getInitialState().morningCashAuto).toBe(true);
+    });
+
+    it("stores yesterday's closing cash while ticked, whatever is in the box", () => {
+      const out = DailyReportModel.cleanPayloadForDatabase({
+        ...base(),
+        cashFromYesterday: "300",
+        morningCash: "999",
+        morningCashAuto: true,
+      });
+      expect(out.morningCash).toBe(300);
+    });
+
+    it("reads yesterday's cash at save time, so a late correction carries through", () => {
+      // The concurrency check rewrites cashFromYesterday when someone else
+      // submits first. A value copied at tick time would have gone stale here.
+      const data = { ...base(), morningCash: "", morningCashAuto: true, cashFromYesterday: "180" };
+      expect(DailyReportModel.cleanPayloadForDatabase(data).morningCash).toBe(180);
+      expect(
+        DailyReportModel.cleanPayloadForDatabase({ ...data, cashFromYesterday: "240" }).morningCash,
+      ).toBe(240);
+    });
+
+    it("stores what was typed once unticked", () => {
+      const out = DailyReportModel.cleanPayloadForDatabase({
+        ...base(),
+        cashFromYesterday: "300",
+        morningCash: "275.5",
+        morningCashAuto: false,
+      });
+      expect(out.morningCash).toBe(275.5);
+    });
+
+    it("only an explicit tick mirrors — anything else is treated as typed", () => {
+      // A caller that knows nothing about the tick keeps the old behaviour.
+      expect(
+        DailyReportModel.resolveMorningCash({ cashFromYesterday: "300", morningCash: "120" }),
+      ).toBe(120);
+      expect(
+        DailyReportModel.resolveMorningCash({
+          cashFromYesterday: "300",
+          morningCash: "120",
+          morningCashAuto: "yes",
+        }),
+      ).toBe(120);
+    });
+
+    it("stays null when ticked but yesterday's cash is not known yet", () => {
+      const out = DailyReportModel.cleanPayloadForDatabase({
+        ...base(),
+        cashFromYesterday: "",
+        morningCash: "",
+        morningCashAuto: true,
+      });
+      expect(out.morningCash).toBeNull();
+    });
+
+    it("opens a saved draft with the tick as it was left", () => {
+      expect(DailyReportModel.normalize({ morningCashAuto: true }).morningCashAuto).toBe(true);
+      expect(DailyReportModel.normalize({ morningCashAuto: false }).morningCashAuto).toBe(false);
+    });
+
+    it("opens a report from the database as a typed figure, not a re-derived one", () => {
+      // The database records the amount, not how it was arrived at. Assuming
+      // the tick would recompute a number somebody already checked.
+      const loaded = DailyReportModel.normalize({ morningCash: 275.5, cashFromYesterday: 300 });
+      expect(loaded.morningCashAuto).toBe(false);
+      expect(DailyReportModel.cleanPayloadForDatabase(loaded).morningCash).toBe(275.5);
+    });
   });
 
   it("does NOT feed the expected-cash calculation", () => {

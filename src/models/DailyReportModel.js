@@ -120,6 +120,12 @@ export class DailyReportModel {
       ...data,
       delivery: buildDelivery(data.delivery, platforms),
       couponsGiven: Array.isArray(data.couponsGiven) ? data.couponsGiven : [],
+      // A saved draft carries the tick; a report loaded from the database does
+      // not, because the database stores the amount and not how it was
+      // arrived at. So an existing report opens as a typed figure. Inheriting
+      // the fresh-form default of `true` would be worse than wrong: it would
+      // re-derive a number somebody already checked and signed off.
+      morningCashAuto: data.morningCashAuto ?? false,
     };
   }
 
@@ -138,6 +144,12 @@ export class DailyReportModel {
       // Counted in the box first thing today. Recorded, not calculated with —
       // see cleanPayloadForDatabase and calculateExpectedCash.
       morningCash: "",
+      // Tick means "the box held exactly what yesterday closed on", which is
+      // the ordinary morning. Nothing is copied into morningCash while it is
+      // ticked: the figure is resolved at save time, so a late correction to
+      // yesterday's cash — the concurrency check does exactly that — carries
+      // through instead of leaving a stale copy behind.
+      morningCashAuto: true,
       cashTakenList: [],
       cashAddedList: [],
       totalCashInBox: "",
@@ -149,6 +161,21 @@ export class DailyReportModel {
       // The employee who filed the report (picked from a dropdown).
       reporterId: "",
     };
+  }
+
+  // What actually gets stored as this morning's cash.
+  //
+  // Ticked, it is yesterday's closing figure, read at save time rather than
+  // copied when the box was ticked. Unticked, it is whatever was typed.
+  //
+  // Optional either way: an empty box stays null rather than becoming 0, so an
+  // unanswered question stays distinguishable from a counted empty till.
+  // Only an explicit `true` mirrors — anything else is treated as typed, so a
+  // caller that knows nothing about the tick keeps the old behaviour.
+  static resolveMorningCash(data) {
+    const source =
+      data?.morningCashAuto === true ? data?.cashFromYesterday : data?.morningCash;
+    return String(source ?? "").trim() === "" ? null : round2(safeNum(source));
   }
 
   static calculateOnlineSale(deliveryData) {
@@ -356,12 +383,7 @@ export class DailyReportModel {
         ]),
       ),
 
-      // Optional: an empty box stays empty rather than becoming 0, so a blank
-      // is distinguishable from a genuine zero float.
-      morningCash:
-        String(data.morningCash ?? "").trim() === ""
-          ? null
-          : round2(safeNum(data.morningCash)),
+      morningCash: DailyReportModel.resolveMorningCash(data),
 
       cashTakenList: (data.cashTakenList || [])
         .filter(

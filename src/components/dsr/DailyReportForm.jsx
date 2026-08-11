@@ -49,6 +49,23 @@ export default function DailyReportForm({
 
   const isEditMode = !!initialData;
 
+  // "Morning cash is yesterday's closing cash." Ticked on a fresh report,
+  // untouched on one loaded from the database — see DailyReportModel.normalize.
+  const morningCashAuto = data.morningCashAuto === true;
+  const setMorningCashAuto = (checked) => {
+    if (!checked) {
+      // Seed the box with the figure that was on screen, so unticking is an
+      // amendment to a number somebody can see rather than a blank to fill.
+      handleChange(
+        "morningCash",
+        data.cashFromYesterday === "" || data.cashFromYesterday == null
+          ? ""
+          : String(data.cashFromYesterday),
+      );
+    }
+    handleChange("morningCashAuto", checked);
+  };
+
   // After a failed submit, jump to the first field that has an error so the
   // user is taken straight to the problem (instead of just scrolling to top).
   const formRef = useRef(null);
@@ -613,23 +630,50 @@ export default function DailyReportForm({
             {/* Today Morning Cash — what was actually counted in the box
                 this morning. Sits under yesterday's closing because the two
                 are meant to be compared; it is recorded, not calculated with,
-                so an odd float never silently moves the expected total. */}
+                so an odd float never silently moves the expected total.
+
+                Ticked by default, because on almost every morning the box
+                holds what last night closed on. Untick it on the morning it
+                doesn't, which is the morning worth recording. */}
             <div className="flex items-center justify-between gap-3 px-3 py-2.5">
               <span className="text-sm font-medium text-n-700">
                 Today Morning Cash
                 <span className="block text-xs text-n-400 mt-0.5">
-                  Counted in the box this morning (optional)
+                  {morningCashAuto
+                    ? "Same as yesterday's closing cash"
+                    : "Counted in the box this morning"}
                 </span>
               </span>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="any"
-                value={data.morningCash ?? ""}
-                onChange={(e) => handleChange("morningCash", e.target.value)}
-                placeholder="0.00"
-                className="w-28 text-right p-1.5 rounded-lg bg-n-0 border border-accent-200 dark:border-accent-700/40 text-accent-700 dark:text-accent-300 font-bold outline-none focus:ring-2 focus:ring-accent-500"
-              />
+              <div className="flex items-center gap-2 shrink-0">
+                <input
+                  id="morning-cash-auto"
+                  type="checkbox"
+                  checked={morningCashAuto}
+                  onChange={(e) => setMorningCashAuto(e.target.checked)}
+                  aria-label="Morning cash is the same as yesterday's closing cash"
+                  className="h-5 w-5 shrink-0 accent-accent-600 cursor-pointer"
+                />
+                {morningCashAuto ? (
+                  // Shown, not typed into: the figure is yesterday's, and the
+                  // tick is what says so. A disabled box holding a copy would
+                  // look editable and go stale if yesterday's cash changed.
+                  <span className="w-28 text-right p-1.5 text-base font-bold text-n-400">
+                    {isLoadingPrevData
+                      ? "…"
+                      : Number(data.cashFromYesterday || 0).toFixed(2)}
+                  </span>
+                ) : (
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="any"
+                    value={data.morningCash ?? ""}
+                    onChange={(e) => handleChange("morningCash", e.target.value)}
+                    placeholder="0.00"
+                    className="w-28 text-right p-1.5 rounded-lg bg-n-0 border border-accent-200 dark:border-accent-700/40 text-accent-700 dark:text-accent-300 font-bold outline-none focus:ring-2 focus:ring-accent-500"
+                  />
+                )}
+              </div>
             </div>
 
             {/* Today's Cash Sale — mirrors the Cash Sale entered in card 1 */}
