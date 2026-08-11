@@ -53,25 +53,26 @@ export function monthLabel(monthId) {
   return name ? `${name} ${y}` : String(monthId || "");
 }
 
-// Left: who is paying. Right: who is being paid, and for which month.
+// Left: who is being paid, and for which month. Right: who is paying.
 //
-// The name on the right is set as large as the business name, because that is
-// what someone flicking through a stack of these sheets is looking for.
+// The name leads the page at the same size as the business, because it is what
+// someone thumbing through a stack of these sheets is looking for; the
+// restaurant's details sit opposite, where a letterhead's small print belongs.
 function drawLetterhead(doc, title, subtitle) {
   const right = doc.internal.pageSize.getWidth() - MARGIN;
   let y = MARGIN;
 
   doc.setFont(FONT, "bold").setFontSize(13).setTextColor(...INK);
-  doc.text(BUSINESS.name, MARGIN, y);
-  doc.text(title, right, y, { align: "right" });
+  doc.text(title, MARGIN, y);
+  doc.text(BUSINESS.name, right, y, { align: "right" });
 
   y += 4.5;
   doc.setFont(FONT, "normal").setFontSize(8.5).setTextColor(...MUTED);
-  doc.text(BUSINESS.address, MARGIN, y);
-  doc.text(subtitle, right, y, { align: "right" });
+  doc.text(subtitle, MARGIN, y);
+  doc.text(BUSINESS.address, right, y, { align: "right" });
 
   y += 4;
-  doc.text(BUSINESS.nip, MARGIN, y);
+  doc.text(BUSINESS.nip, right, y, { align: "right" });
 
   y += 3;
   doc.setDrawColor(...INK).setLineWidth(0.5);
