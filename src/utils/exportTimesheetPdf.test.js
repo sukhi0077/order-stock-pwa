@@ -12,6 +12,7 @@ import {
   monthLabelPl,
   monthLabelBoth,
   formatDuration,
+  datesInMonth,
   signaturePlacement,
   SIGNATURE_HEIGHT_MM,
 } from "./exportTimesheetPdf.js";
@@ -86,6 +87,36 @@ describe("buildEmployeeSheet", () => {
     expect(sheet.daysWorked).toBe(2);
   });
 
+  it("prints every day of the month, worked or not", () => {
+    // August has 31 days; two were worked, one of them twice.
+    expect(sheet.rows).toHaveLength(32);
+    expect(sheet.rows[0].date).toBe("2026-08-01");
+    expect(sheet.rows.at(-1).date).toBe("2026-08-31");
+  });
+
+  it("dashes a day nobody worked, and leaves its note empty", () => {
+    const off = sheet.rows.find((r) => r.date === "2026-08-01");
+    expect(off).toMatchObject({ start: "--", end: "--", worked: "--", note: "", off: true });
+  });
+
+  it("counts only worked days in the total, not the dashed ones", () => {
+    expect(sheet.daysWorked).toBe(2);
+    expect(sheet.totalFormatted).toBe("16h");
+  });
+
+  it("gets the length of a short month and a leap February right", () => {
+    expect(datesInMonth("2026-02")).toHaveLength(28);
+    expect(datesInMonth("2024-02")).toHaveLength(29);
+    expect(datesInMonth("2026-04")).toHaveLength(30);
+    expect(datesInMonth("2026-12").at(-1)).toBe("2026-12-31");
+  });
+
+  it("falls back to listing what it has when the month id is junk", () => {
+    // Better a short sheet than one with no dates on it at all.
+    expect(datesInMonth("nonsense")).toEqual([]);
+    expect(buildEmployeeSheet(emp, entries, "nonsense").rows).toEqual([]);
+  });
+
   it("prints the date once per day, not per stretch of a split shift", () => {
     // Two rows for 3 Aug; repeating the date would read as two days.
     const third = sheet.rows.filter((r) => r.start === "11:00" || r.start === "18:00");
@@ -114,10 +145,14 @@ describe("buildEmployeeSheet", () => {
     expect(sheet.rows.find((r) => r.start === "09:00").worked).toBe("7h 30min");
   });
 
-  it("survives an unknown employee and an empty month", () => {
+  it("survives an unknown employee, and lays out a month nobody worked", () => {
     expect(buildEmployeeSheet(null, entries, "2026-08").employeeName).toBe("Unknown");
     const empty = buildEmployeeSheet(emp, entries, "2026-02");
-    expect(empty.rows).toEqual([]);
+    // Not blank: 28 dashed days, which is both a true record of the month and
+    // a form somebody can fill in by hand.
+    expect(empty.rows).toHaveLength(28);
+    expect(empty.rows.every((r) => r.off)).toBe(true);
+    expect(empty.daysWorked).toBe(0);
     expect(empty.totalFormatted).toBe("0min");
   });
 });
@@ -163,10 +198,26 @@ describe("signature block", () => {
 });
 
 describe("rendering", () => {
+  // A day worked every day of a 31-day month, plus `splits` second shifts.
+  const monthOf = (splits) =>
+    Array.from({ length: 31 }, (_, i) => {
+      const date = `2026-08-${String(i + 1).padStart(2, "0")}`;
+      const day = [{ employeeId: "e1", workDate: date, startTime: "11:00", endTime: "15:00" }];
+      if (i < splits) day.push({ employeeId: "e1", workDate: date, startTime: "18:00", endTime: "22:45" });
+      return day;
+    }).flat();
+
   it("produces a one-page document for a normal month", () => {
     const doc = buildEmployeePdf(emp, entries, "2026-08");
     expect(pageCount(doc)).toBe(1);
     expect(doc.output("arraybuffer").byteLength).toBeGreaterThan(1000);
+  });
+
+  it("keeps a full 31-day month and the signature on one page", () => {
+    // The whole point of printing every day is that the month is one sheet.
+    // Row padding is set so this holds up to three split shifts as well.
+    expect(pageCount(buildEmployeePdf(emp, monthOf(0), "2026-08"))).toBe(1);
+    expect(pageCount(buildEmployeePdf(emp, monthOf(3), "2026-08"))).toBe(1);
   });
 
   it("renders Polish names without throwing", () => {
@@ -175,16 +226,15 @@ describe("rendering", () => {
   });
 
   it("still produces a document for an empty month", () => {
+    // 31 dashed days, still one page.
     expect(pageCount(buildEmployeePdf(emp, [], "2026-08"))).toBe(1);
     expect(pageCount(buildTeamPdf([], [], "2026-08"))).toBe(1);
   });
 
-  it("paginates a full month of split shifts", () => {
-    const many = Array.from({ length: 31 }, (_, i) => [
-      { employeeId: "e1", workDate: `2026-08-${String(i + 1).padStart(2, "0")}`, startTime: "09:00", endTime: "13:00", breakMinutes: 0 },
-      { employeeId: "e1", workDate: `2026-08-${String(i + 1).padStart(2, "0")}`, startTime: "17:00", endTime: "22:00", breakMinutes: 0 },
-    ]).flat();
-    expect(pageCount(buildEmployeePdf(emp, many, "2026-08"))).toBeGreaterThan(1);
+  it("spills onto a second page when there is genuinely more to print", () => {
+    // A month of split shifts is more content than a page holds; better a
+    // second sheet than squeezed type.
+    expect(pageCount(buildEmployeePdf(emp, monthOf(31), "2026-08"))).toBeGreaterThan(1);
   });
 
   it("does not mutate the entries it is given", () => {

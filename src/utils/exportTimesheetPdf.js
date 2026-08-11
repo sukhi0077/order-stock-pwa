@@ -14,6 +14,7 @@ import {
   monthlyByEmployee,
   entryMinutes,
 } from "../models/TimesheetModel.js";
+import { monthEndDate } from "./monthUtils.js";
 
 const BUSINESS = {
   name: "Misa Hindusa Poznan",
@@ -194,7 +195,10 @@ function drawSignature(doc, startY) {
 const TABLE_STYLE = {
   font: FONT,
   fontSize: 9,
-  cellPadding: { top: 1.6, bottom: 1.6, left: 1.8, right: 1.8 },
+  // Tight enough that a 31-day month and the signature share one page. Any
+  // tighter and the rows start to run together; the type size is left alone
+  // because this is a page people read line by line before signing it.
+  cellPadding: { top: 1.05, bottom: 1.05, left: 1.8, right: 1.8 },
   lineColor: LINE,
   lineWidth: 0.1,
   textColor: INK,
@@ -211,8 +215,49 @@ const HEAD_STYLE = {
 
 // The content of a one-employee sheet, separate from its drawing so it can be
 // asserted on — jsPDF writes subset glyph IDs, not readable text.
+// Every date in the month, "2026-08-01" through to the last day. Empty for an
+// unparseable month id, which the caller treats as "list only what you have"
+// rather than printing a sheet with no dates on it at all.
+export function datesInMonth(monthId) {
+  if (!/^\d{4}-\d{2}$/.test(String(monthId || ""))) return [];
+  const last = Number(monthEndDate(monthId).slice(-2));
+  if (!Number.isFinite(last) || last < 28 || last > 31) return [];
+  return Array.from(
+    { length: last },
+    (_, i) => `${monthId}-${String(i + 1).padStart(2, "0")}`,
+  );
+}
+
+// A day nobody worked. Two dashes rather than a blank cell: an empty row could
+// be a day off or a day someone forgot to record, and on a sheet being signed
+// the difference matters. A dash says the month was looked at.
+export const BLANK = "--";
+
 export function buildEmployeeSheet(employee, entries, monthId) {
   const summary = monthlySummary(entries, monthId);
+  const worked = new Map(summary.days.map((d) => [d.date, d]));
+  const calendar = datesInMonth(monthId);
+
+  // The whole month, so the sheet is a record of all 30 or 31 days and not
+  // just the ones with hours against them. A gap in a list of worked days is
+  // invisible; a dashed line is a day you can point at and query.
+  const rows = (calendar.length ? calendar : summary.days.map((d) => d.date)).flatMap(
+    (date) => {
+      const day = worked.get(date);
+      if (!day) return [{ date, start: BLANK, end: BLANK, worked: BLANK, note: "", off: true }];
+      return day.entries.map((e, i) => ({
+        // The date is printed once per day, not against every stretch of a
+        // split shift — repeating it makes two rows look like two days.
+        date: i === 0 ? date : "",
+        start: e.startTime,
+        end: e.endTime,
+        worked: formatDuration(entryMinutes(e)),
+        note: e.note || "",
+        off: false,
+      }));
+    },
+  );
+
   return {
     business: BUSINESS,
     employeeName: employee?.name || "Unknown",
@@ -220,17 +265,7 @@ export function buildEmployeeSheet(employee, entries, monthId) {
     monthLabel: monthLabel(monthId),
     monthLabelPl: monthLabelPl(monthId),
     monthLabelBoth: monthLabelBoth(monthId),
-    rows: summary.days.flatMap((day) =>
-      day.entries.map((e, i) => ({
-        // The date is printed once per day, not against every stretch of a
-        // split shift — repeating it makes two rows look like two days.
-        date: i === 0 ? day.date : "",
-        start: e.startTime,
-        end: e.endTime,
-        worked: formatDuration(entryMinutes(e)),
-        note: e.note || "",
-      })),
-    ),
+    rows,
     daysWorked: summary.daysWorked,
     totalMinutes: summary.minutes,
     // Hours and minutes, and nothing else. The employee signing this wants to
@@ -277,6 +312,10 @@ export function buildEmployeePdf(employee, entries, monthId) {
   const doc = newDoc();
   let y = drawLetterhead(doc, sheet.employeeName, sheet.monthLabelBoth);
 
+  // A month with no hours still prints its calendar — every day dashed, total
+  // zero — which is a truthful record and doubles as a blank form. So this
+  // only fires when the month id itself was unusable and there is genuinely
+  // nothing to lay out.
   if (sheet.rows.length === 0) {
     doc.setFont(FONT, "normal").setFontSize(10).setTextColor(...MUTED);
     doc.text(T.empty, MARGIN, y + 6);
@@ -300,6 +339,14 @@ export function buildEmployeePdf(employee, entries, monthId) {
       2: { cellWidth: 18, halign: "right" },
       3: { cellWidth: 28, halign: "right", fontStyle: "bold" },
       4: { cellWidth: "auto" },
+    },
+    // Days off recede so the worked days are what the eye lands on. They are
+    // still there to be counted — just not competing for attention.
+    didParseCell: (data) => {
+      if (data.section === "body" && sheet.rows[data.row.index]?.off) {
+        data.cell.styles.textColor = FAINT;
+        data.cell.styles.fontStyle = "normal";
+      }
     },
   });
 
