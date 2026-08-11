@@ -19,6 +19,7 @@ import { useT } from "../i18n/i18n.jsx";
 
 // Big, self-contained screen — only loaded when the DSR tab is opened.
 const DsrAdmin = lazy(() => import("./dsr/DsrAdmin.jsx"));
+const StaffAdmin = lazy(() => import("./StaffAdmin.jsx"));
 
 // `initialTab` lets App open the dashboard on the tab matching the tile the
 // admin came from, so switching to Admin while on the Daily Sale Report still
@@ -27,7 +28,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
   const { t, tMonth } = useT();
   const qc = useQueryClient();
   const thisMonth = currentMonthId();
-  const [tab, setTab] = useState(initialTab); // 'orders' | 'stock' | 'expiry' | 'dsr'
+  const [tab, setTab] = useState(initialTab); // 'dsr' | 'orders' | 'stock' | 'expiry' | 'staff'
   const [monthId, setMonthId] = useState(thisMonth);
   const [showDetails, setShowDetails] = useState(false);
   const [showItems, setShowItems] = useState(false);
@@ -132,6 +133,7 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
           { id: "orders", icon: "cart", label: t("tab_orders") },
           { id: "stock", icon: "stock", label: t("tab_stock") },
           { id: "expiry", icon: "calendar", label: t("tab_expiry") },
+          { id: "staff", icon: "people", label: t("tab_staff") },
         ].map((tb) => (
           <button
             key={tb.id}
@@ -150,6 +152,16 @@ export default function AdminDashboard({ reporter, initialTab = "dsr" }) {
         <OrdersAdmin reporter={reporter} />
       ) : tab === "expiry" ? (
         <ExpiryAdmin />
+      ) : tab === "staff" ? (
+        <Suspense
+          fallback={
+            <div className="min-h-[50vh] flex items-center justify-center">
+              <Spinner label={t("loadingItemsShort")} />
+            </div>
+          }
+        >
+          <StaffAdmin />
+        </Suspense>
       ) : tab === "dsr" ? (
         <Suspense
           fallback={

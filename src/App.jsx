@@ -17,6 +17,8 @@ const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
 // The Daily Sale Report is a big, self-contained screen — load it only when
 // someone actually opens the tile.
 const DsrPanel = lazy(() => import("./components/dsr/DsrPanel.jsx"));
+// Timesheet is its own screen and only a few people open it — load on demand.
+const TimesheetPanel = lazy(() => import("./components/timesheet/TimesheetPanel.jsx"));
 
 export default function App() {
   const { user, isAdmin, isAuthLoading, login, logout } = useAuth();
@@ -29,7 +31,7 @@ export default function App() {
   const [isAdminView, setIsAdminView] = useState(
     () => sessionStorage.getItem("isAdminView") === "true",
   );
-  // Landing: 'home' | 'orders' | 'receive' | 'stock' | 'dsr'
+  // Landing: 'home' | 'orders' | 'receive' | 'stock' | 'dsr' | 'timesheet'
   const [mode, setMode] = useState(() => sessionStorage.getItem("appMode") || "home");
 
   // Paint the active section's hue onto <html>, where the accent utilities
@@ -89,7 +91,9 @@ export default function App() {
         ? t("monthStock")
         : mode === "receive"
           ? t("receive")
-          : t("appName");
+          : mode === "timesheet"
+            ? t("timesheet")
+            : t("appName");
 
   return (
     <div
@@ -185,6 +189,17 @@ export default function App() {
           {mode === "stock" && <StaffPanel reporter={reporter} isOnline={isOnline} />}
           {mode === "orders" && <OrderPanel reporter={reporter} />}
           {mode === "receive" && <ReceivePanel reporter={reporter} />}
+          {mode === "timesheet" && (
+            <Suspense
+              fallback={
+                <div className="min-h-[60vh] flex items-center justify-center">
+                  <Spinner label="Loading timesheet…" />
+                </div>
+              }
+            >
+              <TimesheetPanel />
+            </Suspense>
+          )}
           {mode === "dsr" && (
             <Suspense
               fallback={

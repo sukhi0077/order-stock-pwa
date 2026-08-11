@@ -26,6 +26,12 @@ const ICONS = {
       <path d="M9 14h6" />
     </>
   ),
+  timesheet: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
   stock: (
     <>
       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
@@ -140,6 +146,7 @@ export default function HomeChooser({ onChoose }) {
     ["orders", t("placeOrder"), t("placeOrder_desc")],
     ["receive", t("receive"), t("receive_desc")],
     ["stock", t("monthStock"), t("monthStock_desc")],
+    ["timesheet", t("timesheet"), t("timesheet_desc")],
   ];
 
   return (

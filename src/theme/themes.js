@@ -91,6 +91,7 @@ export const THEMES = {
     receive: S("blue"),
     stock: S("amber"),
     dsr: S("violet"),
+    timesheet: S("sky"),
     admin: S("indigo"),
   },
   ocean: {
@@ -101,6 +102,7 @@ export const THEMES = {
     receive: S("sky"),
     stock: S("cyan"),
     dsr: S("indigo"),
+    timesheet: S("teal"),
     admin: S("slate"),
   },
   // The only scheme that flips the neutral ramp. Every surface and text colour
@@ -117,12 +119,13 @@ export const THEMES = {
     receive: S("blue"),
     stock: S("cyan"),
     dsr: S("violet"),
+    timesheet: S("sky"),
     admin: S("indigo"),
   },
 };
 
 // Swatches for the picker: one dot per section, in home-tile order.
-export const SECTIONS = ["dsr", "orders", "receive", "stock"];
+export const SECTIONS = ["dsr", "orders", "receive", "stock", "timesheet"];
 export function swatchesFor(theme) {
   return SECTIONS.map((s) => (RAMPS[theme[s].hue] || RAMPS.teal)[6]);
 }

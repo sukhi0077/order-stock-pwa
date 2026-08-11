@@ -9,7 +9,6 @@ import { todayStr, daysAgoStr, formatDateTime } from "../../utils/dateUtils.js";
 import DailyReportForm from "./DailyReportForm.jsx";
 import ReportDetailsModal from "./ReportDetailsModal.jsx";
 import AdminTrends from "./AdminTrends.jsx";
-import EmployeeManagerModal from "./EmployeeManagerModal.jsx";
 import Spinner from "./ui/DsrSpinner.jsx";
 
 // Currency display: always 2 decimals (stored numbers drop trailing zeros).
@@ -60,7 +59,6 @@ export default function AdminDashboard() {
   const [editingRecord, setEditingRecord] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null); // Controls the Read-Only Modal
   const [isAddingNew, setIsAddingNew] = useState(false); // Admin add past-day report
-  const [isManagingStaff, setIsManagingStaff] = useState(false); // Staff list editor
 
   // Manual date range (used when viewMode === "Custom"). Defaults to Warsaw today.
   const [customStart, setCustomStart] = useState(todayStr);
@@ -519,9 +517,6 @@ export default function AdminDashboard() {
       />
 
       {/* Manage Staff Modal (Google-review coupon members) */}
-      {isManagingStaff && (
-        <EmployeeManagerModal onClose={() => setIsManagingStaff(false)} />
-      )}
 
       {/* 1. HEADER & CONTROLS — minimal monoline: date + actions, then filters */}
       <div className="flex flex-col gap-4 mb-10">
@@ -576,12 +571,6 @@ export default function AdminDashboard() {
               className="text-accent-700 dark:text-accent-300 hover:text-accent-700 dark:hover:text-accent-300 transition"
             >
               + Add
-            </button>
-            <button
-              onClick={() => setIsManagingStaff(true)}
-              className="text-n-700 hover:text-n-900 transition"
-            >
-              Manage Staff
             </button>
             <button
               onClick={handleDownloadCsv}
