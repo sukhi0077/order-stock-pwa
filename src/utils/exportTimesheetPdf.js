@@ -102,7 +102,6 @@ const T = {
   colEmployee: "Pracownik / Employee",
   colDays: "Dni / Days",
   colHours: "Godziny / Hours",
-  colDecimal: "Dziesiętnie / Decimal",
   summaryTitle: "Zestawienie godzin / Hours summary",
   total: "Razem · Total",
   // Days worked, phrased to sidestep Polish plurals: 1 dzień, 2 dni, 5 dni.
@@ -252,10 +251,9 @@ export function buildTeamSheet(employees, entries, monthId) {
     rows: rows.map((r) => ({
       employeeName: r.employeeName,
       daysWorked: r.daysWorked,
+      // Same form as the employee's own sheet: the two documents describe the
+      // same hours, and reading differently is how they come to be doubted.
       worked: formatDuration(r.minutes),
-      // Kept only here: this is the sheet payroll works from, and decimal is
-      // what an hourly wage gets multiplied by.
-      decimal: r.hours,
     })),
     totalMinutes: rows.reduce((n, r) => n + r.minutes, 0),
     totalFormatted: formatDuration(rows.reduce((n, r) => n + r.minutes, 0)),
@@ -328,15 +326,14 @@ export function buildTeamPdf(employees, entries, monthId) {
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
-    head: [[T.colEmployee, T.colDays, T.colHours, T.colDecimal]],
-    body: sheet.rows.map((r) => [r.employeeName, String(r.daysWorked), r.worked, String(r.decimal)]),
+    head: [[T.colEmployee, T.colDays, T.colHours]],
+    body: sheet.rows.map((r) => [r.employeeName, String(r.daysWorked), r.worked]),
     styles: TABLE_STYLE,
     headStyles: HEAD_STYLE,
     columnStyles: {
       0: { cellWidth: "auto" },
-      1: { cellWidth: 20, halign: "right" },
-      2: { cellWidth: 28, halign: "right", fontStyle: "bold" },
-      3: { cellWidth: 32, halign: "right", textColor: FAINT },
+      1: { cellWidth: 24, halign: "right" },
+      2: { cellWidth: 32, halign: "right", fontStyle: "bold" },
     },
   });
 

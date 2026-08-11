@@ -126,18 +126,23 @@ describe("buildTeamSheet", () => {
   const employees = [emp, { id: "e2", name: "Anna Nowak" }];
   const all = [
     ...entries,
-    { employeeId: "e2", workDate: "2026-08-03", startTime: "10:00", endTime: "20:00", breakMinutes: 0 },
+    { employeeId: "e2", workDate: "2026-08-03", startTime: "10:00", endTime: "20:15", breakMinutes: 0 },
   ];
 
   it("gives one row per employee, most hours first", () => {
     const sheet = buildTeamSheet(employees, all, "2026-08");
     expect(sheet.rows.map((r) => r.employeeName)).toEqual(["Ravi Kumar", "Anna Nowak"]);
     expect(sheet.rows[0].worked).toBe("16h");
-    expect(sheet.rows[1].worked).toBe("10h");
+  });
+
+  it("carries minutes in the hours figure rather than a column of its own", () => {
+    const sheet = buildTeamSheet(employees, all, "2026-08");
+    expect(sheet.rows[1].worked).toBe("10h 15min");
+    expect(sheet.rows.every((r) => !("decimal" in r))).toBe(true);
   });
 
   it("totals the team", () => {
-    expect(buildTeamSheet(employees, all, "2026-08").totalFormatted).toBe("26h");
+    expect(buildTeamSheet(employees, all, "2026-08").totalFormatted).toBe("26h 15min");
   });
 });
 
