@@ -178,6 +178,20 @@ export class DailyReportModel {
     return String(source ?? "").trim() === "" ? null : round2(safeNum(source));
   }
 
+  // How far this morning's count is from yesterday's closing cash.
+  //
+  // Positive means more in the box than last night left, negative means less.
+  // Null when there is nothing to compare: while the tick is on the two are
+  // the same figure by definition, and before either number is known a "0.00"
+  // would be a claim rather than a measurement.
+  static morningCashDiff(data) {
+    if (data?.morningCashAuto === true) return null;
+    const typed = String(data?.morningCash ?? "").trim();
+    const yesterday = String(data?.cashFromYesterday ?? "").trim();
+    if (typed === "" || yesterday === "") return null;
+    return round2(safeNum(typed) - safeNum(yesterday));
+  }
+
   static calculateOnlineSale(deliveryData) {
     let sum = 0;
     Object.values(deliveryData || {}).forEach((d) => {

@@ -187,6 +187,46 @@ describe("morningCash — what was counted in the box this morning", () => {
     });
   });
 
+  describe("the gap against yesterday's closing cash", () => {
+    const diff = (over) => DailyReportModel.morningCashDiff({ ...typed(), ...over });
+
+    it("is negative when the box is short and positive when it is over", () => {
+      expect(diff({ cashFromYesterday: "300", morningCash: "230" })).toBe(-70);
+      expect(diff({ cashFromYesterday: "300", morningCash: "320" })).toBe(20);
+    });
+
+    it("is exactly zero when the count agrees", () => {
+      // Zero, not null: the staff member did count, and it matched. That is a
+      // different fact from not having looked.
+      expect(diff({ cashFromYesterday: "300", morningCash: "300" })).toBe(0);
+    });
+
+    it("rounds away float drift instead of reporting a phantom gap", () => {
+      // 300.1 - 300 is 0.09999999999997726 in binary floating point.
+      expect(diff({ cashFromYesterday: "300", morningCash: "300.1" })).toBe(0.1);
+      expect(diff({ cashFromYesterday: "0.3", morningCash: "0.1" })).toBe(-0.2);
+    });
+
+    it("has nothing to say while the tick is on", () => {
+      // The two figures are the same by definition; a gap would be nonsense.
+      expect(
+        DailyReportModel.morningCashDiff({
+          ...base(),
+          morningCashAuto: true,
+          cashFromYesterday: "300",
+          morningCash: "230",
+        }),
+      ).toBeNull();
+    });
+
+    it("waits for both numbers before claiming a gap", () => {
+      // Before either is known, a "0.00" would be an assertion, not a reading.
+      expect(diff({ cashFromYesterday: "300", morningCash: "" })).toBeNull();
+      expect(diff({ cashFromYesterday: "", morningCash: "230" })).toBeNull();
+      expect(diff({ cashFromYesterday: "", morningCash: "" })).toBeNull();
+    });
+  });
+
   it("does NOT feed the expected-cash calculation", () => {
     // It is an observation that may disagree with yesterday's closing; the
     // cash chain is built on cashFromYesterday alone. If this ever changes it

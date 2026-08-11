@@ -65,6 +65,7 @@ export default function DailyReportForm({
     }
     handleChange("morningCashAuto", checked);
   };
+  const morningCashDiff = DailyReportModel.morningCashDiff(data);
 
   // After a failed submit, jump to the first field that has an error so the
   // user is taken straight to the problem (instead of just scrolling to top).
@@ -644,34 +645,54 @@ export default function DailyReportForm({
                     : "Counted in the box this morning"}
                 </span>
               </span>
-              <div className="flex items-center gap-2 shrink-0">
-                <input
-                  id="morning-cash-auto"
-                  type="checkbox"
-                  checked={morningCashAuto}
-                  onChange={(e) => setMorningCashAuto(e.target.checked)}
-                  aria-label="Morning cash is the same as yesterday's closing cash"
-                  className="h-5 w-5 shrink-0 accent-accent-600 cursor-pointer"
-                />
-                {morningCashAuto ? (
-                  // Shown, not typed into: the figure is yesterday's, and the
-                  // tick is what says so. A disabled box holding a copy would
-                  // look editable and go stale if yesterday's cash changed.
-                  <span className="w-28 text-right p-1.5 text-base font-bold text-n-400">
-                    {isLoadingPrevData
-                      ? "…"
-                      : Number(data.cashFromYesterday || 0).toFixed(2)}
-                  </span>
-                ) : (
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <div className="flex items-center gap-2">
                   <input
-                    type="number"
-                    inputMode="decimal"
-                    step="any"
-                    value={data.morningCash ?? ""}
-                    onChange={(e) => handleChange("morningCash", e.target.value)}
-                    placeholder="0.00"
-                    className="w-28 text-right p-1.5 rounded-lg bg-n-0 border border-accent-200 dark:border-accent-700/40 text-accent-700 dark:text-accent-300 font-bold outline-none focus:ring-2 focus:ring-accent-500"
+                    id="morning-cash-auto"
+                    type="checkbox"
+                    checked={morningCashAuto}
+                    onChange={(e) => setMorningCashAuto(e.target.checked)}
+                    aria-label="Morning cash is the same as yesterday's closing cash"
+                    className="h-5 w-5 shrink-0 accent-accent-600 cursor-pointer"
                   />
+                  {morningCashAuto ? (
+                    // Shown, not typed into: the figure is yesterday's, and the
+                    // tick is what says so. A disabled box holding a copy would
+                    // look editable and go stale if yesterday's cash changed.
+                    <span className="w-28 text-right p-1.5 text-base font-bold text-n-400">
+                      {isLoadingPrevData
+                        ? "…"
+                        : Number(data.cashFromYesterday || 0).toFixed(2)}
+                    </span>
+                  ) : (
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="any"
+                      value={data.morningCash ?? ""}
+                      onChange={(e) => handleChange("morningCash", e.target.value)}
+                      placeholder="0.00"
+                      className="w-28 text-right p-1.5 rounded-lg bg-n-0 border border-accent-200 dark:border-accent-700/40 text-accent-700 dark:text-accent-300 font-bold outline-none focus:ring-2 focus:ring-accent-500"
+                    />
+                  )}
+                </div>
+
+                {/* How far the count is from what last night left. Shown the
+                    moment a figure is typed, because the size of the gap is
+                    what tells you whether it is a miscount or a problem. */}
+                {morningCashDiff !== null && (
+                  <span
+                    className={`text-xs font-bold tabular-nums ${
+                      morningCashDiff === 0
+                        ? "text-n-400"
+                        : morningCashDiff < 0
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-emerald-600 dark:text-emerald-400"
+                    }`}
+                  >
+                    {morningCashDiff > 0 ? "+" : morningCashDiff < 0 ? "−" : ""}
+                    {Math.abs(morningCashDiff).toFixed(2)} zł
+                  </span>
                 )}
               </div>
             </div>
