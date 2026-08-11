@@ -41,17 +41,70 @@ function newDoc() {
   return doc;
 }
 
-// "2026-08" -> "August 2026". Built from a fixed list rather than toLocale
-// so the sheet reads the same whatever locale the phone is set to.
-const MONTHS = [
+// The sheet is a Polish document: it is signed by people employed in Poland and
+// may be read by an accountant or a labour inspector who works in Polish. The
+// English underneath is for the kitchen, where not everyone reads Polish yet.
+//
+// Only the fixed furniture is translated. Names, dates and notes are printed as
+// they were entered — a note typed in English is evidence of what was said, and
+// machine-translating it would be inventing words nobody wrote.
+const PL_MONTHS = [
+  "styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec",
+  "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień",
+];
+const EN_MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
+
+// Kept English and single-language: the admin screen shows this above the month
+// navigator, where the app already has its own language switch.
 export function monthLabel(monthId) {
   const [y, m] = String(monthId || "").split("-");
-  const name = MONTHS[Number(m) - 1];
+  const name = EN_MONTHS[Number(m) - 1];
   return name ? `${name} ${y}` : String(monthId || "");
 }
+
+// "2026-08" -> "sierpień 2026 · August 2026", for the sheet itself. Built from
+// fixed lists rather than toLocaleDateString so the printed page reads the same
+// whatever language the phone happens to be set to.
+export function monthLabelPl(monthId) {
+  const [y, m] = String(monthId || "").split("-");
+  const name = PL_MONTHS[Number(m) - 1];
+  return name ? `${name} ${y}` : String(monthId || "");
+}
+
+export function monthLabelBoth(monthId) {
+  const pl = monthLabelPl(monthId);
+  const en = monthLabel(monthId);
+  return pl === en ? pl : `${pl} · ${en}`;
+}
+
+// Polish first, English second, everywhere. Short Polish is chosen where the
+// column is narrow — "Od"/"Do" is how a Pole reads a time range — so every
+// heading stays on one line rather than wrapping into two.
+const T = {
+  colDate: "Data / Date",
+  colStart: "Od / Start",
+  colEnd: "Do / End",
+  colWorked: "Godziny / Worked",
+  colNote: "Uwagi / Note",
+  colEmployee: "Pracownik / Employee",
+  colDays: "Dni / Days",
+  colHours: "Godziny / Hours",
+  colDecimal: "Dziesiętnie / Decimal",
+  summaryTitle: "Zestawienie godzin / Hours summary",
+  total: "Razem · Total",
+  // Days worked, phrased to sidestep Polish plurals: 1 dzień, 2 dni, 5 dni.
+  daysWorked: (n) => `Przepracowane dni: ${n} · ${n} days worked`,
+  decimalHours: (n) => `Godziny dziesiętnie: ${n} · ${n} decimal hours`,
+  empty: "Brak zarejestrowanych godzin w tym miesiącu.",
+  emptyEn: "No hours recorded for this month.",
+  declaration: "Potwierdzam, że powyższe godziny są prawidłowe.",
+  declarationEn: "I confirm the hours recorded above are correct.",
+  signature: "Podpis pracownika / Employee signature",
+  signedDate: "Data / Date",
+};
 
 // Left: who is being paid, and for which month. Right: who is paying.
 //
@@ -87,7 +140,7 @@ function drawLetterhead(doc, title, subtitle) {
 // the employee agreeing the month before it is paid. The date line sits beside
 // it because a signature with no date cannot be tied to a payroll run.
 // Height the block needs, declaration through to the labels under the lines.
-export const SIGNATURE_HEIGHT_MM = 32;
+export const SIGNATURE_HEIGHT_MM = 36;
 
 // Where the block goes: on this page if it fits whole, otherwise a fresh one.
 // Split across a page break, the declaration and the line it refers to end up
@@ -107,11 +160,16 @@ function drawSignature(doc, startY) {
   if (place.newPage) doc.addPage();
   let y = place.y;
 
-  y += 14;
+  y += 13;
+  // The Polish sentence is the one being agreed to; the English under it is a
+  // courtesy, set smaller and lighter so which is which is never in doubt.
   doc.setFont(FONT, "normal").setFontSize(8.5).setTextColor(...MUTED);
-  doc.text("I confirm the hours recorded above are correct.", MARGIN, y);
+  doc.text(T.declaration, MARGIN, y);
+  y += 4;
+  doc.setFontSize(7.5).setTextColor(...FAINT);
+  doc.text(T.declarationEn, MARGIN, y);
 
-  y += 14;
+  y += 13;
   const dateWidth = 46;
   const signEnd = right - dateWidth - 10;
   doc.setDrawColor(...FAINT).setLineWidth(0.3);
@@ -120,8 +178,8 @@ function drawSignature(doc, startY) {
 
   y += 4;
   doc.setFontSize(8).setTextColor(...FAINT);
-  doc.text("Employee signature", MARGIN, y);
-  doc.text("Date", right - dateWidth, y);
+  doc.text(T.signature, MARGIN, y);
+  doc.text(T.signedDate, right - dateWidth, y);
   return y;
 }
 
@@ -152,6 +210,8 @@ export function buildEmployeeSheet(employee, entries, monthId) {
     employeeName: employee?.name || "Unknown",
     monthId,
     monthLabel: monthLabel(monthId),
+    monthLabelPl: monthLabelPl(monthId),
+    monthLabelBoth: monthLabelBoth(monthId),
     rows: summary.days.flatMap((day) =>
       day.entries.map((e, i) => ({
         // The date is printed once per day, not against every stretch of a
@@ -176,6 +236,8 @@ export function buildTeamSheet(employees, entries, monthId) {
     business: BUSINESS,
     monthId,
     monthLabel: monthLabel(monthId),
+    monthLabelPl: monthLabelPl(monthId),
+    monthLabelBoth: monthLabelBoth(monthId),
     rows: rows.map((r) => ({
       employeeName: r.employeeName,
       daysWorked: r.daysWorked,
@@ -202,36 +264,40 @@ function drawTotal(doc, label, value, y) {
 export function buildEmployeePdf(employee, entries, monthId) {
   const sheet = buildEmployeeSheet(employee, entries, monthId);
   const doc = newDoc();
-  let y = drawLetterhead(doc, sheet.employeeName, sheet.monthLabel);
+  let y = drawLetterhead(doc, sheet.employeeName, sheet.monthLabelBoth);
 
   if (sheet.rows.length === 0) {
     doc.setFont(FONT, "normal").setFontSize(10).setTextColor(...MUTED);
-    doc.text("No hours recorded for this month.", MARGIN, y + 6);
+    doc.text(T.empty, MARGIN, y + 6);
+    doc.setFontSize(8.5).setTextColor(...FAINT);
+    doc.text(T.emptyEn, MARGIN, y + 11);
     return doc;
   }
 
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
-    head: [["Date", "Start", "End", "Worked", "Note"]],
+    head: [[T.colDate, T.colStart, T.colEnd, T.colWorked, T.colNote]],
     body: sheet.rows.map((r) => [r.date, r.start, r.end, r.worked, r.note]),
     styles: TABLE_STYLE,
     headStyles: HEAD_STYLE,
+    // Widths measured against the bilingual headings so each stays on one
+    // line; the note column takes what is left, still half the page.
     columnStyles: {
       0: { cellWidth: 24 },
       1: { cellWidth: 18, halign: "right" },
       2: { cellWidth: 18, halign: "right" },
-      3: { cellWidth: 22, halign: "right", fontStyle: "bold" },
+      3: { cellWidth: 28, halign: "right", fontStyle: "bold" },
       4: { cellWidth: "auto" },
     },
   });
 
   y = doc.lastAutoTable.finalY + 5;
-  y = drawTotal(doc, `${sheet.daysWorked} days worked`, sheet.totalFormatted, y);
+  y = drawTotal(doc, T.daysWorked(sheet.daysWorked), sheet.totalFormatted, y);
 
   doc.setFont(FONT, "normal").setFontSize(8).setTextColor(...MUTED);
   y += 5;
-  doc.text(`${sheet.totalDecimal} decimal hours`, MARGIN, y);
+  doc.text(T.decimalHours(sheet.totalDecimal), MARGIN, y);
 
   drawSignature(doc, y);
   return doc;
@@ -240,18 +306,20 @@ export function buildEmployeePdf(employee, entries, monthId) {
 export function buildTeamPdf(employees, entries, monthId) {
   const sheet = buildTeamSheet(employees, entries, monthId);
   const doc = newDoc();
-  let y = drawLetterhead(doc, "Hours summary", sheet.monthLabel);
+  let y = drawLetterhead(doc, T.summaryTitle, sheet.monthLabelBoth);
 
   if (sheet.rows.length === 0) {
     doc.setFont(FONT, "normal").setFontSize(10).setTextColor(...MUTED);
-    doc.text("No hours recorded for this month.", MARGIN, y + 6);
+    doc.text(T.empty, MARGIN, y + 6);
+    doc.setFontSize(8.5).setTextColor(...FAINT);
+    doc.text(T.emptyEn, MARGIN, y + 11);
     return doc;
   }
 
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
-    head: [["Employee", "Days", "Hours", "Decimal"]],
+    head: [[T.colEmployee, T.colDays, T.colHours, T.colDecimal]],
     body: sheet.rows.map((r) => [r.employeeName, String(r.daysWorked), r.worked, String(r.decimal)]),
     styles: TABLE_STYLE,
     headStyles: HEAD_STYLE,
@@ -259,12 +327,12 @@ export function buildTeamPdf(employees, entries, monthId) {
       0: { cellWidth: "auto" },
       1: { cellWidth: 20, halign: "right" },
       2: { cellWidth: 28, halign: "right", fontStyle: "bold" },
-      3: { cellWidth: 24, halign: "right", textColor: FAINT },
+      3: { cellWidth: 32, halign: "right", textColor: FAINT },
     },
   });
 
   y = doc.lastAutoTable.finalY + 5;
-  drawTotal(doc, "Total", sheet.totalFormatted, y);
+  drawTotal(doc, T.total, sheet.totalFormatted, y);
   return doc;
 }
 

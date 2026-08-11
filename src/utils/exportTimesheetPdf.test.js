@@ -9,6 +9,8 @@ import {
   buildTeamSheet,
   buildEmployeePdf,
   buildTeamPdf,
+  monthLabelPl,
+  monthLabelBoth,
   signaturePlacement,
   SIGNATURE_HEIGHT_MM,
 } from "./exportTimesheetPdf.js";
@@ -31,6 +33,22 @@ describe("monthLabel", () => {
     expect(monthLabel("nonsense")).toBe("nonsense");
     expect(monthLabel("")).toBe("");
   });
+
+  it("gives the Polish month, lowercase as Polish writes it", () => {
+    expect(monthLabelPl("2026-08")).toBe("sierpień 2026");
+    expect(monthLabelPl("2026-10")).toBe("październik 2026");
+  });
+
+  it("prints Polish first and English second", () => {
+    expect(monthLabelBoth("2026-08")).toBe("sierpień 2026 · August 2026");
+  });
+
+  it("does not repeat a month whose name is the same in both", () => {
+    // Maj/May differ, but the guard matters for junk input, where both
+    // functions fall back to the raw id and would otherwise print it twice.
+    expect(monthLabelBoth("nonsense")).toBe("nonsense");
+    expect(monthLabelBoth("2026-05")).toBe("maj 2026 · May 2026");
+  });
 });
 
 describe("buildEmployeeSheet", () => {
@@ -40,6 +58,8 @@ describe("buildEmployeeSheet", () => {
     expect(sheet.business.nip).toBe("NIP 9241799529");
     expect(sheet.employeeName).toBe("Ravi Kumar");
     expect(sheet.monthLabel).toBe("August 2026");
+    expect(sheet.monthLabelPl).toBe("sierpień 2026");
+    expect(sheet.monthLabelBoth).toBe("sierpień 2026 · August 2026");
   });
 
   it("excludes other months", () => {
