@@ -58,6 +58,26 @@ describe("claim_employee_pin — a first PIN, never a replacement", () => {
   });
 });
 
+describe("pgcrypto has to be reachable from inside these functions", () => {
+  // This one shipped broken. Supabase installs pgcrypto into the `extensions`
+  // schema, `create extension if not exists` leaves it there, and a function
+  // pinned to `set search_path = public` then cannot resolve it:
+  //     ERROR: function gen_salt(unknown) does not exist
+  // Every function that hashes or checks a PIN has to name both schemas.
+  for (const fn of ["set_employee_pin", "verify_employee_pin", "claim_employee_pin"]) {
+    it(`${fn} can see crypt() and gen_salt()`, () => {
+      const body = bodyOf(fn);
+      expect(body).toMatch(/set\s+search_path\s*=\s*public,\s*extensions/i);
+    });
+  }
+
+  it("installs pgcrypto somewhere those functions look", () => {
+    expect(sql).toMatch(
+      /create\s+extension\s+if\s+not\s+exists\s+pgcrypto\s+with\s+schema\s+extensions/i,
+    );
+  });
+});
+
 describe("set_employee_pin — the admin reset", () => {
   const body = bodyOf("set_employee_pin");
 

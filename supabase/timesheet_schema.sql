@@ -17,9 +17,20 @@
 --   made against the cost of running an account per employee.
 -- =============================================================================
 
--- crypt() / gen_salt() for the PIN hash. Already enabled by schema.sql; here
--- too so this file can be run against a database that only has dsr_schema.
-create extension if not exists pgcrypto;
+-- crypt() / gen_salt() for the PIN hash.
+--
+-- WHERE pgcrypto LIVES MATTERS. Supabase ships it in the `extensions` schema,
+-- not `public`. `create extension if not exists` then does nothing — it is
+-- already installed — so it stays there, and a function declared
+-- `set search_path = public` cannot see it:
+--
+--     ERROR: function gen_salt(unknown) does not exist
+--
+-- Hence `public, extensions` on every function below that hashes or checks a
+-- PIN. Both are listed because a database where pgcrypto was installed into
+-- public (an older project, or a plain Postgres) has to keep working too.
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 
 -- -----------------------------------------------------------------------------
 -- A. EMPLOYEES gain a PIN
@@ -34,7 +45,7 @@ create or replace function public.set_employee_pin(p_employee_id uuid, p_pin tex
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.is_admin() then
@@ -62,7 +73,7 @@ create or replace function public.verify_employee_pin(p_employee_id uuid, p_pin 
 returns boolean
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   v_hash text;
@@ -106,7 +117,7 @@ create or replace function public.claim_employee_pin(p_employee_id uuid, p_pin t
 returns boolean
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   v_rows int;
