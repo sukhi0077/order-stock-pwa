@@ -246,6 +246,48 @@ export class TimesheetRepository {
     }
   }
 
+  // Whether a PIN exists at all — decides between "enter yours" and "choose
+  // one". Never returns the hash. An unknown id comes back null; treated as
+  // "already has one" so a strange id lands on the safer screen.
+  static async hasPin(employeeId) {
+    try {
+      const data = unwrap(
+        await withTimeout(
+          supabase.rpc("employee_has_pin", { p_employee_id: employeeId }),
+          15000,
+          "Checking PIN",
+        ),
+        "Checking PIN",
+      );
+      return data !== false;
+    } catch (error) {
+      throw asAppError(error, "Couldn't check that name.");
+    }
+  }
+
+  // A person setting their own PIN for the first time. The database only lets
+  // this write where none exists, so it can never overwrite someone else's.
+  // False means one was already set between loading the screen and pressing
+  // save — rare, but it is a race and it is handled rather than assumed away.
+  static async claimPin(employeeId, pin) {
+    try {
+      const data = unwrap(
+        await withTimeout(
+          supabase.rpc("claim_employee_pin", {
+            p_employee_id: employeeId,
+            p_pin: String(pin || ""),
+          }),
+          15000,
+          "Saving PIN",
+        ),
+        "Saving PIN",
+      );
+      return data === true;
+    } catch (error) {
+      throw asAppError(error, "Couldn't save that PIN.");
+    }
+  }
+
   static async setPin(employeeId, pin) {
     try {
       unwrap(

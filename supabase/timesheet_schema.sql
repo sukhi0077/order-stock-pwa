@@ -76,6 +76,57 @@ end;
 $$;
 grant execute on function public.verify_employee_pin(uuid, text) to authenticated;
 
+-- Has this person set a PIN yet? A boolean only — never the hash, and never
+-- anything about what the PIN is. The timesheet asks this to decide whether to
+-- show "enter your PIN" or "choose one".
+--
+-- Null for an id that does not exist, so a caller cannot use this to probe for
+-- valid employee ids by watching for true/false.
+create or replace function public.employee_has_pin(p_employee_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select pin_hash is not null from public.employees where id = p_employee_id;
+$$;
+grant execute on function public.employee_has_pin(uuid) to authenticated;
+
+-- First-time claim: a person sets their OWN PIN, without needing an admin.
+--
+-- Deliberately NOT an update. It writes only where pin_hash is null, so it can
+-- create a PIN but never change or overwrite one. Without that condition any
+-- staff device could reset a colleague's PIN and then clock hours as them —
+-- which is the one thing the PIN exists to stop.
+--
+-- Returns true if the claim took, false if a PIN was already there. The caller
+-- shows "that name already has a PIN" and asks for it instead.
+create or replace function public.claim_employee_pin(p_employee_id uuid, p_pin text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_rows int;
+begin
+  if p_pin is null or p_pin !~ '^[0-9]{4,8}$' then
+    raise exception 'PIN must be 4 to 8 digits';
+  end if;
+
+  update public.employees
+     set pin_hash = crypt(p_pin, gen_salt('bf')), updated_at = now()
+   where id = p_employee_id
+     and pin_hash is null
+     and active;                      -- a removed name cannot be claimed
+
+  get diagnostics v_rows = row_count;
+  return v_rows = 1;
+end;
+$$;
+grant execute on function public.claim_employee_pin(uuid, text) to authenticated;
+
 -- -----------------------------------------------------------------------------
 -- B. TIMESHEET_ENTRIES  (one row per worked stretch)
 --

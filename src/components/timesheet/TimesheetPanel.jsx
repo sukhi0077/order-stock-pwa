@@ -32,12 +32,57 @@ import { downloadEmployeeTimesheetPdf } from "../../utils/exportTimesheetPdf.js"
 import { useT } from "../../i18n/i18n.jsx";
 
 // ---------------------------------------------------------------------------
+// A shared numeric field: same size and spacing whether you are entering a PIN
+// or choosing one, so the second box on the setup screen doesn't read as a
+// different kind of question.
+function PinField({ label, value, onChange, onEnter, autoFocus }) {
+  return (
+    <label className="block">
+      <span className="text-xs text-n-500">{label}</span>
+      <input
+        type="password"
+        inputMode="numeric"
+        autoComplete="off"
+        autoFocus={autoFocus}
+        maxLength={8}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+        onKeyDown={(e) => e.key === "Enter" && onEnter?.()}
+        className="mt-1 w-full h-12 text-center tracking-[0.5em] text-xl rounded-xl bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+      />
+    </label>
+  );
+}
+
 function PinGate({ employees, onUnlock }) {
   const { t } = useT();
   const [picked, setPicked] = useState(null);
+  // null while we ask the database; true = enter yours, false = choose one.
+  const [hasPin, setHasPin] = useState(null);
   const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const choose = async (person) => {
+    setPicked(person);
+    setPin("");
+    setConfirmPin("");
+    setError("");
+    setHasPin(null);
+    setBusy(true);
+    try {
+      setHasPin(await TimesheetService.hasPin(person.id));
+    } catch (e) {
+      // Can't tell — ask for a PIN rather than offering to set one. Guessing
+      // "no PIN yet" on a network blip would invite someone to overwrite a
+      // colleague's; the database would refuse, but only after the prompt.
+      setHasPin(true);
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const submit = async () => {
     setBusy(true);
@@ -56,6 +101,34 @@ function PinGate({ employees, onUnlock }) {
     }
   };
 
+  // First time in: choose a PIN, typed twice. Nobody can recover a forgotten
+  // one — the hash is one-way — so confirming here saves an admin reset later.
+  const claim = async () => {
+    if (pin.length < 4) return setError(t("ts_pinTooShort"));
+    if (pin !== confirmPin) {
+      setError(t("ts_pinMismatch"));
+      setConfirmPin("");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const claimed = await TimesheetService.claimPin(picked.id, pin);
+      if (claimed) onUnlock(picked);
+      else {
+        // Someone set one between this screen loading and now.
+        setHasPin(true);
+        setPin("");
+        setConfirmPin("");
+        setError(t("ts_pinAlreadySet"));
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (!picked) {
     return (
       <div className="space-y-2">
@@ -64,11 +137,7 @@ function PinGate({ employees, onUnlock }) {
           <button
             key={e.id}
             type="button"
-            onClick={() => {
-              setPicked(e);
-              setPin("");
-              setError("");
-            }}
+            onClick={() => choose(e)}
             className="w-full text-left bg-n-0 border border-n-200 rounded-xl px-4 py-3 font-medium text-n-800 hover:border-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20 transition"
           >
             {e.name}
@@ -80,6 +149,8 @@ function PinGate({ employees, onUnlock }) {
       </div>
     );
   }
+
+  const setting = hasPin === false;
 
   return (
     <div className="bg-n-0 border border-n-200 rounded-2xl p-4 space-y-3">
@@ -94,28 +165,49 @@ function PinGate({ employees, onUnlock }) {
         </button>
         <span className="font-bold text-n-900">{picked.name}</span>
       </div>
-      <label className="block">
-        <span className="text-xs text-n-500">{t("ts_enterPin")}</span>
-        <input
-          type="password"
-          inputMode="numeric"
-          autoComplete="off"
-          maxLength={8}
+
+      {hasPin === null ? (
+        <div className="flex justify-center py-6">
+          <Spinner />
+        </div>
+      ) : setting ? (
+        <>
+          <p className="text-xs text-n-500">{t("ts_choosePinHint")}</p>
+          <PinField
+            label={t("ts_choosePin")}
+            value={pin}
+            onChange={setPin}
+            autoFocus
+          />
+          <PinField
+            label={t("ts_confirmPin")}
+            value={confirmPin}
+            onChange={setConfirmPin}
+            onEnter={claim}
+          />
+        </>
+      ) : (
+        <PinField
+          label={t("ts_enterPin")}
           value={pin}
-          onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          className="mt-1 w-full h-12 text-center tracking-[0.5em] text-xl rounded-xl bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+          onChange={setPin}
+          onEnter={submit}
+          autoFocus
         />
-      </label>
+      )}
+
       {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
-      <button
-        type="button"
-        onClick={submit}
-        disabled={busy}
-        className="w-full py-3 rounded-xl bg-accent-600 hover:bg-accent-500 text-white font-bold disabled:opacity-40"
-      >
-        {busy ? "…" : t("ts_unlock")}
-      </button>
+
+      {hasPin !== null && (
+        <button
+          type="button"
+          onClick={setting ? claim : submit}
+          disabled={busy || pin.length < 4}
+          className="w-full py-3 rounded-xl bg-accent-600 hover:bg-accent-500 text-white font-bold disabled:opacity-40"
+        >
+          {busy ? "…" : setting ? t("ts_savePin") : t("ts_unlock")}
+        </button>
+      )}
     </div>
   );
 }
