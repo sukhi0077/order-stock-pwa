@@ -201,3 +201,71 @@ export function availabilityFor(dateStr, { weekly = [], exceptions = [] } = {}) 
   // people end up expected on a shift they never agreed to.
   return { source: "none", available: null, fromTime: null, toTime: null, note: "" };
 }
+
+// ---------------------------------------------------------------------------
+// THE CONSOLIDATED VIEW
+//
+// One person's availability is a question. Everyone's, side by side over the
+// same dates, is a rota — which is the thing the owner actually needs before
+// deciding who to ask.
+
+// Split a flat list of rows into { [employeeId]: { weekly, exceptions } }, the
+// shape availabilityFor already understands.
+export function groupAvailability(weekly = [], exceptions = []) {
+  const byPerson = {};
+  const bucket = (id) =>
+    (byPerson[id] ||= { weekly: [], exceptions: [] });
+  for (const w of weekly) bucket(w.employeeId).weekly.push(w);
+  for (const e of exceptions) bucket(e.employeeId).exceptions.push(e);
+  return byPerson;
+}
+
+// people × dates. Every person gets a row and every date a cell, including the
+// people who have answered nothing: a name missing from the grid reads as "not
+// working", when what it means is "has not said".
+export function availabilityGrid(dates = [], people = [], byPerson = {}) {
+  return people.map((person) => ({
+    employeeId: person.id,
+    employeeName: person.name,
+    cells: dates.map((date) => ({
+      date,
+      ...availabilityFor(date, byPerson[person.id] || {}),
+    })),
+  }));
+}
+
+// How many people are free on each date, and how many have not answered.
+// The unanswered count is carried deliberately: "3 available" means something
+// different when the other two said no than when they never replied.
+export function dayTallies(dates = [], rows = []) {
+  return dates.map((date, i) => {
+    let available = 0;
+    let unavailable = 0;
+    let unknown = 0;
+    for (const row of rows) {
+      const cell = row.cells[i];
+      if (cell?.available === true) available += 1;
+      else if (cell?.available === false) unavailable += 1;
+      else unknown += 1;
+    }
+    return { date, available, unavailable, unknown, total: rows.length };
+  });
+}
+
+// Split dates into calendar weeks starting Monday, padding the first and last
+// week with nulls so every week has 7 slots and the columns line up under
+// Mon–Sun. A month that starts on a Thursday must not shift every row.
+export function weeksOf(dates = []) {
+  if (dates.length === 0) return [];
+  const weeks = [];
+  let week = new Array(weekdayOf(dates[0]) ?? 0).fill(null);
+  for (const date of dates) {
+    week.push(date);
+    if (week.length === 7) {
+      weeks.push(week);
+      week = [];
+    }
+  }
+  if (week.length > 0) weeks.push([...week, ...new Array(7 - week.length).fill(null)]);
+  return weeks;
+}

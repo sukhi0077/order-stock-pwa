@@ -8,6 +8,7 @@
 import React, { useMemo, useState } from "react";
 import Spinner from "./ui/Spinner.jsx";
 import EmployeeManagerModal from "./dsr/EmployeeManagerModal.jsx";
+import AvailabilityAdmin from "./AvailabilityAdmin.jsx";
 import { useEmployees } from "../hooks/useEmployees.js";
 import { useTimesheetMonth } from "../hooks/useTimesheet.js";
 import { TimesheetService } from "../services/TimesheetService.js";
@@ -104,6 +105,8 @@ function PinRow({ employee, onDone }) {
 
 export default function StaffAdmin() {
   const { t } = useT();
+  // Hours is what gets paid, so it leads. Availability is the planning view.
+  const [section, setSection] = useState("hours"); // 'hours' | 'availability'
   const [monthId, setMonthId] = useState(currentMonthId());
   const [managing, setManaging] = useState(false);
   const [openEmployee, setOpenEmployee] = useState(null);
@@ -143,6 +146,37 @@ export default function StaffAdmin() {
         />
       )}
 
+      <div className="flex gap-1 bg-n-100 rounded-xl p-1">
+        {[
+          ["hours", t("ts_hoursSection")],
+          ["availability", t("ts_availability")],
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setSection(id)}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
+              section === id ? "bg-n-0 text-n-900 shadow-sm" : "text-n-500 hover:text-n-700"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {section === "availability" ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setManaging(true)}
+            className="w-full py-2.5 rounded-xl bg-n-0 border border-n-200 text-n-600 font-semibold hover:text-n-900"
+          >
+            {t("ts_manageStaff")}
+          </button>
+          <AvailabilityAdmin />
+        </>
+      ) : (
+        <>
       {/* Month navigator */}
       <div className="bg-n-0 border border-n-200 rounded-2xl p-3">
         <div className="flex items-center justify-between">
@@ -273,6 +307,8 @@ export default function StaffAdmin() {
         </div>
         <p className="px-3 py-2 text-[11px] text-n-400">{t("ts_pinHint")}</p>
       </div>
+        </>
+      )}
     </div>
   );
 }

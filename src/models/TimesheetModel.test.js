@@ -20,6 +20,10 @@ import {
   monthlyByEmployee,
   weekdayOf,
   availabilityFor,
+  groupAvailability,
+  availabilityGrid,
+  dayTallies,
+  weeksOf,
   WEEKDAYS,
 } from "./TimesheetModel.js";
 
@@ -284,5 +288,139 @@ describe("availabilityFor", () => {
 
   it("survives being given nothing", () => {
     expect(availabilityFor("2026-08-10").source).toBe("none");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// THE CONSOLIDATED VIEW
+//
+// August 2026: the 1st is a Saturday, so the grid has to pad five slots before
+// it — a month that starts mid-week is where an off-by-one shifts every row.
+
+describe("groupAvailability", () => {
+  it("sorts flat rows into one bucket per person", () => {
+    const out = groupAvailability(
+      [{ employeeId: "a", weekday: 0, available: true }],
+      [
+        { employeeId: "a", onDate: "2026-08-04", available: false },
+        { employeeId: "b", onDate: "2026-08-04", available: true },
+      ],
+    );
+    expect(out.a.weekly).toHaveLength(1);
+    expect(out.a.exceptions).toHaveLength(1);
+    expect(out.b.weekly).toEqual([]);
+    expect(out.b.exceptions).toHaveLength(1);
+  });
+
+  it("copes with nothing at all", () => {
+    expect(groupAvailability()).toEqual({});
+  });
+});
+
+describe("availabilityGrid", () => {
+  const dates = ["2026-08-03", "2026-08-04"]; // Mon, Tue
+  const people = [
+    { id: "a", name: "Ravi" },
+    { id: "b", name: "Anna" },
+  ];
+  const byPerson = groupAvailability(
+    [{ employeeId: "a", weekday: 0, available: true }], // Ravi works Mondays
+    [{ employeeId: "a", onDate: "2026-08-03", available: false }], // except this one
+  );
+  const rows = availabilityGrid(dates, people, byPerson);
+
+  it("gives every person a row, including those who answered nothing", () => {
+    // A name missing from the grid reads as "not working" when it means
+    // "has not said" — and those are different problems for the rota.
+    expect(rows.map((r) => r.employeeName)).toEqual(["Ravi", "Anna"]);
+    expect(rows[1].cells.every((c) => c.available === null)).toBe(true);
+  });
+
+  it("lets a specific date override the usual week", () => {
+    expect(rows[0].cells[0]).toMatchObject({ available: false, source: "exception" });
+    expect(rows[0].cells[1]).toMatchObject({ available: null, source: "none" });
+  });
+
+  it("keeps cells in the order of the dates it was given", () => {
+    expect(rows[0].cells.map((c) => c.date)).toEqual(dates);
+  });
+});
+
+describe("dayTallies", () => {
+  const dates = ["2026-08-03", "2026-08-04"];
+  const rows = availabilityGrid(
+    dates,
+    [
+      { id: "a", name: "Ravi" },
+      { id: "b", name: "Anna" },
+      { id: "c", name: "Zofia" },
+    ],
+    groupAvailability(
+      [],
+      [
+        { employeeId: "a", onDate: "2026-08-03", available: true },
+        { employeeId: "b", onDate: "2026-08-03", available: false },
+        // Zofia has said nothing about either day.
+      ],
+    ),
+  );
+
+  it("counts the free, the unavailable and the silent separately", () => {
+    // "1 available" means something different when one said no and one never
+    // replied than when both said no.
+    expect(dayTallies(dates, rows)[0]).toEqual({
+      date: "2026-08-03",
+      available: 1,
+      unavailable: 1,
+      unknown: 1,
+      total: 3,
+    });
+  });
+
+  it("never counts silence as available", () => {
+    const day = dayTallies(dates, rows)[1];
+    expect(day.available).toBe(0);
+    expect(day.unknown).toBe(3);
+  });
+});
+
+describe("weeksOf", () => {
+  const august = Array.from(
+    { length: 31 },
+    (_, i) => `2026-08-${String(i + 1).padStart(2, "0")}`,
+  );
+
+  it("pads the first week so the 1st lands under its own weekday", () => {
+    const weeks = weeksOf(august);
+    // 1 Aug 2026 is a Saturday: index 5 in a Monday-first week.
+    expect(weeks[0].slice(0, 5)).toEqual([null, null, null, null, null]);
+    expect(weeks[0][5]).toBe("2026-08-01");
+  });
+
+  it("gives every week exactly seven slots", () => {
+    for (const week of weeksOf(august)) expect(week).toHaveLength(7);
+  });
+
+  it("keeps every date exactly once", () => {
+    const flat = weeksOf(august).flat().filter(Boolean);
+    expect(flat).toEqual(august);
+  });
+
+  it("pads the last week rather than leaving a short row", () => {
+    const weeks = weeksOf(august);
+    expect(weeks.at(-1).at(-1)).toBeNull();
+    expect(weeks.at(-1).filter(Boolean).at(-1)).toBe("2026-08-31");
+  });
+
+  it("handles a month starting on a Monday without padding", () => {
+    const june = Array.from(
+      { length: 30 },
+      (_, i) => `2026-06-${String(i + 1).padStart(2, "0")}`,
+    );
+    expect(weeksOf(june)[0][0]).toBe("2026-06-01");
+  });
+
+  it("returns nothing for no dates", () => {
+    expect(weeksOf([])).toEqual([]);
   });
 });

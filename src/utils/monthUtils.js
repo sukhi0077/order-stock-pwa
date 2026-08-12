@@ -91,6 +91,20 @@ export function monthEndDate(monthId) {
   return dt.toISOString().slice(0, 10);
 }
 
+// Every date in a month, "2026-08-01" through to the last day.
+//
+// Empty for an unparseable month id rather than a guess, so a caller can tell
+// "this month has no days" (impossible) from "I could not read that".
+export function datesInMonth(monthId) {
+  if (!/^\d{4}-\d{2}$/.test(String(monthId || ""))) return [];
+  const last = Number(monthEndDate(monthId).slice(-2));
+  if (!Number.isFinite(last) || last < 28 || last > 31) return [];
+  return Array.from(
+    { length: last },
+    (_, i) => `${monthId}-${String(i + 1).padStart(2, "0")}`,
+  );
+}
+
 // Is the given month id the current (open) business month?
 //
 // Strict equality on purpose. The DATABASE is more permissive —

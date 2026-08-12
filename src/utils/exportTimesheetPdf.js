@@ -14,7 +14,10 @@ import {
   monthlyByEmployee,
   entryMinutes,
 } from "../models/TimesheetModel.js";
-import { monthEndDate } from "./monthUtils.js";
+// datesInMonth lives in monthUtils now — the availability screens need the
+// same list. Re-exported so this module's own tests and callers are unchanged.
+import { datesInMonth } from "./monthUtils.js";
+export { datesInMonth };
 
 const BUSINESS = {
   name: "Misa Hindusa Poznan",
@@ -223,19 +226,6 @@ const ROW_STYLE = { fillColor: false };
 
 // The content of a one-employee sheet, separate from its drawing so it can be
 // asserted on — jsPDF writes subset glyph IDs, not readable text.
-// Every date in the month, "2026-08-01" through to the last day. Empty for an
-// unparseable month id, which the caller treats as "list only what you have"
-// rather than printing a sheet with no dates on it at all.
-export function datesInMonth(monthId) {
-  if (!/^\d{4}-\d{2}$/.test(String(monthId || ""))) return [];
-  const last = Number(monthEndDate(monthId).slice(-2));
-  if (!Number.isFinite(last) || last < 28 || last > 31) return [];
-  return Array.from(
-    { length: last },
-    (_, i) => `${monthId}-${String(i + 1).padStart(2, "0")}`,
-  );
-}
-
 // A day nobody worked. Two dashes rather than a blank cell: an empty row could
 // be a day off or a day someone forgot to record, and on a sheet being signed
 // the difference matters. A dash says the month was looked at.

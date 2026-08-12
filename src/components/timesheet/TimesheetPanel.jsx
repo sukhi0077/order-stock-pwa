@@ -19,7 +19,14 @@ import {
 } from "../../hooks/useTimesheet.js";
 import { TimesheetService } from "../../services/TimesheetService.js";
 import { useBusinessDay } from "../../hooks/useBusinessDay.js";
-import { currentMonthId, todayStr, shiftDateStr, formatDay } from "../../utils/monthUtils.js";
+import {
+  currentMonthId,
+  nextMonthId,
+  monthOf,
+  todayStr,
+  datesInMonth,
+  formatDay,
+} from "../../utils/monthUtils.js";
 import {
   WEEKDAYS,
   byDay,
@@ -27,7 +34,7 @@ import {
   formatMinutes,
   monthlySummary,
   availabilityFor,
-  weekdayOf,
+  weeksOf,
 } from "../../models/TimesheetModel.js";
 import { downloadEmployeeTimesheetPdf } from "../../utils/exportTimesheetPdf.js";
 import { useT } from "../../i18n/i18n.jsx";
@@ -386,20 +393,66 @@ function HoursTab({ employee }) {
   );
 }
 
+// One day in the calendar.
+//
+// Three states have to be distinguishable at a glance and while colour-blind,
+// so each carries a mark as well as a colour: a tick for yes, a dash for no,
+// and nothing at all for unanswered. The dot marks a day set explicitly, as
+// opposed to one inherited from the usual week — otherwise there is no way to
+// see which days you have actually replied to.
+function DayCell({ date, state, past, onClick }) {
+  const day = Number(date.slice(-2));
+  const yes = state.available === true;
+  const no = state.available === false;
+  const tone = past
+    ? "bg-n-50 text-n-300 border-n-100"
+    : yes
+      ? "bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+      : no
+        ? "bg-n-100 text-n-500 border-n-200"
+        : "bg-n-0 text-n-400 border-n-200 border-dashed";
+
+  return (
+    <button
+      type="button"
+      onClick={past ? undefined : onClick}
+      disabled={past}
+      aria-label={date}
+      aria-pressed={yes}
+      className={`relative h-11 rounded-lg border text-[11px] font-bold leading-none flex flex-col items-center justify-center gap-0.5 transition ${tone}`}
+    >
+      <span>{day}</span>
+      <span aria-hidden="true">{yes ? "✓" : no ? "–" : ""}</span>
+      {state.source === "exception" && !past && (
+        <span className="absolute top-0.5 right-1 text-[8px] text-accent-600 dark:text-accent-300">
+          •
+        </span>
+      )}
+    </button>
+  );
+}
+
 // ---------------------------------------------------------------------------
 function AvailabilityTab({ employee }) {
-  const { t } = useT();
+  const { t, tMonth } = useT();
   const from = todayStr();
   const availQuery = useAvailability(employee.id, from);
   const saveAvail = useSaveAvailability();
   const data = availQuery.data || { weekly: [], exceptions: [] };
 
-  // The next 21 days: far enough ahead to plan a rota, short enough to stay a
-  // list you can thumb through rather than a calendar you have to navigate.
-  const upcoming = useMemo(
-    () => Array.from({ length: 21 }, (_, i) => shiftDateStr(from, i)),
-    [from],
-  );
+  // This month and next, as calendars. A rolling 21-day list was easier to
+  // build but harder to answer: a rota is planned per month, and "am I free on
+  // the 14th" is a question about a grid, not a scroll.
+  //
+  // Past days of the current month are shown but not tappable — changing what
+  // you were available for last Tuesday means nothing now.
+  const months = useMemo(() => {
+    const thisMonth = monthOf(from);
+    return [thisMonth, nextMonthId(thisMonth)].map((monthId) => ({
+      monthId,
+      weeks: weeksOf(datesInMonth(monthId)),
+    }));
+  }, [from]);
 
   const toggleWeekly = (weekday) => {
     const cur = data.weekly.find((w) => w.weekday === weekday);
@@ -457,49 +510,44 @@ function AvailabilityTab({ employee }) {
         <p className="text-[11px] text-n-400 mt-2">{t("ts_usualWeekHint")}</p>
       </div>
 
-      <div className="bg-n-0 border border-n-200 rounded-2xl p-3">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500 mb-2">
-          {t("ts_next3Weeks")}
-        </div>
-        <div className="space-y-1">
-          {upcoming.map((date) => {
-            const a = availabilityFor(date, data);
-            const isException = a.source === "exception";
-            return (
-              <button
-                key={date}
-                type="button"
-                onClick={() => cycleDate(date)}
-                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-n-50 text-left"
-              >
-                <span className="w-10 text-[11px] font-bold text-n-400">
-                  {WEEKDAYS[weekdayOf(date)]}
-                </span>
-                <span className="flex-1 text-sm text-n-700">{formatDay(date)}</span>
-                <span
-                  className={`text-[11px] font-semibold px-2 py-1 rounded-full ${
-                    a.available === true
-                      ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"
-                      : a.available === false
-                        ? "bg-n-100 text-n-500"
-                        : "bg-n-100 text-n-400"
-                  }`}
-                >
-                  {a.available === true
-                    ? t("ts_available")
-                    : a.available === false
-                      ? t("ts_notAvailable")
-                      : t("ts_unset")}
-                </span>
-                {isException && (
-                  <span className="text-[10px] text-accent-700 dark:text-accent-300 font-bold">•</span>
+      {months.map(({ monthId, weeks }) => (
+        <div key={monthId} className="bg-n-0 border border-n-200 rounded-2xl p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500 mb-2">
+            {tMonth(monthId)}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {WEEKDAYS.map((label) => (
+              <span key={label} className="text-center text-[10px] font-bold text-n-400">
+                {label}
+              </span>
+            ))}
+          </div>
+
+          <div className="space-y-1">
+            {weeks.map((week, i) => (
+              <div key={i} className="grid grid-cols-7 gap-1">
+                {week.map((date, j) =>
+                  date === null ? (
+                    // Padding, so the 1st sits under the right weekday.
+                    <span key={j} />
+                  ) : (
+                    <DayCell
+                      key={date}
+                      date={date}
+                      state={availabilityFor(date, data)}
+                      past={date < from}
+                      onClick={() => cycleDate(date)}
+                    />
+                  ),
                 )}
-              </button>
-            );
-          })}
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-n-400 mt-2">{t("ts_exceptionHint")}</p>
         </div>
-        <p className="text-[11px] text-n-400 mt-2">{t("ts_exceptionHint")}</p>
-      </div>
+      ))}
     </div>
   );
 }

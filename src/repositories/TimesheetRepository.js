@@ -152,6 +152,48 @@ export class TimesheetRepository {
     }
   }
 
+  // Everyone's availability across a date range — the admin's consolidated
+  // view. Two queries rather than one per person: a roster of ten would
+  // otherwise be twenty round trips before the screen could draw.
+  //
+  // Weekly patterns are not date-filtered because they have no dates; they are
+  // the fallback for every day nobody answered explicitly.
+  static async getAvailabilityRange(fromDate, toDate) {
+    try {
+      const [weeklyRes, datesRes] = await Promise.all([
+        withTimeout(supabase.from(WEEKLY).select("*"), 15000, "Loading availability"),
+        withTimeout(
+          supabase
+            .from(DATES)
+            .select("*")
+            .gte("on_date", fromDate)
+            .lte("on_date", toDate)
+            .order("on_date", { ascending: true }),
+          15000,
+          "Loading availability",
+        ),
+      ]);
+      const weekly = (unwrap(weeklyRes, "Loading availability") || []).map((r) => ({
+        employeeId: r.employee_id,
+        weekday: r.weekday,
+        available: r.available !== false,
+        fromTime: hhmm(r.from_time),
+        toTime: hhmm(r.to_time),
+      }));
+      const exceptions = (unwrap(datesRes, "Loading availability") || []).map((r) => ({
+        employeeId: r.employee_id,
+        onDate: r.on_date,
+        available: r.available !== false,
+        fromTime: hhmm(r.from_time),
+        toTime: hhmm(r.to_time),
+        note: r.note || "",
+      }));
+      return { weekly, exceptions };
+    } catch (error) {
+      throw asAppError(error, "Couldn't load availability.");
+    }
+  }
+
   // Upsert, not insert: a weekday is set repeatedly as someone changes their
   // mind, and the primary key is (employee_id, weekday).
   static async setWeekly(employeeId, weekday, value) {

@@ -37,6 +37,15 @@ export function useAvailability(employeeId, fromDate) {
   });
 }
 
+// Everyone's availability over a range, for the admin's consolidated view.
+export function useAvailabilityRange(fromDate, toDate) {
+  return useQuery({
+    queryKey: ["availability", "range", fromDate, toDate],
+    queryFn: () => TimesheetService.getAvailabilityRange(fromDate, toDate),
+    enabled: Boolean(fromDate && toDate),
+  });
+}
+
 export function useSaveAvailability() {
   const qc = useQueryClient();
   return useMutation({

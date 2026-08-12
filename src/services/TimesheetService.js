@@ -20,6 +20,8 @@ export const TimesheetService = {
   remove: (id) => TimesheetRepository.remove(id),
   getAvailability: (employeeId, fromDate) =>
     TimesheetRepository.getAvailability(employeeId, fromDate),
+  getAvailabilityRange: (fromDate, toDate) =>
+    TimesheetRepository.getAvailabilityRange(fromDate, toDate),
   setWeekly: (employeeId, weekday, value) =>
     TimesheetRepository.setWeekly(employeeId, weekday, value),
   setDate: (employeeId, onDate, value) => TimesheetRepository.setDate(employeeId, onDate, value),
