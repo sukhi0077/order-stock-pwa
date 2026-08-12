@@ -207,22 +207,26 @@ create index if not exists emp_avail_dates_date_idx
 -- D. RLS
 --
 --    Every signed-in device can read and write these, because every staff
---    device authenticates as the same user — see the note at the top. Deletes
---    and edits of anything older than the recent past are admin-only, so a
---    finished month cannot be quietly rewritten from the floor.
+--    device authenticates as the same user — see the note at the top. Staff
+--    may only touch TODAY; anything earlier is admin-only, so a day that has
+--    been reviewed cannot be quietly rewritten from the floor.
 -- -----------------------------------------------------------------------------
 alter table public.timesheet_entries            enable row level security;
 alter table public.employee_availability_weekly enable row level security;
 alter table public.employee_availability_dates  enable row level security;
 
--- How far back staff may still correct their own hours. Beyond this an admin
--- has to do it, which is the point at which payroll has probably been run.
-create or replace function public.ts_is_recent(d date)
+-- Today, in Warsaw. Evaluated in the database rather than trusted from the
+-- client, because the client's idea of today is a device clock anyone can set.
+--
+-- Strictly today: a shift that ends after midnight has to be written up before
+-- midnight, or an admin adds it. That is the cost of the rule — see the note
+-- in TimesheetPanel — and it is the owner's call, not a detail to soften here.
+create or replace function public.ts_is_today(d date)
 returns boolean
 language sql
 stable
 as $$
-  select d >= (now() at time zone 'Europe/Warsaw')::date - 7;
+  select d = (now() at time zone 'Europe/Warsaw')::date;
 $$;
 
 drop policy if exists ts_entries_read on public.timesheet_entries;
@@ -231,17 +235,21 @@ create policy ts_entries_read on public.timesheet_entries
 
 drop policy if exists ts_entries_write on public.timesheet_entries;
 create policy ts_entries_write on public.timesheet_entries
-  for insert to authenticated with check (public.is_admin() or public.ts_is_recent(work_date));
+  for insert to authenticated with check (public.is_admin() or public.ts_is_today(work_date));
 
 drop policy if exists ts_entries_update on public.timesheet_entries;
 create policy ts_entries_update on public.timesheet_entries
   for update to authenticated
-  using (public.is_admin() or public.ts_is_recent(work_date))
-  with check (public.is_admin() or public.ts_is_recent(work_date));
+  using (public.is_admin() or public.ts_is_today(work_date))
+  with check (public.is_admin() or public.ts_is_today(work_date));
 
 drop policy if exists ts_entries_delete on public.timesheet_entries;
 create policy ts_entries_delete on public.timesheet_entries
-  for delete to authenticated using (public.is_admin() or public.ts_is_recent(work_date));
+  for delete to authenticated using (public.is_admin() or public.ts_is_today(work_date));
+
+-- The old 7-day window. Dropped only after the policies above stopped
+-- referencing it, or Postgres refuses.
+drop function if exists public.ts_is_recent(date);
 
 -- Availability is about the future and is harmless to edit; no date window.
 drop policy if exists emp_avail_weekly_all on public.employee_availability_weekly;

@@ -1,5 +1,7 @@
 // src/models/PinPolicy.test.js
 //
+// PIN rules and the today-only edit window — both live in SQL.
+//
 // The PIN rules live in SQL, where no JavaScript test can execute them. So
 // these read the schema text and assert the properties the timesheet depends
 // on. A test over source is weaker than a test over behaviour — but the
@@ -84,6 +86,37 @@ describe("set_employee_pin — the admin reset", () => {
   it("stays admin only", () => {
     // This one CAN overwrite, which is exactly why it is gated.
     expect(body).toMatch(/if\s+not\s+public\.is_admin\(\)/i);
+  });
+});
+
+describe("staff may only touch today", () => {
+  it("the window is one day, not a range", () => {
+    const body = bodyOf("ts_is_today");
+    expect(body).toMatch(/d\s*=\s*\(now\(\)\s*at\s*time\s*zone\s*'Europe\/Warsaw'\)::date/i);
+    // A `>=` here would be a back-dating window reopened by accident.
+    expect(body).not.toMatch(/d\s*>=/);
+    expect(body).not.toMatch(/-\s*\d+\s*;/);
+  });
+
+  it("is evaluated in the database, not taken from the client", () => {
+    // A device clock can be set to any date; now() cannot.
+    expect(bodyOf("ts_is_today")).toMatch(/now\(\)/);
+  });
+
+  it("gates insert, update and delete alike", () => {
+    // Deleting today's row and re-adding it under an old date would be a
+    // back-date by another name, so all three have to carry the same check.
+    for (const policy of ["ts_entries_write", "ts_entries_update", "ts_entries_delete"]) {
+      const i = sql.indexOf(`create policy ${policy} on`);
+      expect(i, `${policy} is missing`).toBeGreaterThan(-1);
+      const clause = sql.slice(i, sql.indexOf(";", i));
+      expect(clause).toMatch(/public\.is_admin\(\)\s+or\s+public\.ts_is_today\(work_date\)/i);
+    }
+  });
+
+  it("leaves the old 7-day window behind", () => {
+    expect(sql).not.toMatch(/ts_is_recent\(work_date\)/);
+    expect(sql).toMatch(/drop function if exists public\.ts_is_recent\(date\)/i);
   });
 });
 

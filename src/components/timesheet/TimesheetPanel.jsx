@@ -18,6 +18,7 @@ import {
   useSaveAvailability,
 } from "../../hooks/useTimesheet.js";
 import { TimesheetService } from "../../services/TimesheetService.js";
+import { useBusinessDay } from "../../hooks/useBusinessDay.js";
 import { currentMonthId, todayStr, shiftDateStr, formatDay } from "../../utils/monthUtils.js";
 import {
   WEEKDAYS,
@@ -214,7 +215,6 @@ function PinGate({ employees, onUnlock }) {
 
 // ---------------------------------------------------------------------------
 const blankEntry = () => ({
-  workDate: todayStr(),
   startTime: "",
   endTime: "",
   note: "",
@@ -222,6 +222,9 @@ const blankEntry = () => ({
 
 function HoursTab({ employee }) {
   const { t } = useT();
+  // Not a constant: a phone left open across midnight has to start writing to
+  // the new day, or the entry goes to yesterday and the database rejects it.
+  const today = useBusinessDay();
   const monthId = currentMonthId();
   const entriesQuery = useTimesheetMonth(monthId, employee.id);
   const save = useSaveEntry();
@@ -241,7 +244,9 @@ function HoursTab({ employee }) {
   const submit = async () => {
     setError("");
     try {
-      await save.mutateAsync({ ...draft, employeeId: employee.id });
+      // workDate is set here, not held in the draft: it must be today at the
+      // moment of saving, not whenever the form happened to be opened.
+      await save.mutateAsync({ ...draft, workDate: today, employeeId: employee.id });
       setDraft(blankEntry());
     } catch (e) {
       setError(e.message);
@@ -254,13 +259,18 @@ function HoursTab({ employee }) {
         <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
           {t("ts_addHours")}
         </div>
-        <input
-          type="date"
-          value={draft.workDate}
-          max={todayStr()}
-          onChange={(e) => set("workDate", e.target.value)}
-          className="w-full h-11 px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
-        />
+        {/* Today, and only today — no date picker.
+            The rule is enforced in the database (ts_is_today), not here; this
+            just stops the app offering a choice it would then refuse.
+
+            The cost: a shift ending after midnight is already tomorrow by the
+            clock. Log it before midnight — you know your finish time — or ask
+            the admin. That friction is the deliberate price of a timesheet
+            nobody can back-date. */}
+        <div className="w-full h-11 px-3 rounded-lg bg-n-50 border border-n-200 flex items-center justify-between">
+          <span className="font-semibold text-n-800">{formatDay(today)}</span>
+          <span className="text-[11px] text-n-400">{t("ts_todayOnly")}</span>
+        </div>
         {/* Start and end only — the two fields now share the row that used to
             hold a break, so each gets a wider, easier tap target. */}
         <div className="grid grid-cols-2 gap-2">
@@ -321,38 +331,52 @@ function HoursTab({ employee }) {
         </div>
       ) : (
         <div className="space-y-2">
-          {days.map((day) => (
-            <div key={day.date} className="bg-n-0 border border-n-200 rounded-xl p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-semibold text-n-800">{formatDay(day.date)}</span>
-                <span className="text-sm font-bold text-accent-700 dark:text-accent-300">
-                  {formatMinutes(day.minutes)}
-                </span>
-              </div>
-              {day.entries.map((e) => (
-                <div key={e.id} className="flex items-center gap-2 text-xs py-0.5">
-                  <span className="text-n-700">
-                    {e.startTime} – {e.endTime}
+          {days.map((day) => {
+            // Earlier days stay visible but read-only. Hiding them would make
+            // the month look wrong; leaving the × there would offer a delete
+            // the database refuses.
+            const editable = day.date === today;
+            return (
+              <div key={day.date} className="bg-n-0 border border-n-200 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-semibold text-n-800">{formatDay(day.date)}</span>
+                  <span className="text-sm font-bold text-accent-700 dark:text-accent-300">
+                    {formatMinutes(day.minutes)}
                   </span>
-                  {e.breakMinutes > 0 && (
-                    <span className="text-n-400">−{e.breakMinutes}m</span>
-                  )}
-                  <span className="flex-1 min-w-0 truncate text-n-400">{e.note}</span>
-                  <span className="text-n-500">{formatMinutes(entryMinutes(e))}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (window.confirm(t("ts_removeConfirm"))) remove.mutate(e.id);
-                    }}
-                    className="h-6 w-6 grid place-items-center rounded text-n-400 hover:text-rose-600 dark:hover:text-rose-400"
-                    aria-label="remove"
-                  >
-                    ×
-                  </button>
                 </div>
-              ))}
-            </div>
-          ))}
+                {day.entries.map((e) => (
+                  <div key={e.id} className="flex items-center gap-2 text-xs py-0.5">
+                    <span className="text-n-700">
+                      {e.startTime} – {e.endTime}
+                    </span>
+                    {e.breakMinutes > 0 && (
+                      <span className="text-n-400">−{e.breakMinutes}m</span>
+                    )}
+                    <span className="flex-1 min-w-0 truncate text-n-400">{e.note}</span>
+                    <span className="text-n-500">{formatMinutes(entryMinutes(e))}</span>
+                    {editable ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(t("ts_removeConfirm"))) remove.mutate(e.id);
+                        }}
+                        className="h-6 w-6 grid place-items-center rounded text-n-400 hover:text-rose-600 dark:hover:text-rose-400"
+                        aria-label="remove"
+                      >
+                        ×
+                      </button>
+                    ) : (
+                      // Keeps the rows aligned with today's, which do have a ×.
+                      <span className="h-6 w-6" aria-hidden="true" />
+                    )}
+                  </div>
+                ))}
+                {!editable && (
+                  <p className="text-[10px] text-n-400 mt-1">{t("ts_lockedDay")}</p>
+                )}
+              </div>
+            );
+          })}
           {days.length === 0 && (
             <p className="text-center text-n-400 py-8 text-sm">{t("ts_noHours")}</p>
           )}
