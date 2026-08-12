@@ -298,15 +298,32 @@ export function buildTeamSheet(employees, entries, monthId) {
   };
 }
 
+// The total sits directly after the days-worked line rather than out at the
+// right margin. Across the width of a page the eye has to travel to pair them
+// up, and the two numbers only mean anything together: 101h over 21 days is a
+// different month from 101h over 8.
+//
+// The label carries the weight of ordinary text and the figure is bold, so the
+// number reads first without the line shouting.
 function drawTotal(doc, label, value, y) {
   const right = doc.internal.pageSize.getWidth() - MARGIN;
   doc.setFillColor(241, 245, 249);
   doc.rect(MARGIN, y, right - MARGIN, 8, "F");
   doc.setFillColor(...ACCENT);
   doc.rect(MARGIN, y, 1.2, 8, "F");
+
+  const x = MARGIN + 3.5;
+  const baseline = y + 5.5;
+  doc.setFont(FONT, "normal").setFontSize(9.5).setTextColor(...MUTED);
+  doc.text(label, x, baseline);
+  // Measured while the label's own font is still active — getTextWidth reads
+  // whatever is set now, so switching to bold first would return the wrong
+  // number. The label's width changes with the day count, so a fixed offset
+  // would collide on a long month.
+  const labelWidth = doc.getTextWidth(label);
+
   doc.setFont(FONT, "bold").setFontSize(10).setTextColor(...INK);
-  doc.text(label, MARGIN + 3.5, y + 5.5);
-  doc.text(value, right - 3, y + 5.5, { align: "right" });
+  doc.text(value, x + labelWidth + 4, baseline);
   return y + 8;
 }
 
