@@ -23,9 +23,7 @@ const BUSINESS = {
 };
 
 const FONT = "LiberationSans";
-// Greys only, no brand colour. A colour cartridge is the expensive one, and a
-// teal bar down the side of a totals row is not worth a drop of it on a page
-// printed for every person every month.
+const ACCENT = [13, 148, 136];
 const INK = [15, 23, 42];
 const MUTED = [71, 85, 105];
 const FAINT = [148, 163, 184];
@@ -197,13 +195,6 @@ function drawSignature(doc, startY) {
   return y;
 }
 
-// Plain cells: no grid, no shaded header band, no filled totals bar.
-//
-// This sheet is printed once a month for every person, and a full-page grid of
-// hairlines plus two grey fills is a surprising amount of toner for decoration.
-// Alignment does the work the rules were doing — the columns are fixed width,
-// so they line up without being boxed in — and one rule under the header is
-// enough to separate the labels from the data.
 const TABLE_STYLE = {
   font: FONT,
   fontSize: 9,
@@ -211,7 +202,8 @@ const TABLE_STYLE = {
   // tighter and the rows start to run together; the type size is left alone
   // because this is a page people read line by line before signing it.
   cellPadding: { top: 1.05, bottom: 1.05, left: 1.8, right: 1.8 },
-  lineWidth: 0,
+  lineColor: LINE,
+  lineWidth: 0.1,
   textColor: INK,
   overflow: "linebreak",
 };
@@ -220,11 +212,14 @@ const HEAD_STYLE = {
   fontStyle: "bold",
   fontSize: 8,
   textColor: MUTED,
-  fillColor: false,
-  lineColor: LINE,
-  // The one rule kept: without it the headings read as another row of data.
-  lineWidth: { top: 0, right: 0, bottom: 0.3, left: 0 },
+  fillColor: [248, 250, 252],
+  lineColor: FAINT,
 };
+
+// No zebra striping. The grid already separates the rows, so the alternating
+// grey was doing the same job twice — and on a full month it tinted a third of
+// the page, which is the one thing on here that costs real toner.
+const ROW_STYLE = { fillColor: false };
 
 // The content of a one-employee sheet, separate from its drawing so it can be
 // asserted on — jsPDF writes subset glyph IDs, not readable text.
@@ -317,13 +312,12 @@ export function buildTeamSheet(employees, entries, monthId) {
 // number reads first without the line shouting.
 function drawTotal(doc, label, value, y) {
   const right = doc.internal.pageSize.getWidth() - MARGIN;
-  // A rule above the total instead of a filled band behind it. It separates
-  // the summary from the rows just as well and costs a line rather than a
-  // page-wide block of grey.
-  doc.setDrawColor(...INK).setLineWidth(0.3);
-  doc.line(MARGIN, y, right, y);
+  doc.setFillColor(241, 245, 249);
+  doc.rect(MARGIN, y, right - MARGIN, 8, "F");
+  doc.setFillColor(...ACCENT);
+  doc.rect(MARGIN, y, 1.2, 8, "F");
 
-  const x = MARGIN;
+  const x = MARGIN + 3.5;
   const baseline = y + 5.5;
   doc.setFont(FONT, "normal").setFontSize(9.5).setTextColor(...MUTED);
   doc.text(label, x, baseline);
@@ -357,12 +351,12 @@ export function buildEmployeePdf(employee, entries, monthId) {
 
   autoTable(doc, {
     startY: y,
-    theme: "plain",
     margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
     head: [[T.colDate, T.colStart, T.colEnd, T.colWorked, T.colNote]],
     body: sheet.rows.map((r) => [r.date, r.start, r.end, r.worked, r.note]),
     styles: TABLE_STYLE,
     headStyles: HEAD_STYLE,
+    alternateRowStyles: ROW_STYLE,
     // Widths measured against the bilingual headings so each stays on one
     // line; the note column takes what is left, still half the page.
     columnStyles: {
@@ -404,12 +398,12 @@ export function buildTeamPdf(employees, entries, monthId) {
 
   autoTable(doc, {
     startY: y,
-    theme: "plain",
     margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
     head: [[T.colPerson, T.colDays, T.colHours]],
     body: sheet.rows.map((r) => [r.employeeName, String(r.daysWorked), r.worked]),
     styles: TABLE_STYLE,
     headStyles: HEAD_STYLE,
+    alternateRowStyles: ROW_STYLE,
     columnStyles: {
       0: { cellWidth: "auto" },
       1: { cellWidth: 24, halign: "right" },
