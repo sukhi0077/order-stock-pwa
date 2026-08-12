@@ -168,24 +168,33 @@ export default function AvailabilityAdmin() {
             }}
           >
             <span />
-            {dates.map((date) => (
-              <span
-                key={date}
-                className={`text-center text-[9px] font-bold leading-tight ${
-                  date === today ? "text-accent-700 dark:text-accent-300" : "text-n-400"
-                }`}
-              >
-                {view === "week" ? (
-                  <>
-                    {WEEKDAYS[weekdayOf(date)]}
-                    <br />
-                    {Number(date.slice(-2))}
-                  </>
-                ) : (
-                  Number(date.slice(-2))
-                )}
-              </span>
-            ))}
+            {dates.map((date) => {
+              const weekday = weekdayOf(date);
+              // Two letters, not one. Down a 31-column strip a lone "T" over
+              // the 6th and another over the 8th are Tuesday and Thursday and
+              // you cannot tell which without counting — and the reason to
+              // read this row at all is to find the Fridays.
+              const short = view === "month"
+                ? WEEKDAYS[weekday].slice(0, 2)
+                : WEEKDAYS[weekday];
+              const weekend = weekday >= 5;
+              return (
+                <span
+                  key={date}
+                  className={`text-center text-[9px] font-bold leading-tight ${
+                    date === today
+                      ? "text-accent-700 dark:text-accent-300"
+                      : weekend
+                        ? "text-n-500"
+                        : "text-n-400"
+                  }`}
+                >
+                  {short}
+                  <br />
+                  {Number(date.slice(-2))}
+                </span>
+              );
+            })}
 
             {rows.map((row) => (
               <React.Fragment key={row.employeeId}>

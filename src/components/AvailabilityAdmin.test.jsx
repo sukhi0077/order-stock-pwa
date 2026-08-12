@@ -78,6 +78,12 @@ describe("AvailabilityAdmin", () => {
     expect(html).toContain("Month");
   });
 
+  it("labels every column with its weekday, not just its date", () => {
+    // A bare row of numbers makes you count to find the Fridays.
+    const html = render();
+    for (const day of ["Mon", "Sat", "Sun"]) expect(html).toContain(day);
+  });
+
   // The legend at the foot of the screen explains the marks, so it contains a
   // tick of its own. Counting rather than searching keeps that out of the way.
   const ticks = (html) => (html.match(/✓/g) || []).length;
