@@ -100,7 +100,10 @@ const T = {
   colEnd: "Do / End",
   colWorked: "Godziny / Worked",
   colNote: "Uwagi / Note",
-  colEmployee: "Pracownik / Employee",
+  // "Person", not "employee": some of the people on this list are family or
+  // casual help rather than anyone's employee, and a sheet that calls them
+  // employees says something about their status that is not ours to say.
+  colPerson: "Osoba / Person",
   colDays: "Dni / Days",
   colHours: "Godziny / Hours",
   summaryTitle: "Zestawienie godzin / Hours summary",
@@ -111,7 +114,7 @@ const T = {
   emptyEn: "No hours recorded for this month.",
   declaration: "Potwierdzam, że powyższe godziny są prawidłowe.",
   declarationEn: "I confirm the hours recorded above are correct.",
-  signature: "Podpis pracownika / Employee signature",
+  signature: "Podpis / Signature",
   signedDate: "Data / Date",
 };
 
@@ -373,7 +376,7 @@ export function buildTeamPdf(employees, entries, monthId) {
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN, top: MARGIN, bottom: MARGIN },
-    head: [[T.colEmployee, T.colDays, T.colHours]],
+    head: [[T.colPerson, T.colDays, T.colHours]],
     body: sheet.rows.map((r) => [r.employeeName, String(r.daysWorked), r.worked]),
     styles: TABLE_STYLE,
     headStyles: HEAD_STYLE,
@@ -391,7 +394,7 @@ export function buildTeamPdf(employees, entries, monthId) {
 
 export async function downloadEmployeeTimesheetPdf(employee, entries, monthId) {
   const doc = buildEmployeePdf(employee, entries, monthId);
-  const safe = String(employee?.name || "employee").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+  const safe = String(employee?.name || "person").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
   doc.save(`hours-${safe}-${monthId}.pdf`);
 }
 

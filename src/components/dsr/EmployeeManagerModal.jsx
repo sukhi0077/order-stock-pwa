@@ -42,7 +42,7 @@ export default function EmployeeManagerModal({ onClose }) {
       await refresh();
       setDraft("");
     } catch (e) {
-      setError(e.message || "Failed to add that employee.");
+      setError(e.message || "Failed to add that person.");
     } finally {
       setIsAdding(false);
     }
@@ -157,7 +157,7 @@ export default function EmployeeManagerModal({ onClose }) {
     <div className="fixed inset-0 bg-black/60 z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
       <div className="bg-n-100 w-full max-w-md rounded-2xl border border-n-200 shadow-xl my-8">
         <div className="flex items-center justify-between p-4 border-b border-n-200">
-          <h2 className="text-lg font-bold text-n-900">Manage employees</h2>
+          <h2 className="text-lg font-bold text-n-900">Manage people</h2>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -186,7 +186,7 @@ export default function EmployeeManagerModal({ onClose }) {
                   handleAdd();
                 }
               }}
-              placeholder="Add an employee…"
+              placeholder="Add a person…"
               className="flex-1 bg-n-0 border border-n-200 rounded-lg px-3 py-2 text-sm text-n-900 placeholder-n-400 focus:outline-none focus:border-accent-500"
             />
             <button
