@@ -146,10 +146,15 @@ export default function StaffAdmin() {
         />
       )}
 
+      {/* Three jobs, three sections. They were stacked on one screen — a month
+          navigator, two buttons, an hours list and the whole roster with PIN
+          controls — and the page asked you to scroll past two of them to reach
+          whichever one you came for. */}
       <div className="flex gap-1 bg-n-100 rounded-xl p-1">
         {[
           ["hours", t("ts_hoursSection")],
           ["availability", t("ts_availability")],
+          ["people", t("ts_peopleSection")],
         ].map(([id, label]) => (
           <button
             key={id}
@@ -165,19 +170,49 @@ export default function StaffAdmin() {
       </div>
 
       {section === "availability" ? (
+        <AvailabilityAdmin />
+      ) : section === "people" ? (
+        // The roster and its PINs. Its own section because it includes people
+        // who worked no hours this month, and because "who works here" is a
+        // different question from "what did they work".
         <>
           <button
             type="button"
             onClick={() => setManaging(true)}
-            className="w-full py-2.5 rounded-xl bg-n-0 border border-n-200 text-n-600 font-semibold hover:text-n-900"
+            className="w-full py-2.5 rounded-xl bg-accent-600 border border-accent-600 text-white font-semibold"
           >
             {t("ts_manageStaff")}
           </button>
-          <AvailabilityAdmin />
+
+          <div className="bg-n-0 border border-n-200 rounded-2xl">
+            <div className="px-3 py-2 border-b border-n-100 text-[11px] font-semibold uppercase tracking-wide text-n-500">
+              {t("ts_pins")}
+            </div>
+            <div className="divide-y divide-n-100">
+              {employees.map((e) => (
+                <div key={e.id} className="flex items-center gap-2 px-3 py-2">
+                  <span
+                    className={`flex-1 min-w-0 truncate text-sm ${
+                      e.active === false ? "text-n-400 line-through" : "text-n-800"
+                    }`}
+                  >
+                    {e.name}
+                  </span>
+                  <PinRow employee={e} onDone={refetch} />
+                </div>
+              ))}
+              {employees.length === 0 && (
+                <p className="text-center text-n-400 py-8 text-sm">{t("ts_noStaff")}</p>
+              )}
+            </div>
+            <p className="px-3 py-2 text-[11px] text-n-400">{t("ts_pinHint")}</p>
+          </div>
         </>
       ) : (
         <>
-      {/* Month navigator */}
+      {/* Month navigator, with the team total under it: the month and its
+          total are one fact, and splitting them across two cards made the
+          number look like a separate reading. */}
       <div className="bg-n-0 border border-n-200 rounded-2xl p-3">
         <div className="flex items-center justify-between">
           <button
@@ -204,23 +239,14 @@ export default function StaffAdmin() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => setManaging(true)}
-          className="py-2.5 rounded-xl bg-n-0 border border-n-200 text-n-600 font-semibold hover:text-n-900"
-        >
-          {t("ts_manageStaff")}
-        </button>
-        <button
-          type="button"
-          disabled={rows.length === 0}
-          onClick={() => downloadTeamTimesheetPdf(employees, entries, monthId)}
-          className="py-2.5 rounded-xl bg-accent-600 border border-accent-600 text-white font-semibold disabled:opacity-40"
-        >
-          {t("exportPdf")}
-        </button>
-      </div>
+      <button
+        type="button"
+        disabled={rows.length === 0}
+        onClick={() => downloadTeamTimesheetPdf(employees, entries, monthId)}
+        className="w-full py-2.5 rounded-xl bg-accent-600 border border-accent-600 text-white font-semibold disabled:opacity-40"
+      >
+        {t("exportPdf")}
+      </button>
 
       {entriesQuery.isLoading ? (
         <div className="flex justify-center py-12">
@@ -288,25 +314,6 @@ export default function StaffAdmin() {
           )}
         </div>
       )}
-
-      {/* Roster + PINs. Separate from the hours list above because it includes
-          people who worked no hours this month and still need a PIN. */}
-      <div className="bg-n-0 border border-n-200 rounded-2xl">
-        <div className="px-3 py-2 border-b border-n-100 text-[11px] font-semibold uppercase tracking-wide text-n-500">
-          {t("ts_pins")}
-        </div>
-        <div className="divide-y divide-n-100">
-          {employees.map((e) => (
-            <div key={e.id} className="flex items-center gap-2 px-3 py-2">
-              <span className={`flex-1 min-w-0 truncate text-sm ${e.active === false ? "text-n-400 line-through" : "text-n-800"}`}>
-                {e.name}
-              </span>
-              <PinRow employee={e} onDone={refetch} />
-            </div>
-          ))}
-        </div>
-        <p className="px-3 py-2 text-[11px] text-n-400">{t("ts_pinHint")}</p>
-      </div>
         </>
       )}
     </div>
