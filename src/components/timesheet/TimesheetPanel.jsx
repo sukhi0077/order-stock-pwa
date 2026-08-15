@@ -402,15 +402,24 @@ function HoursTab({ employee }) {
 // see which days you have actually replied to.
 function DayCell({ date, state, past, onClick }) {
   const day = Number(date.slice(-2));
-  const yes = state.available === true;
-  const no = state.available === false;
+  // Only a day you tapped counts. A day the usual week merely implies is drawn
+  // as a suggestion — outlined, not filled — because that is exactly what the
+  // manager sees: nothing. Showing it solid green would tell you your answer
+  // had been given when it had not.
+  const answered = state.source === "exception";
+  const yes = answered && state.available === true;
+  const no = answered && state.available === false;
+  const suggested = !answered && state.available === true;
+
   const tone = past
     ? "bg-n-50 text-n-300 border-n-100"
     : yes
-      ? "bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+      ? "bg-emerald-600 text-white border-emerald-600"
       : no
-        ? "bg-n-100 text-n-500 border-n-200"
-        : "bg-n-0 text-n-400 border-n-200 border-dashed";
+        ? "bg-n-200 text-n-600 border-n-300"
+        : suggested
+          ? "bg-n-0 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 border-dashed"
+          : "bg-n-0 text-n-400 border-n-200 border-dashed";
 
   return (
     <button
@@ -422,12 +431,7 @@ function DayCell({ date, state, past, onClick }) {
       className={`relative h-11 rounded-lg border text-[11px] font-bold leading-none flex flex-col items-center justify-center gap-0.5 transition ${tone}`}
     >
       <span>{day}</span>
-      <span aria-hidden="true">{yes ? "✓" : no ? "–" : ""}</span>
-      {state.source === "exception" && !past && (
-        <span className="absolute top-0.5 right-1 text-[8px] text-accent-600 dark:text-accent-300">
-          •
-        </span>
-      )}
+      <span aria-hidden="true">{yes ? "✓" : no ? "–" : suggested ? "·" : ""}</span>
     </button>
   );
 }

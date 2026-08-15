@@ -42,13 +42,7 @@ function Mark({ state, dim }) {
   const no = state?.available === false;
   return (
     <span
-      title={
-        state?.source === "exception"
-          ? "set for this date"
-          : state?.source === "weekly"
-            ? "from their usual week"
-            : "not answered"
-      }
+      title={state?.source === "exception" ? "they answered for this date" : "not answered"}
       className={`grid place-items-center h-7 rounded text-[11px] font-bold ${
         dim
           ? "text-n-300"
@@ -83,9 +77,15 @@ export default function AvailabilityAdmin() {
   // otherwise be ten round trips before anything could be drawn.
   const availQuery = useAvailabilityRange(dates[0], dates[dates.length - 1]);
 
+  // explicitOnly: only the dates a person actually tapped. Their "usual week"
+  // is a habit, not a promise about a particular Tuesday — filling the grid
+  // from it would show answers nobody gave, and a rota built on that puts
+  // someone on a shift they never agreed to.
   const rows = useMemo(() => {
     const { weekly = [], exceptions = [] } = availQuery.data || {};
-    return availabilityGrid(dates, employees, groupAvailability(weekly, exceptions));
+    return availabilityGrid(dates, employees, groupAvailability(weekly, exceptions), {
+      explicitOnly: true,
+    });
   }, [dates, employees, availQuery.data]);
 
   const tallies = useMemo(() => dayTallies(dates, rows), [dates, rows]);

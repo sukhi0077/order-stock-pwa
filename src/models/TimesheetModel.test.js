@@ -344,6 +344,43 @@ describe("availabilityGrid", () => {
   it("keeps cells in the order of the dates it was given", () => {
     expect(rows[0].cells.map((c) => c.date)).toEqual(dates);
   });
+
+  describe("explicitOnly — what the admin is shown", () => {
+    const usualMondays = groupAvailability(
+      [{ employeeId: "a", weekday: 0, available: true }],
+      [],
+    );
+
+    it("ignores the usual week entirely", () => {
+      // 3 Aug 2026 is a Monday, so the pattern would otherwise say yes. A
+      // habit is not a commitment to a particular Monday, and a rota built on
+      // one puts someone on a shift they never agreed to.
+      const [row] = availabilityGrid(dates, [people[0]], usualMondays, {
+        explicitOnly: true,
+      });
+      expect(row.cells[0]).toMatchObject({ available: null, source: "none" });
+    });
+
+    it("still shows the days that were answered for", () => {
+      const answered = groupAvailability(
+        [{ employeeId: "a", weekday: 0, available: true }],
+        [{ employeeId: "a", onDate: "2026-08-04", available: true }],
+      );
+      const [row] = availabilityGrid(dates, [people[0]], answered, { explicitOnly: true });
+      expect(row.cells[1]).toMatchObject({ available: true, source: "exception" });
+    });
+
+    it("leaves the staff view alone, where the pattern is a useful prompt", () => {
+      const [row] = availabilityGrid(dates, [people[0]], usualMondays);
+      expect(row.cells[0]).toMatchObject({ available: true, source: "weekly" });
+    });
+
+    it("counts nobody free from a pattern alone", () => {
+      const rowsOnly = availabilityGrid(dates, people, usualMondays, { explicitOnly: true });
+      expect(dayTallies(dates, rowsOnly)[0].available).toBe(0);
+      expect(dayTallies(dates, rowsOnly)[0].unknown).toBe(2);
+    });
+  });
 });
 
 describe("dayTallies", () => {

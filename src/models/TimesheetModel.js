@@ -174,7 +174,15 @@ export function weekdayOf(dateStr) {
   return (d.getUTCDay() + 6) % 7;
 }
 
-export function availabilityFor(dateStr, { weekly = [], exceptions = [] } = {}) {
+// `explicitOnly` drops the weekly-pattern fallback, leaving only the dates a
+// person actually answered. The admin view uses it: a usual week is a habit,
+// not a commitment to a particular Tuesday, and treating one as the other is
+// how somebody ends up rostered on a day they never agreed to.
+export function availabilityFor(
+  dateStr,
+  { weekly = [], exceptions = [] } = {},
+  { explicitOnly = false } = {},
+) {
   const ex = exceptions.find((x) => x.onDate === dateStr);
   if (ex) {
     return {
@@ -184,6 +192,9 @@ export function availabilityFor(dateStr, { weekly = [], exceptions = [] } = {}) 
       toTime: ex.toTime || null,
       note: ex.note || "",
     };
+  }
+  if (explicitOnly) {
+    return { source: "none", available: null, fromTime: null, toTime: null, note: "" };
   }
   const wd = weekdayOf(dateStr);
   const pattern = wd === null ? null : weekly.find((w) => w.weekday === wd);
@@ -223,13 +234,13 @@ export function groupAvailability(weekly = [], exceptions = []) {
 // people × dates. Every person gets a row and every date a cell, including the
 // people who have answered nothing: a name missing from the grid reads as "not
 // working", when what it means is "has not said".
-export function availabilityGrid(dates = [], people = [], byPerson = {}) {
+export function availabilityGrid(dates = [], people = [], byPerson = {}, options = {}) {
   return people.map((person) => ({
     employeeId: person.id,
     employeeName: person.name,
     cells: dates.map((date) => ({
       date,
-      ...availabilityFor(date, byPerson[person.id] || {}),
+      ...availabilityFor(date, byPerson[person.id] || {}, options),
     })),
   }));
 }
