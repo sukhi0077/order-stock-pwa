@@ -281,6 +281,25 @@ export class TimesheetRepository {
     }
   }
 
+  // Un-ticking a usual weekday: remove the answers it had filled in. One
+  // delete for the lot, matching setDates.
+  static async clearDates(employeeId, dates) {
+    if (!dates || dates.length === 0) return true;
+    try {
+      unwrap(
+        await withTimeout(
+          supabase.from(DATES).delete().eq("employee_id", employeeId).in("on_date", dates),
+          20000,
+          "Saving availability",
+        ),
+        "Saving availability",
+      );
+      return true;
+    } catch (error) {
+      throw asAppError(error, "Couldn't clear those days.");
+    }
+  }
+
   // Clearing an exception restores the weekly pattern for that date, which is
   // why this deletes rather than writing available = true.
   static async clearDate(employeeId, onDate) {

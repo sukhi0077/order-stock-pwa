@@ -27,6 +27,7 @@ export const TimesheetService = {
   setDate: (employeeId, onDate, value) => TimesheetRepository.setDate(employeeId, onDate, value),
   setDates: (employeeId, dates, value) =>
     TimesheetRepository.setDates(employeeId, dates, value),
+  clearDates: (employeeId, dates) => TimesheetRepository.clearDates(employeeId, dates),
   clearDate: (employeeId, onDate) => TimesheetRepository.clearDate(employeeId, onDate),
   verifyPin: (employeeId, pin) => TimesheetRepository.verifyPin(employeeId, pin),
   hasPin: (employeeId) => TimesheetRepository.hasPin(employeeId),

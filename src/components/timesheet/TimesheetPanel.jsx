@@ -35,6 +35,7 @@ import {
   monthlySummary,
   availabilityFor,
   fillableDates,
+  clearableDates,
   weeksOf,
 } from "../../models/TimesheetModel.js";
 import { downloadEmployeeTimesheetPdf } from "../../utils/exportTimesheetPdf.js";
@@ -473,10 +474,11 @@ function AvailabilityTab({ employee }) {
   // for leave — is left alone. Losing a booked holiday to a stray tap on a
   // weekday chip is the one outcome this must never produce.
   //
-  // Turning the weekday back off clears the pattern but keeps the days it
-  // filled. Those are answers now, and deleting a fortnight of them because
-  // someone toggled a chip would be worse than leaving them to be tapped off
-  // individually.
+  // Un-ticking it takes those days back out again, so the chip is a real
+  // switch rather than a one-way action. Only the green ones go: a red day is
+  // leave that happens to fall on a Tuesday, not a consequence of usually
+  // working Tuesdays, and cancelling somebody's holiday from here would be
+  // indefensible.
   const toggleWeekly = (weekday) => {
     const cur = data.weekly.find((w) => w.weekday === weekday);
     const turningOn = !(cur?.available ?? false);
@@ -486,15 +488,16 @@ function AvailabilityTab({ employee }) {
       key: weekday,
       value: { available: turningOn },
     });
-    if (!turningOn) return;
 
-    const toFill = fillableDates(allDates, weekday, from, data);
-    if (toFill.length > 0) {
+    const dates = turningOn
+      ? fillableDates(allDates, weekday, from, data)
+      : clearableDates(allDates, weekday, from, data);
+    if (dates.length > 0) {
       saveAvail.mutate({
         kind: "dates",
         employeeId: employee.id,
-        key: toFill,
-        value: { available: true },
+        key: dates,
+        value: turningOn ? { available: true } : null,
       });
     }
   };

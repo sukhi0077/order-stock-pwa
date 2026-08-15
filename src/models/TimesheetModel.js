@@ -281,6 +281,20 @@ export function fillableDates(dates = [], weekday, fromDate, availability = {}) 
   );
 }
 
+// The reverse: which dates un-ticking that weekday should clear.
+//
+// Only the green ones. A red day is leave — it happens to fall on a Tuesday,
+// it was never a consequence of usually working Tuesdays, and taking the
+// weekday off must not cancel it. Past days are left alone for the same reason
+// they are never filled: they are history now.
+export function clearableDates(dates = [], weekday, fromDate, availability = {}) {
+  return dates.filter((date) => {
+    if (date < fromDate || weekdayOf(date) !== weekday) return false;
+    const answer = availabilityFor(date, availability, { explicitOnly: true });
+    return answer.source === "exception" && answer.available === true;
+  });
+}
+
 // Split dates into calendar weeks starting Monday, padding the first and last
 // week with nulls so every week has 7 slots and the columns line up under
 // Mon–Sun. A month that starts on a Thursday must not shift every row.

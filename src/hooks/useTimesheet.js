@@ -52,10 +52,12 @@ export function useSaveAvailability() {
     mutationFn: ({ kind, employeeId, key, value }) =>
       kind === "weekly"
         ? TimesheetService.setWeekly(employeeId, key, value)
-        : // `key` is an array for a bulk fill — "I usually work Tuesdays"
-          // answering every Tuesday left blank.
+        : // `key` is an array for the bulk cases — ticking or un-ticking a
+          // usual weekday, which answers or clears every matching day at once.
           kind === "dates"
-          ? TimesheetService.setDates(employeeId, key, value)
+          ? value === null
+            ? TimesheetService.clearDates(employeeId, key)
+            : TimesheetService.setDates(employeeId, key, value)
           : value === null
             ? TimesheetService.clearDate(employeeId, key)
             : TimesheetService.setDate(employeeId, key, value),

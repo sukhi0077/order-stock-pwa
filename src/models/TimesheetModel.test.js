@@ -21,6 +21,7 @@ import {
   weekdayOf,
   availabilityFor,
   fillableDates,
+  clearableDates,
   groupAvailability,
   availabilityGrid,
   dayTallies,
@@ -487,6 +488,59 @@ describe("fillableDates — 'I usually work Tuesdays' filling the calendar", () 
   it("returns nothing rather than throwing when there is nothing to fill", () => {
     expect(fillableDates([], TUESDAY, "2026-08-01", {})).toEqual([]);
     expect(fillableDates(august, TUESDAY, "2027-01-01", {})).toEqual([]);
+  });
+
+  describe("clearableDates — un-ticking the weekday again", () => {
+    it("takes back the days the tick had filled", () => {
+      const filled = {
+        exceptions: fillableDates(august, TUESDAY, "2026-08-01", {}).map((onDate) => ({
+          onDate,
+          available: true,
+        })),
+      };
+      expect(clearableDates(august, TUESDAY, "2026-08-01", filled)).toEqual([
+        "2026-08-04",
+        "2026-08-11",
+        "2026-08-18",
+        "2026-08-25",
+      ]);
+    });
+
+    it("never cancels leave", () => {
+      // A red Tuesday is a holiday that happens to fall on a Tuesday, not a
+      // consequence of usually working Tuesdays. Un-ticking the weekday must
+      // not take somebody's day off away.
+      const mixed = {
+        exceptions: [
+          { onDate: "2026-08-04", available: true },
+          { onDate: "2026-08-11", available: false },
+        ],
+      };
+      expect(clearableDates(august, TUESDAY, "2026-08-01", mixed)).toEqual(["2026-08-04"]);
+    });
+
+    it("leaves the past alone", () => {
+      const filled = { exceptions: [{ onDate: "2026-08-04", available: true }] };
+      expect(clearableDates(august, TUESDAY, "2026-08-12", filled)).toEqual([]);
+    });
+
+    it("has nothing to clear when nothing was answered", () => {
+      // A weekly pattern on its own wrote no rows, so there is nothing to undo.
+      const pattern = { weekly: [{ weekday: TUESDAY, available: true }] };
+      expect(clearableDates(august, TUESDAY, "2026-08-01", pattern)).toEqual([]);
+    });
+
+    it("is the exact inverse of a fill, on an empty calendar", () => {
+      const filled = {
+        exceptions: fillableDates(august, TUESDAY, "2026-08-01", {}).map((onDate) => ({
+          onDate,
+          available: true,
+        })),
+      };
+      expect(clearableDates(august, TUESDAY, "2026-08-01", filled)).toEqual(
+        fillableDates(august, TUESDAY, "2026-08-01", {}),
+      );
+    });
   });
 });
 
