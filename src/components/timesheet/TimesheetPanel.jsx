@@ -411,12 +411,15 @@ function DayCell({ date, state, past, onClick }) {
   const no = answered && state.available === false;
   const suggested = !answered && state.available === true;
 
+  // Red for a day you have said you cannot work — leave, an appointment, a
+  // second job. It was grey, which read as "nothing here" rather than "no",
+  // and a booked holiday is not the absence of an answer.
   const tone = past
     ? "bg-n-50 text-n-300 border-n-100"
     : yes
       ? "bg-emerald-600 text-white border-emerald-600"
       : no
-        ? "bg-n-200 text-n-600 border-n-300"
+        ? "bg-rose-600 text-white border-rose-600"
         : suggested
           ? "bg-n-0 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 border-dashed"
           : "bg-n-0 text-n-400 border-n-200 border-dashed";
@@ -431,7 +434,7 @@ function DayCell({ date, state, past, onClick }) {
       className={`relative h-11 rounded-lg border text-[11px] font-bold leading-none flex flex-col items-center justify-center gap-0.5 transition ${tone}`}
     >
       <span>{day}</span>
-      <span aria-hidden="true">{yes ? "✓" : no ? "–" : suggested ? "·" : ""}</span>
+      <span aria-hidden="true">{yes ? "✓" : no ? "✕" : suggested ? "·" : ""}</span>
     </button>
   );
 }

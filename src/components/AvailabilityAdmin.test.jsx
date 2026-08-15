@@ -103,6 +103,18 @@ describe("AvailabilityAdmin", () => {
     expect(ticks(render())).toBe(1);
   });
 
+  it("shows a day off distinctly from a day nobody answered for", () => {
+    // Leave is an answer. If it rendered the same as silence, the one thing
+    // this screen exists to surface would be invisible.
+    const crosses = (html) => (html.match(/✕/g) || []).length;
+    expect(crosses(render())).toBe(1); // legend only
+    const html = render({
+      exceptions: [{ employeeId: "a", onDate: todayStr(), available: false }],
+    });
+    expect(crosses(html)).toBe(2);
+    expect(html).toContain("Off");
+  });
+
   it("survives an empty roster instead of rendering a broken grid", () => {
     expect(() => render({ people: [] })).not.toThrow();
   });

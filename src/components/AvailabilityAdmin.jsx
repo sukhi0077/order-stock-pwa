@@ -49,11 +49,13 @@ function Mark({ state, dim }) {
           : yes
             ? "bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300"
             : no
-              ? "bg-n-100 text-n-400"
+              ? // Red, and filled: someone on leave is the thing you are
+                // scanning for. Grey made a booked holiday look like silence.
+                "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300"
               : "text-n-300"
       }`}
     >
-      {yes ? "✓" : no ? "–" : "·"}
+      {yes ? "✓" : no ? "✕" : "·"}
     </span>
   );
 }
@@ -207,21 +209,38 @@ export default function AvailabilityAdmin() {
               </React.Fragment>
             ))}
 
-            {/* How many people are free each day — the number you are actually
-                looking for when you open this. */}
+            {/* Two counts, because they answer different questions. "Free" is
+                who you can call on. "Off" is who has told you they cannot —
+                three people on leave the same Saturday is the thing you want
+                to catch weeks out, and it is invisible in the free count when
+                most of the team simply has not answered yet. */}
             <span className="text-[10px] font-bold uppercase tracking-wide text-n-500 self-center pr-1">
               {t("ts_freeCount")}
             </span>
             {tallies.map((d) => (
               <span
                 key={d.date}
-                className={`grid place-items-center h-7 rounded text-[11px] font-bold ${
-                  d.available === 0
-                    ? "text-rose-600 dark:text-rose-400"
-                    : "text-n-700"
+                className={`grid place-items-center h-7 text-[11px] font-bold ${
+                  d.available === 0 ? "text-n-300" : "text-n-700"
                 }`}
               >
                 {d.available}
+              </span>
+            ))}
+
+            <span className="text-[10px] font-bold uppercase tracking-wide text-n-500 self-center pr-1">
+              {t("ts_offCount")}
+            </span>
+            {tallies.map((d) => (
+              <span
+                key={d.date}
+                className={`grid place-items-center h-7 text-[11px] font-bold ${
+                  d.unavailable === 0
+                    ? "text-n-300"
+                    : "text-rose-600 dark:text-rose-400"
+                }`}
+              >
+                {d.unavailable}
               </span>
             ))}
           </div>
