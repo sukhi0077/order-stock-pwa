@@ -263,6 +263,24 @@ export function dayTallies(dates = [], rows = []) {
   });
 }
 
+// Which dates a "I usually work Tuesdays" tap should actually fill in.
+//
+// Three filters, each there for a reason:
+//   - the right weekday, obviously;
+//   - nothing before `fromDate`, because answering for last Tuesday is not a
+//     thing anyone needs to do;
+//   - nothing already answered, so a day marked as leave is never overwritten
+//     by a habit. Losing a booked holiday to a stray tap on a weekday chip is
+//     the one outcome this must not produce.
+export function fillableDates(dates = [], weekday, fromDate, availability = {}) {
+  return dates.filter(
+    (date) =>
+      date >= fromDate &&
+      weekdayOf(date) === weekday &&
+      availabilityFor(date, availability, { explicitOnly: true }).source !== "exception",
+  );
+}
+
 // Split dates into calendar weeks starting Monday, padding the first and last
 // week with nulls so every week has 7 slots and the columns line up under
 // Mon–Sun. A month that starts on a Thursday must not shift every row.

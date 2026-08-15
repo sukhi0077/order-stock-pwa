@@ -52,9 +52,13 @@ export function useSaveAvailability() {
     mutationFn: ({ kind, employeeId, key, value }) =>
       kind === "weekly"
         ? TimesheetService.setWeekly(employeeId, key, value)
-        : value === null
-          ? TimesheetService.clearDate(employeeId, key)
-          : TimesheetService.setDate(employeeId, key, value),
+        : // `key` is an array for a bulk fill — "I usually work Tuesdays"
+          // answering every Tuesday left blank.
+          kind === "dates"
+          ? TimesheetService.setDates(employeeId, key, value)
+          : value === null
+            ? TimesheetService.clearDate(employeeId, key)
+            : TimesheetService.setDate(employeeId, key, value),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["availability"] }),
   });
 }

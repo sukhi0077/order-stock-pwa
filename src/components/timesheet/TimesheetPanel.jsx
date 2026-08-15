@@ -34,6 +34,7 @@ import {
   formatMinutes,
   monthlySummary,
   availabilityFor,
+  fillableDates,
   weeksOf,
 } from "../../models/TimesheetModel.js";
 import { downloadEmployeeTimesheetPdf } from "../../utils/exportTimesheetPdf.js";
@@ -457,18 +458,45 @@ function AvailabilityTab({ employee }) {
     const thisMonth = monthOf(from);
     return [thisMonth, nextMonthId(thisMonth)].map((monthId) => ({
       monthId,
+      dates: datesInMonth(monthId),
       weeks: weeksOf(datesInMonth(monthId)),
     }));
   }, [from]);
 
+  // Every date on screen, flat — the span a weekday tap fills across.
+  const allDates = useMemo(() => months.flatMap((m) => m.dates), [months]);
+
+  // Tapping a weekday is a bulk answer, not just a note to yourself: it fills
+  // every blank day of that weekday, in both months, with "I can work".
+  //
+  // Only blank ones. A day already answered — green or, more importantly, red
+  // for leave — is left alone. Losing a booked holiday to a stray tap on a
+  // weekday chip is the one outcome this must never produce.
+  //
+  // Turning the weekday back off clears the pattern but keeps the days it
+  // filled. Those are answers now, and deleting a fortnight of them because
+  // someone toggled a chip would be worse than leaving them to be tapped off
+  // individually.
   const toggleWeekly = (weekday) => {
     const cur = data.weekly.find((w) => w.weekday === weekday);
+    const turningOn = !(cur?.available ?? false);
     saveAvail.mutate({
       kind: "weekly",
       employeeId: employee.id,
       key: weekday,
-      value: { available: !(cur?.available ?? false) },
+      value: { available: turningOn },
     });
+    if (!turningOn) return;
+
+    const toFill = fillableDates(allDates, weekday, from, data);
+    if (toFill.length > 0) {
+      saveAvail.mutate({
+        kind: "dates",
+        employeeId: employee.id,
+        key: toFill,
+        value: { available: true },
+      });
+    }
   };
 
   // Three states, cycled by tapping: follows the weekly pattern -> available

@@ -249,6 +249,38 @@ export class TimesheetRepository {
     }
   }
 
+  // Several dates at once — "I usually work Tuesdays" filling in the Tuesdays.
+  // One upsert rather than a request per date: nine round trips from a phone
+  // on restaurant wifi is long enough to tap something else halfway through.
+  static async setDates(employeeId, dates, value) {
+    if (!dates || dates.length === 0) return true;
+    try {
+      const now = new Date().toISOString();
+      unwrap(
+        await withTimeout(
+          supabase.from(DATES).upsert(
+            dates.map((onDate) => ({
+              employee_id: employeeId,
+              on_date: onDate,
+              available: value.available !== false,
+              from_time: value.fromTime || null,
+              to_time: value.toTime || null,
+              note: String(value.note || "").slice(0, 200),
+              updated_at: now,
+            })),
+            { onConflict: "employee_id,on_date" },
+          ),
+          20000,
+          "Saving availability",
+        ),
+        "Saving availability",
+      );
+      return true;
+    } catch (error) {
+      throw asAppError(error, "Couldn't save those days.");
+    }
+  }
+
   // Clearing an exception restores the weekly pattern for that date, which is
   // why this deletes rather than writing available = true.
   static async clearDate(employeeId, onDate) {

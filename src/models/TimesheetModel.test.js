@@ -20,6 +20,7 @@ import {
   monthlyByEmployee,
   weekdayOf,
   availabilityFor,
+  fillableDates,
   groupAvailability,
   availabilityGrid,
   dayTallies,
@@ -418,6 +419,74 @@ describe("dayTallies", () => {
     const day = dayTallies(dates, rows)[1];
     expect(day.available).toBe(0);
     expect(day.unknown).toBe(3);
+  });
+});
+
+describe("fillableDates — 'I usually work Tuesdays' filling the calendar", () => {
+  // August 2026: the 4th, 11th, 18th and 25th are Tuesdays.
+  const august = Array.from(
+    { length: 31 },
+    (_, i) => `2026-08-${String(i + 1).padStart(2, "0")}`,
+  );
+  const TUESDAY = 1; // 0 = Monday
+
+  it("picks every matching weekday from the date given onwards", () => {
+    expect(fillableDates(august, TUESDAY, "2026-08-01", {})).toEqual([
+      "2026-08-04",
+      "2026-08-11",
+      "2026-08-18",
+      "2026-08-25",
+    ]);
+  });
+
+  it("leaves the past alone", () => {
+    // Nobody needs to answer for last Tuesday.
+    expect(fillableDates(august, TUESDAY, "2026-08-12", {})).toEqual([
+      "2026-08-18",
+      "2026-08-25",
+    ]);
+  });
+
+  it("never overwrites a day already booked as leave", () => {
+    // The one outcome this must not produce: a stray tap on a weekday chip
+    // wiping a holiday somebody had already marked.
+    const onLeave = { exceptions: [{ onDate: "2026-08-18", available: false }] };
+    expect(fillableDates(august, TUESDAY, "2026-08-01", onLeave)).not.toContain("2026-08-18");
+  });
+
+  it("skips days already answered either way", () => {
+    const answered = {
+      exceptions: [
+        { onDate: "2026-08-04", available: true },
+        { onDate: "2026-08-11", available: false },
+      ],
+    };
+    expect(fillableDates(august, TUESDAY, "2026-08-01", answered)).toEqual([
+      "2026-08-18",
+      "2026-08-25",
+    ]);
+  });
+
+  it("ignores a weekly pattern — only real answers block a fill", () => {
+    // The pattern is what is being applied; treating it as an existing answer
+    // would make the button do nothing at all.
+    const pattern = { weekly: [{ weekday: TUESDAY, available: true }] };
+    expect(fillableDates(august, TUESDAY, "2026-08-01", pattern)).toHaveLength(4);
+  });
+
+  it("spans whatever dates it is handed, so both months fill at once", () => {
+    const september = Array.from(
+      { length: 30 },
+      (_, i) => `2026-09-${String(i + 1).padStart(2, "0")}`,
+    );
+    expect(fillableDates([...august, ...september], TUESDAY, "2026-08-01", {})).toHaveLength(
+      4 + 5,
+    );
+  });
+
+  it("returns nothing rather than throwing when there is nothing to fill", () => {
+    expect(fillableDates([], TUESDAY, "2026-08-01", {})).toEqual([]);
+    expect(fillableDates(august, TUESDAY, "2027-01-01", {})).toEqual([]);
   });
 });
 
