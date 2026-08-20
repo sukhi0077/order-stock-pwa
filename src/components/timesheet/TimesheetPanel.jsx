@@ -167,6 +167,13 @@ function PinGate({ employees, onUnlock }) {
         {employees.length === 0 && (
           <p className="text-center text-n-400 py-8 text-sm">{t("ts_noStaff")}</p>
         )}
+
+        {/* The team rota download sits under the name list, deliberately set
+            apart so it doesn't read as one more person to tap: a divider above
+            it, and a lighter, icon-led style rather than the solid name rows. */}
+        <div className="pt-3 mt-1 border-t border-n-200">
+          <RotaDownloadButton />
+        </div>
       </div>
     );
   }
@@ -767,16 +774,16 @@ function RotaDownloadButton() {
         type="button"
         onClick={download}
         disabled={!ready}
-        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-n-0 border border-n-200 text-sm font-semibold text-n-700 disabled:opacity-40"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 text-sm font-bold text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 transition disabled:opacity-40 disabled:hover:bg-accent-50"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
           <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
         </svg>
         {t("rota_downloadPdf")}
       </button>
       {!ready && (
-        <p className="text-[11px] text-n-400 mt-1 px-1 text-center">{t("rota_noPublished")}</p>
+        <p className="text-[11px] text-n-400 mt-1.5 px-1 text-center">{t("rota_noPublished")}</p>
       )}
     </div>
   );
@@ -824,10 +831,7 @@ export default function TimesheetPanel() {
       </div>
 
       {!me ? (
-        <>
-          <RotaDownloadButton />
-          <PinGate employees={employees} onUnlock={setMe} />
-        </>
+        <PinGate employees={employees} onUnlock={setMe} />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2">
