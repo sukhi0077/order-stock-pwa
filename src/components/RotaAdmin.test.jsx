@@ -20,12 +20,16 @@ vi.mock("../services/RotaService.js", () => ({
 vi.mock("../services/TimesheetService.js", () => ({
   TimesheetService: { getAvailabilityRange: vi.fn() },
 }));
+vi.mock("../services/FrontdeskService.js", () => ({
+  FrontdeskService: { list: vi.fn(), set: vi.fn() },
+}));
 vi.mock("../services/EmployeeService.js", () => ({
   EmployeeService: { list: vi.fn() },
 }));
 
 const { RotaService } = await import("../services/RotaService.js");
 const { TimesheetService } = await import("../services/TimesheetService.js");
+const { FrontdeskService } = await import("../services/FrontdeskService.js");
 const { EmployeeService } = await import("../services/EmployeeService.js");
 const { LanguageProvider } = await import("../i18n/i18n.jsx");
 const RotaAdmin = (await import("./RotaAdmin.jsx")).default;
@@ -48,10 +52,12 @@ function render({ people = PEOPLE, shifts = [], status = "draft" } = {}) {
   RotaService.listMonth.mockResolvedValue(shifts);
   RotaService.getMonthStatus.mockResolvedValue({ monthId: month, status, publishedAt: null });
   TimesheetService.getAvailabilityRange.mockResolvedValue({ weekly: [], exceptions: [] });
+  FrontdeskService.list.mockResolvedValue([]);
   qc.setQueryData(["employees", true], people);
   qc.setQueryData(["rota", month, "all"], shifts);
   qc.setQueryData(["rota-status", month], { monthId: month, status, publishedAt: null });
   qc.setQueryData(["availability", "range", first, last], { weekly: [], exceptions: [] });
+  qc.setQueryData(["frontdesk"], []);
 
   return renderToString(
     <QueryClientProvider client={qc}>

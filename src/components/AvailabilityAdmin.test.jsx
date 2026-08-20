@@ -21,9 +21,13 @@ vi.mock("../services/TimesheetService.js", () => ({
 vi.mock("../services/EmployeeService.js", () => ({
   EmployeeService: { list: vi.fn() },
 }));
+vi.mock("../services/FrontdeskService.js", () => ({
+  FrontdeskService: { list: vi.fn(), set: vi.fn() },
+}));
 
 const { TimesheetService } = await import("../services/TimesheetService.js");
 const { EmployeeService } = await import("../services/EmployeeService.js");
+const { FrontdeskService } = await import("../services/FrontdeskService.js");
 const { LanguageProvider } = await import("../i18n/i18n.jsx");
 const AvailabilityAdmin = (await import("./AvailabilityAdmin.jsx")).default;
 
@@ -45,14 +49,16 @@ function currentWeekKey() {
 
 // Seeded rather than fetched: renderToString does a single pass, so a query
 // left to resolve would only ever render the spinner.
-function render({ people = PEOPLE, weekly = [], exceptions = [] } = {}) {
+function render({ people = PEOPLE, weekly = [], exceptions = [], frontdesk = [] } = {}) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
   EmployeeService.list.mockResolvedValue(people);
   TimesheetService.getAvailabilityRange.mockResolvedValue({ weekly, exceptions });
+  FrontdeskService.list.mockResolvedValue(frontdesk);
   qc.setQueryData(["employees", false], people);
   qc.setQueryData(currentWeekKey(), { weekly, exceptions });
+  qc.setQueryData(["frontdesk"], frontdesk);
 
   return renderToString(
     <QueryClientProvider client={qc}>
@@ -95,7 +101,6 @@ describe("AvailabilityAdmin", () => {
       exceptions: [{ employeeId: "a", onDate: todayStr(), available: true }],
     });
     expect(ticks(html)).toBe(2); // one in the grid, one in the legend
-    expect(html).toContain("Free");
   });
 
   it("marks nobody free when nobody has answered", () => {
@@ -113,6 +118,27 @@ describe("AvailabilityAdmin", () => {
     });
     expect(crosses(html)).toBe(2);
     expect(html).toContain("Off");
+  });
+
+  it("flags a day red when every front desk member is off", () => {
+    // Ravi is the only front desk person and he's off today — the header for
+    // today should carry the alert tint.
+    const html = render({
+      frontdesk: ["a"],
+      exceptions: [{ employeeId: "a", onDate: todayStr(), available: false }],
+    });
+    expect(html).toContain("no front desk cover");
+  });
+
+  it("does not flag when a front desk member is still available", () => {
+    const html = render({
+      frontdesk: ["a", "b"],
+      exceptions: [
+        { employeeId: "a", onDate: todayStr(), available: false },
+        { employeeId: "b", onDate: todayStr(), available: true },
+      ],
+    });
+    expect(html).not.toContain("no front desk cover");
   });
 
   it("survives an empty roster instead of rendering a broken grid", () => {

@@ -18,6 +18,7 @@ import Spinner from "./ui/Spinner.jsx";
 import { useEmployees } from "../hooks/useEmployees.js";
 import { useRotaMonth, useRotaStatus, useSaveShift, useSetRotaStatus } from "../hooks/useRota.js";
 import { useAvailabilityRange } from "../hooks/useTimesheet.js";
+import { useFrontdesk } from "../hooks/useFrontdesk.js";
 import { groupShifts, rotaGrid, rotaDayTallies, isPublished } from "../models/RotaModel.js";
 import {
   WEEKDAYS,
@@ -25,6 +26,7 @@ import {
   isValidTime,
   groupAvailability,
   availabilityFor,
+  frontdeskAlertDates,
 } from "../models/TimesheetModel.js";
 import {
   currentMonthId,
@@ -75,6 +77,16 @@ export default function RotaAdmin() {
   // true = said available, false = said off, null = never answered.
   const availOf = (employeeId, date) =>
     availabilityFor(date, availByPerson[employeeId] || {}, { explicitOnly: true }).available;
+
+  // Days the front desk is uncovered — flagged red in the header so the owner
+  // sees the gap before scheduling around it. Active members only.
+  const { ids: frontdeskIds } = useFrontdesk();
+  const alertDates = useMemo(() => {
+    const active = employees
+      .filter((e) => e.active !== false && frontdeskIds.has(e.id))
+      .map((e) => e.id);
+    return frontdeskAlertDates(dates, active, availByPerson);
+  }, [dates, employees, frontdeskIds, availByPerson]);
 
   const openEditor = (employeeId, employeeName, date, shift) => {
     setSelected({ employeeId, employeeName, date });
@@ -206,15 +218,19 @@ export default function RotaAdmin() {
               {dates.map((date) => {
                 const wd = weekdayOf(date);
                 const weekend = wd >= 5;
+                const alert = alertDates.has(date);
                 return (
                   <span
                     key={date}
-                    className={`text-center text-[9px] font-bold leading-tight ${
-                      date === today
-                        ? "text-accent-700 dark:text-accent-300"
-                        : weekend
-                          ? "text-n-500"
-                          : "text-n-400"
+                    title={alert ? "no front desk cover" : undefined}
+                    className={`text-center text-[9px] font-bold leading-tight rounded ${
+                      alert
+                        ? "bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300"
+                        : date === today
+                          ? "text-accent-700 dark:text-accent-300"
+                          : weekend
+                            ? "text-n-500"
+                            : "text-n-400"
                     }`}
                   >
                     {WEEKDAYS[wd].slice(0, 2)}
@@ -302,6 +318,7 @@ export default function RotaAdmin() {
           </div>
           <p className="text-[11px] text-n-400 mt-2">{t("rota_gridHint")}</p>
           <p className="text-[11px] text-n-400 mt-1">{t("rota_availLegend")}</p>
+          <p className="text-[11px] text-rose-500 dark:text-rose-400 mt-1">{t("fd_legend")}</p>
         </div>
       )}
 

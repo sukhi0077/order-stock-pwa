@@ -47,10 +47,13 @@ export default function AvailabilityGrid({
   today,
   compact = false,
   tallies = null,
-  freeLabel = "Free",
   offLabel = "Off",
   highlightId = null,
+  // Dates where the front desk is uncovered — every front desk member off.
+  // Their column header is drawn in red so an uncovered day is scannable.
+  alertDates = null,
 }) {
+  const isAlert = (date) => Boolean(alertDates && alertDates.has(date));
   return (
     <div className="overflow-x-auto">
       <div
@@ -71,15 +74,19 @@ export default function AvailabilityGrid({
           // Tuesday and Thursday and you cannot tell which without counting.
           const short = compact ? WEEKDAYS[weekday].slice(0, 2) : WEEKDAYS[weekday];
           const weekend = weekday >= 5;
+          const alert = isAlert(date);
           return (
             <span
               key={date}
-              className={`text-center text-[9px] font-bold leading-tight ${
-                date === today
-                  ? "text-accent-700 dark:text-accent-300"
-                  : weekend
-                    ? "text-n-500"
-                    : "text-n-400"
+              title={alert ? "no front desk cover" : undefined}
+              className={`text-center text-[9px] font-bold leading-tight rounded ${
+                alert
+                  ? "bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300"
+                  : date === today
+                    ? "text-accent-700 dark:text-accent-300"
+                    : weekend
+                      ? "text-n-500"
+                      : "text-n-400"
               }`}
             >
               {short}
@@ -108,26 +115,10 @@ export default function AvailabilityGrid({
 
         {tallies && (
           <>
-            {/* Two counts, two questions. "Free" is who you can call on; "Off"
-                is who has told you they cannot — three people off the same
-                Saturday is the thing to catch weeks out, and it is invisible in
-                the free count when most of the team simply has not answered. */}
-            <span
-              className={`${STICKY} text-[10px] font-bold uppercase tracking-wide text-n-500 self-center`}
-            >
-              {freeLabel}
-            </span>
-            {tallies.map((d) => (
-              <span
-                key={d.date}
-                className={`grid place-items-center h-7 text-[11px] font-bold ${
-                  d.available === 0 ? "text-n-300" : "text-n-700"
-                }`}
-              >
-                {d.available}
-              </span>
-            ))}
-
+            {/* One count: who has told you they're off. Three people off the
+                same Saturday is the thing to catch weeks out. (The "free" count
+                was dropped — it read as a promise when most of a column was
+                simply unanswered.) */}
             <span
               className={`${STICKY} text-[10px] font-bold uppercase tracking-wide text-n-500 self-center`}
             >

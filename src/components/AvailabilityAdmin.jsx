@@ -15,11 +15,13 @@ import Spinner from "./ui/Spinner.jsx";
 import AvailabilityGrid from "./timesheet/AvailabilityGrid.jsx";
 import { useEmployees } from "../hooks/useEmployees.js";
 import { useAvailabilityRange } from "../hooks/useTimesheet.js";
+import { useFrontdesk } from "../hooks/useFrontdesk.js";
 import {
   weekdayOf,
   groupAvailability,
   availabilityGrid,
   dayTallies,
+  frontdeskAlertDates,
 } from "../models/TimesheetModel.js";
 import {
   currentMonthId,
@@ -57,19 +59,32 @@ export default function AvailabilityAdmin() {
   // otherwise be ten round trips before anything could be drawn.
   const availQuery = useAvailabilityRange(dates[0], dates[dates.length - 1]);
 
+  const byPerson = useMemo(() => {
+    const { weekly = [], exceptions = [] } = availQuery.data || {};
+    return groupAvailability(weekly, exceptions);
+  }, [availQuery.data]);
+
   // explicitOnly: only the dates a person actually tapped. Their "usual week"
   // is a habit, not a promise about a particular Tuesday — filling the grid
   // from it would show answers nobody gave, and a rota built on that puts
   // someone on a shift they never agreed to.
-  const rows = useMemo(() => {
-    const { weekly = [], exceptions = [] } = availQuery.data || {};
-    return availabilityGrid(dates, employees, groupAvailability(weekly, exceptions), {
-      explicitOnly: true,
-    });
-  }, [dates, employees, availQuery.data]);
+  const rows = useMemo(
+    () => availabilityGrid(dates, employees, byPerson, { explicitOnly: true }),
+    [dates, employees, byPerson],
+  );
 
   const tallies = useMemo(() => dayTallies(dates, rows), [dates, rows]);
   const today = todayStr();
+
+  // Red-flag any day the front desk is left uncovered. Only active members
+  // count — a since-departed name marked off must not suppress the alarm.
+  const { ids: frontdeskIds } = useFrontdesk();
+  const alertDates = useMemo(() => {
+    const active = employees
+      .filter((e) => e.active !== false && frontdeskIds.has(e.id))
+      .map((e) => e.id);
+    return frontdeskAlertDates(dates, active, byPerson);
+  }, [dates, employees, frontdeskIds, byPerson]);
 
   if (loadingEmployees) {
     return (
@@ -142,13 +157,14 @@ export default function AvailabilityAdmin() {
             today={today}
             compact={view === "month"}
             tallies={tallies}
-            freeLabel={t("ts_freeCount")}
             offLabel={t("ts_offCount")}
+            alertDates={alertDates}
           />
         </div>
       )}
 
       <p className="text-[11px] text-n-400 px-1">{t("ts_availLegend")}</p>
+      <p className="text-[11px] text-rose-500 dark:text-rose-400 px-1">{t("fd_legend")}</p>
     </div>
   );
 }

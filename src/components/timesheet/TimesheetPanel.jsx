@@ -19,11 +19,13 @@ import {
   useAvailabilityRange,
 } from "../../hooks/useTimesheet.js";
 import { useRotaMonth, useRotaStatus } from "../../hooks/useRota.js";
+import { useFrontdesk } from "../../hooks/useFrontdesk.js";
 import { TimesheetService } from "../../services/TimesheetService.js";
 import { useBusinessDay } from "../../hooks/useBusinessDay.js";
 import {
   currentMonthId,
   nextMonthId,
+  prevMonthId,
   monthOf,
   todayStr,
   datesInMonth,
@@ -45,6 +47,7 @@ import {
   groupAvailability,
   availabilityGrid,
   dayTallies,
+  frontdeskAlertDates,
 } from "../../models/TimesheetModel.js";
 import { myShifts, shiftTimeLabel, isPublished } from "../../models/RotaModel.js";
 import AvailabilityGrid from "./AvailabilityGrid.jsx";
@@ -509,25 +512,45 @@ function MyRota({ employeeId }) {
 // admin's week grid minus the editing: same marks, same frozen name column, the
 // reader's own row picked out in the accent colour.
 function TeamAvailabilityView({ meId }) {
-  const { t } = useT();
+  const { t, tMonth } = useT();
+  const [view, setView] = useState("week"); // 'week' | 'month'
+  const [monthId, setMonthId] = useState(currentMonthId());
   const [weekStart, setWeekStart] = useState(
     () => shiftDateStr(todayStr(), -(weekdayOf(todayStr()) ?? 0)),
   );
   const dates = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => shiftDateStr(weekStart, i)),
-    [weekStart],
+    () =>
+      view === "month"
+        ? datesInMonth(monthId)
+        : Array.from({ length: 7 }, (_, i) => shiftDateStr(weekStart, i)),
+    [view, monthId, weekStart],
   );
   const { employees } = useEmployees({ activeOnly: true });
-  const availQuery = useAvailabilityRange(dates[0], dates[6]);
+  const availQuery = useAvailabilityRange(dates[0], dates[dates.length - 1]);
 
-  const rows = useMemo(() => {
+  const byPerson = useMemo(() => {
     const { weekly = [], exceptions = [] } = availQuery.data || {};
-    return availabilityGrid(dates, employees, groupAvailability(weekly, exceptions), {
-      explicitOnly: true,
-    });
-  }, [dates, employees, availQuery.data]);
+    return groupAvailability(weekly, exceptions);
+  }, [availQuery.data]);
+  const rows = useMemo(
+    () => availabilityGrid(dates, employees, byPerson, { explicitOnly: true }),
+    [dates, employees, byPerson],
+  );
   const tallies = useMemo(() => dayTallies(dates, rows), [dates, rows]);
   const today = todayStr();
+
+  const { ids: frontdeskIds } = useFrontdesk();
+  const alertDates = useMemo(() => {
+    const active = employees
+      .filter((e) => e.active !== false && frontdeskIds.has(e.id))
+      .map((e) => e.id);
+    return frontdeskAlertDates(dates, active, byPerson);
+  }, [dates, employees, frontdeskIds, byPerson]);
+
+  const step = (dir) =>
+    view === "month"
+      ? setMonthId(dir < 0 ? prevMonthId(monthId) : nextMonthId(monthId))
+      : setWeekStart(shiftDateStr(weekStart, dir * 7));
 
   return (
     <div className="bg-n-0 border border-n-200 rounded-2xl p-3 space-y-2">
@@ -535,27 +558,45 @@ function TeamAvailabilityView({ meId }) {
         <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
           {t("rota_teamAvail")}
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => setWeekStart(shiftDateStr(weekStart, -7))}
-            className="h-7 w-7 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold"
-            aria-label="previous week"
-          >
-            ‹
-          </button>
-          <span className="text-[11px] text-n-500 whitespace-nowrap">
-            {formatDay(dates[0])} – {formatDay(dates[6])}
-          </span>
-          <button
-            type="button"
-            onClick={() => setWeekStart(shiftDateStr(weekStart, 7))}
-            className="h-7 w-7 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold"
-            aria-label="next week"
-          >
-            ›
-          </button>
+        <div className="flex gap-0.5 bg-n-100 rounded-lg p-0.5 shrink-0">
+          {[
+            ["week", t("ts_viewWeek")],
+            ["month", t("ts_viewMonth")],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setView(id)}
+              className={`px-2 py-1 rounded-md text-[10px] font-semibold transition ${
+                view === id ? "bg-n-0 text-n-900 shadow-sm" : "text-n-500"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => step(-1)}
+          className="h-7 w-7 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold"
+          aria-label="previous"
+        >
+          ‹
+        </button>
+        <span className="text-[11px] text-n-600 font-semibold whitespace-nowrap">
+          {view === "month" ? tMonth(monthId) : `${formatDay(dates[0])} – ${formatDay(dates[6])}`}
+        </span>
+        <button
+          type="button"
+          onClick={() => step(1)}
+          className="h-7 w-7 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold"
+          aria-label="next"
+        >
+          ›
+        </button>
       </div>
 
       {availQuery.isLoading ? (
@@ -569,10 +610,11 @@ function TeamAvailabilityView({ meId }) {
           dates={dates}
           rows={rows}
           today={today}
+          compact={view === "month"}
           tallies={tallies}
-          freeLabel={t("ts_freeCount")}
           offLabel={t("ts_offCount")}
           highlightId={meId}
+          alertDates={alertDates}
         />
       )}
       <p className="text-[11px] text-n-400">{t("rota_teamAvailHint")}</p>

@@ -10,6 +10,7 @@ import Spinner from "./ui/Spinner.jsx";
 import EmployeeManagerModal from "./dsr/EmployeeManagerModal.jsx";
 import AvailabilityAdmin from "./AvailabilityAdmin.jsx";
 import RotaAdmin from "./RotaAdmin.jsx";
+import FrontdeskSelector from "./FrontdeskSelector.jsx";
 import { useEmployees } from "../hooks/useEmployees.js";
 import { useTimesheetMonth } from "../hooks/useTimesheet.js";
 import { TimesheetService } from "../services/TimesheetService.js";
@@ -211,6 +212,8 @@ export default function StaffAdmin() {
             </div>
             <p className="px-3 py-2 text-[11px] text-n-400">{t("ts_pinHint")}</p>
           </div>
+
+          <FrontdeskSelector />
         </>
       ) : (
         <>

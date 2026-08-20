@@ -295,6 +295,33 @@ export function clearableDates(dates = [], weekday, fromDate, availability = {})
   });
 }
 
+// ---------------------------------------------------------------------------
+// FRONT DESK COVER
+//
+// A subset of staff — the front desk — must have someone in on any given day.
+// This flags a date where EVERY front desk person has said they are off, which
+// is the day the owner needs to see in red and fix before it arrives.
+//
+// "Said off" means available === false — an explicit holiday, not silence. A
+// front desk member who has not answered is not counted as off: we do not know
+// they will be away, and turning silence into a red alert would cry wolf. So a
+// day is only flagged when every front desk member has actively booked off.
+export function frontdeskAllOff(dateStr, frontdeskIds = [], byPerson = {}) {
+  if (!frontdeskIds || frontdeskIds.length === 0) return false;
+  return frontdeskIds.every(
+    (id) =>
+      availabilityFor(dateStr, byPerson[id] || {}, { explicitOnly: true }).available === false,
+  );
+}
+
+// The set of dates, out of the ones on screen, where the front desk is
+// uncovered. A Set so a cell lookup is O(1).
+export function frontdeskAlertDates(dates = [], frontdeskIds = [], byPerson = {}) {
+  const out = new Set();
+  for (const d of dates) if (frontdeskAllOff(d, frontdeskIds, byPerson)) out.add(d);
+  return out;
+}
+
 // Split dates into calendar weeks starting Monday, padding the first and last
 // week with nulls so every week has 7 slots and the columns line up under
 // Mon–Sun. A month that starts on a Thursday must not shift every row.

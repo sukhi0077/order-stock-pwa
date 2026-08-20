@@ -158,6 +158,11 @@ const STR = {
     rota_availNo: "Said off",
     rota_availUnknown: "Not answered",
 
+    // Front desk
+    fd_title: "Front desk staff",
+    fd_hint: "Pick who covers the front desk. A day turns red on the availability and rota screens when every one of these people has booked off.",
+    fd_legend: "A date in red = every front desk member is off that day.",
+
     // Expiry (admin)
     tab_expiry: "Expiry",
     tab_dsr: "Sales",
@@ -422,6 +427,11 @@ const STR = {
     rota_availYes: "उपलब्ध",
     rota_availNo: "छुट्टी",
     rota_availUnknown: "कोई जवाब नहीं",
+
+    // Front desk
+    fd_title: "फ्रंट डेस्क स्टाफ",
+    fd_hint: "चुनें कि फ्रंट डेस्क कौन संभालेगा। जिस दिन इनमें से हर व्यक्ति ने छुट्टी ली हो, वह दिन उपलब्धता और रोटा स्क्रीन पर लाल हो जाता है।",
+    fd_legend: "लाल तारीख़ = उस दिन हर फ्रंट डेस्क सदस्य छुट्टी पर है।",
 
     tab_expiry: "एक्सपायरी",
     tab_dsr: "बिक्री",
