@@ -7,7 +7,7 @@
 // in as the same database user, so RLS cannot tell two employees apart. It
 // stops someone casually logging hours against a colleague's name; the admin's
 // review is the actual control. See supabase/timesheet_schema.sql.
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import Spinner from "../ui/Spinner.jsx";
 import { useEmployees } from "../../hooks/useEmployees.js";
 import {
@@ -250,12 +250,24 @@ const blankEntry = () => ({
   note: "",
 });
 
+// The device clock as "HH:MM" — what the "now" button on the time fields fills
+// in. Local time on purpose: it is the moment the person is clocking in or out.
+function nowTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function HoursTab({ employee }) {
   const { t } = useT();
   // Not a constant: a phone left open across midnight has to start writing to
   // the new day, or the entry goes to yesterday and the database rejects it.
   const today = useBusinessDay();
-  const monthId = currentMonthId();
+  // This month is where hours are logged; last month is here read-only so a
+  // payslip can still be exported after the month has turned. Two months only —
+  // older ones are the admin's to hand out.
+  const [monthView, setMonthView] = useState("current"); // 'current' | 'prev'
+  const monthId = monthView === "prev" ? prevMonthId(currentMonthId()) : currentMonthId();
+  const isCurrent = monthView === "current";
   const entriesQuery = useTimesheetMonth(monthId, employee.id);
   const save = useSaveEntry();
   const remove = useRemoveEntry();
@@ -285,6 +297,27 @@ function HoursTab({ employee }) {
 
   return (
     <div className="space-y-3">
+      {/* This month / last month. Hours are logged in this month; last month is
+          read-only, here only so a payslip can still be exported after it turns. */}
+      <div className="flex gap-1 bg-n-100 rounded-xl p-1">
+        {[
+          ["current", t("ts_thisMonth")],
+          ["prev", t("ts_lastMonth")],
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setMonthView(id)}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
+              monthView === id ? "bg-n-0 text-n-900 shadow-sm" : "text-n-500 hover:text-n-700"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {isCurrent && (
       <div className="bg-n-0 border border-n-200 rounded-2xl p-3 space-y-2.5">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
           {t("ts_addHours")}
@@ -304,24 +337,36 @@ function HoursTab({ employee }) {
         {/* Start and end only — the two fields now share the row that used to
             hold a break, so each gets a wider, easier tap target. */}
         <div className="grid grid-cols-2 gap-2">
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wide text-n-400">{t("ts_start")}</span>
-            <input
-              type="time"
-              value={draft.startTime}
-              onChange={(e) => set("startTime", e.target.value)}
-              className="h-11 px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wide text-n-400">{t("ts_end")}</span>
-            <input
-              type="time"
-              value={draft.endTime}
-              onChange={(e) => set("endTime", e.target.value)}
-              className="h-11 px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
-            />
-          </label>
+          {[
+            ["ts_start", "startTime"],
+            ["ts_end", "endTime"],
+          ].map(([labelKey, field]) => (
+            <label key={field} className="flex flex-col gap-1">
+              <span className="text-[10px] uppercase tracking-wide text-n-400">{t(labelKey)}</span>
+              <div className="relative">
+                <input
+                  type="time"
+                  value={draft[field]}
+                  onChange={(e) => set(field, e.target.value)}
+                  className="h-11 w-full pl-2 pr-9 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+                />
+                {/* One tap fills in the current time — the moment you clock in or
+                    out is almost always "now". */}
+                <button
+                  type="button"
+                  onClick={() => set(field, nowTime())}
+                  title={t("ts_useNow")}
+                  aria-label={t("ts_useNow")}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-8 grid place-items-center rounded-md text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
+                >
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                </button>
+              </div>
+            </label>
+          ))}
         </div>
         <input
           type="text"
@@ -341,19 +386,27 @@ function HoursTab({ employee }) {
           {save.isPending ? t("saving") : t("ts_addHours")}
         </button>
       </div>
+      )}
 
-      <div className="flex items-center justify-between px-1">
+      <div className="px-1">
         <span className="text-sm font-bold text-n-900">
           {t("ts_monthTotal", { total: summary.formatted })}
         </span>
-        <button
-          type="button"
-          onClick={() => downloadEmployeeTimesheetPdf(employee, entries, monthId)}
-          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-n-0 border border-n-200 text-n-600"
-        >
-          {t("exportPdf")}
-        </button>
       </div>
+      {/* Export is the reason to open last month, so it's a full-width action,
+          not a faint link. It exports whichever month is shown. */}
+      <button
+        type="button"
+        disabled={entries.length === 0}
+        onClick={() => downloadEmployeeTimesheetPdf(employee, entries, monthId)}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 text-sm font-bold text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 transition disabled:opacity-40"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+          <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+        </svg>
+        {t("exportPdf")}
+      </button>
 
       {entriesQuery.isLoading ? (
         <div className="flex justify-center py-8">
@@ -636,9 +689,13 @@ function AvailabilityTab({ employee }) {
   //
   // Past days of the current month are shown but not tappable — changing what
   // you were available for last Tuesday means nothing now.
+  // This month and the next two — swipe between them. Three is the horizon a
+  // rota is planned over; further out, availability is guesswork.
   const months = useMemo(() => {
-    const thisMonth = monthOf(from);
-    return [thisMonth, nextMonthId(thisMonth)].map((monthId) => ({
+    const m0 = monthOf(from);
+    const m1 = nextMonthId(m0);
+    const m2 = nextMonthId(m1);
+    return [m0, m1, m2].map((monthId) => ({
       monthId,
       dates: datesInMonth(monthId),
       weeks: weeksOf(datesInMonth(monthId)),
@@ -647,6 +704,37 @@ function AvailabilityTab({ employee }) {
 
   // Every date on screen, flat — the span a weekday tap fills across.
   const allDates = useMemo(() => months.flatMap((m) => m.dates), [months]);
+
+  // The swipeable month carousel. Native horizontal scroll does the swiping;
+  // the arrows and dots mirror it, and scrolling back updates the active month.
+  const scrollerRef = useRef(null);
+  const [mIdx, setMIdx] = useState(0);
+  const goToMonth = (idx) => {
+    const el = scrollerRef.current;
+    const clamped = Math.max(0, Math.min(months.length - 1, idx));
+    setMIdx(clamped);
+    if (el && el.children[clamped] && el.children[0]) {
+      el.scrollTo({
+        left: el.children[clamped].offsetLeft - el.children[0].offsetLeft,
+        behavior: "smooth",
+      });
+    }
+  };
+  const onScroll = () => {
+    const el = scrollerRef.current;
+    if (!el || !el.children[0]) return;
+    const base = el.children[0].offsetLeft;
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i < el.children.length; i += 1) {
+      const d = Math.abs(el.children[i].offsetLeft - base - el.scrollLeft);
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+    if (best !== mIdx) setMIdx(best);
+  };
 
   // Tapping a weekday is a bulk answer, not just a note to yourself: it fills
   // every blank day of that weekday, in both months, with "I can work".
@@ -731,44 +819,91 @@ function AvailabilityTab({ employee }) {
         <p className="text-[11px] text-n-400 mt-2">{t("ts_usualWeekHint")}</p>
       </div>
 
-      {months.map(({ monthId, weeks }) => (
-        <div key={monthId} className="bg-n-0 border border-n-200 rounded-2xl p-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500 mb-2">
-            {tMonth(monthId)}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAYS.map((label) => (
-              <span key={label} className="text-center text-[10px] font-bold text-n-400">
-                {label}
-              </span>
-            ))}
-          </div>
-
-          <div className="space-y-1">
-            {weeks.map((week, i) => (
-              <div key={i} className="grid grid-cols-7 gap-1">
-                {week.map((date, j) =>
-                  date === null ? (
-                    // Padding, so the 1st sits under the right weekday.
-                    <span key={j} />
-                  ) : (
-                    <DayCell
-                      key={date}
-                      date={date}
-                      state={availabilityFor(date, data)}
-                      past={date < from}
-                      onClick={() => cycleDate(date)}
-                    />
-                  ),
-                )}
-              </div>
-            ))}
-          </div>
-
-          <p className="text-[11px] text-n-400 mt-2">{t("ts_exceptionHint")}</p>
+      {/* Swipeable months: current + next two. Swipe, or use the arrows. */}
+      <div>
+        <div className="flex items-center justify-between mb-2 px-1">
+          <button
+            type="button"
+            onClick={() => goToMonth(mIdx - 1)}
+            disabled={mIdx === 0}
+            className="h-8 w-8 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold text-lg disabled:opacity-30"
+            aria-label="previous month"
+          >
+            ‹
+          </button>
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-n-600">
+            {tMonth(months[mIdx].monthId)}
+          </span>
+          <button
+            type="button"
+            onClick={() => goToMonth(mIdx + 1)}
+            disabled={mIdx === months.length - 1}
+            className="h-8 w-8 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold text-lg disabled:opacity-30"
+            aria-label="next month"
+          >
+            ›
+          </button>
         </div>
-      ))}
+
+        <div
+          ref={scrollerRef}
+          onScroll={onScroll}
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {months.map(({ monthId, weeks }) => (
+            <div
+              key={monthId}
+              className="snap-start shrink-0 w-full bg-n-0 border border-n-200 rounded-2xl p-3"
+            >
+              <div className="grid grid-cols-7 gap-1 mb-1">
+                {WEEKDAYS.map((label) => (
+                  <span key={label} className="text-center text-[10px] font-bold text-n-400">
+                    {label}
+                  </span>
+                ))}
+              </div>
+
+              <div className="space-y-1">
+                {weeks.map((week, i) => (
+                  <div key={i} className="grid grid-cols-7 gap-1">
+                    {week.map((date, j) =>
+                      date === null ? (
+                        // Padding, so the 1st sits under the right weekday.
+                        <span key={j} />
+                      ) : (
+                        <DayCell
+                          key={date}
+                          date={date}
+                          state={availabilityFor(date, data)}
+                          past={date < from}
+                          onClick={() => cycleDate(date)}
+                        />
+                      ),
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Dots: which of the three months you're on. */}
+        <div className="flex justify-center gap-1.5 mt-2">
+          {months.map((m, i) => (
+            <button
+              key={m.monthId}
+              type="button"
+              onClick={() => goToMonth(i)}
+              aria-label={`month ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${
+                i === mIdx ? "w-4 bg-accent-500" : "w-1.5 bg-n-300"
+              }`}
+            />
+          ))}
+        </div>
+
+        <p className="text-[11px] text-n-400 mt-2 px-1">{t("ts_exceptionHint")}</p>
+      </div>
 
       <TeamAvailabilityView meId={employee.id} />
     </div>
