@@ -50,4 +50,9 @@ export class EmployeeService {
   static async setActive(id, active) {
     return await EmployeeRepository.setActive(id, active);
   }
+
+  // Front desk membership is a flag on the employee — see frontdesk_column.sql.
+  static async setFrontdesk(id, isFrontdesk) {
+    return await EmployeeRepository.setFrontdesk(id, Boolean(isFrontdesk));
+  }
 }

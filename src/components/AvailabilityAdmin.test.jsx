@@ -19,15 +19,11 @@ vi.mock("../services/TimesheetService.js", () => ({
   },
 }));
 vi.mock("../services/EmployeeService.js", () => ({
-  EmployeeService: { list: vi.fn() },
-}));
-vi.mock("../services/FrontdeskService.js", () => ({
-  FrontdeskService: { list: vi.fn(), set: vi.fn() },
+  EmployeeService: { list: vi.fn(), setFrontdesk: vi.fn() },
 }));
 
 const { TimesheetService } = await import("../services/TimesheetService.js");
 const { EmployeeService } = await import("../services/EmployeeService.js");
-const { FrontdeskService } = await import("../services/FrontdeskService.js");
 const { LanguageProvider } = await import("../i18n/i18n.jsx");
 const AvailabilityAdmin = (await import("./AvailabilityAdmin.jsx")).default;
 
@@ -48,17 +44,17 @@ function currentWeekKey() {
 }
 
 // Seeded rather than fetched: renderToString does a single pass, so a query
-// left to resolve would only ever render the spinner.
+// left to resolve would only ever render the spinner. Front desk membership is
+// now a flag on the employee, so it rides on the seeded roster.
 function render({ people = PEOPLE, weekly = [], exceptions = [], frontdesk = [] } = {}) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
-  EmployeeService.list.mockResolvedValue(people);
+  const roster = people.map((p) => ({ ...p, is_frontdesk: frontdesk.includes(p.id) }));
+  EmployeeService.list.mockResolvedValue(roster);
   TimesheetService.getAvailabilityRange.mockResolvedValue({ weekly, exceptions });
-  FrontdeskService.list.mockResolvedValue(frontdesk);
-  qc.setQueryData(["employees", false], people);
+  qc.setQueryData(["employees", false], roster);
   qc.setQueryData(currentWeekKey(), { weekly, exceptions });
-  qc.setQueryData(["frontdesk"], frontdesk);
 
   return renderToString(
     <QueryClientProvider client={qc}>

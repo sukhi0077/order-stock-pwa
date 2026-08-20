@@ -10,6 +10,11 @@
 // Deactivating (active = false) hides them from the dropdown and keeps history.
 import { supabase } from "../supabase.js";
 
+// Columns read everywhere. is_frontdesk marks the staff who must cover the
+// front desk — see frontdesk_column.sql. One bit per person, so a column, not
+// a table; the availability and rota screens read it to flag uncovered days.
+const COLS = "id, name, active, sort_order, is_frontdesk";
+
 const withTimeout = (promise, ms = 15000, label = "Request") => {
   let timer;
   const timeout = new Promise((_, reject) => {
@@ -26,7 +31,7 @@ export class EmployeeRepository {
   static async list({ activeOnly = false } = {}) {
     let q = supabase
       .from("employees")
-      .select("id, name, active, sort_order")
+      .select(COLS)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
     if (activeOnly) q = q.eq("active", true);
@@ -41,7 +46,7 @@ export class EmployeeRepository {
       supabase
         .from("employees")
         .insert({ name, sort_order: sortOrder })
-        .select("id, name, active, sort_order")
+        .select(COLS)
         .single(),
       15000,
       "Adding employee",
@@ -56,7 +61,7 @@ export class EmployeeRepository {
         .from("employees")
         .update({ ...patch, updated_at: new Date().toISOString() })
         .eq("id", id)
-        .select("id, name, active, sort_order")
+        .select(COLS)
         .single(),
       15000,
       "Saving employee",
@@ -67,5 +72,9 @@ export class EmployeeRepository {
 
   static setActive(id, active) {
     return EmployeeRepository.update(id, { active });
+  }
+
+  static setFrontdesk(id, isFrontdesk) {
+    return EmployeeRepository.update(id, { is_frontdesk: isFrontdesk });
   }
 }
