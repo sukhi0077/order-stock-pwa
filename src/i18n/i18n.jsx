@@ -151,6 +151,12 @@ const STR = {
     rota_scheduled: "Scheduled",
     rota_teamAvail: "Who else is around",
     rota_teamAvailHint: "Everyone's availability for the week — so you can see who's free before changing your own. You can only edit your own above.",
+    rota_downloadPdf: "Download rota (PDF)",
+    rota_noPublished: "No published rota to download yet.",
+    rota_availLegend: "Cell colour shows what staff said: green available · red off · grey not answered. An amber ring = scheduled on a day they said off.",
+    rota_availYes: "Available",
+    rota_availNo: "Said off",
+    rota_availUnknown: "Not answered",
 
     // Expiry (admin)
     tab_expiry: "Expiry",
@@ -410,6 +416,12 @@ const STR = {
     rota_scheduled: "ड्यूटी",
     rota_teamAvail: "और कौन उपलब्ध है",
     rota_teamAvailHint: "इस हफ्ते सबकी उपलब्धता — ताकि अपनी बदलने से पहले देख सकें कौन खाली है। ऊपर सिर्फ अपनी बदल सकते हैं।",
+    rota_downloadPdf: "रोटा डाउनलोड करें (PDF)",
+    rota_noPublished: "अभी डाउनलोड के लिए कोई प्रकाशित रोटा नहीं है।",
+    rota_availLegend: "सेल का रंग बताता है स्टाफ ने क्या कहा: हरा उपलब्ध · लाल छुट्टी · ग्रे कोई जवाब नहीं। एम्बर घेरा = छुट्टी वाले दिन ड्यूटी लगाई गई है।",
+    rota_availYes: "उपलब्ध",
+    rota_availNo: "छुट्टी",
+    rota_availUnknown: "कोई जवाब नहीं",
 
     tab_expiry: "एक्सपायरी",
     tab_dsr: "बिक्री",

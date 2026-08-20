@@ -29,6 +29,7 @@ import {
   datesInMonth,
   shiftDateStr,
   formatDay,
+  monthEndDate,
 } from "../../utils/monthUtils.js";
 import {
   WEEKDAYS,
@@ -48,6 +49,7 @@ import {
 import { myShifts, shiftTimeLabel, isPublished } from "../../models/RotaModel.js";
 import AvailabilityGrid from "./AvailabilityGrid.jsx";
 import { downloadEmployeeTimesheetPdf } from "../../utils/exportTimesheetPdf.js";
+import { downloadRotaPdf } from "../../utils/exportRotaPdf.js";
 import { useT } from "../../i18n/i18n.jsx";
 
 // ---------------------------------------------------------------------------
@@ -727,6 +729,59 @@ function AvailabilityTab({ employee }) {
   );
 }
 
+// The whole team's published rota, as a PDF anyone can save or print — offered
+// on the timesheet home screen so a staff member does not need to sign in to
+// see when everyone works. This month and next, from today on; a draft month is
+// left out, exactly as it is hidden from "My shifts".
+function RotaDownloadButton() {
+  const { t } = useT();
+  const from = todayStr();
+  const thisMonth = monthOf(from);
+  const nextMonth = nextMonthId(thisMonth);
+  const { employees } = useEmployees({ activeOnly: true });
+  const thisQuery = useRotaMonth(thisMonth);
+  const nextQuery = useRotaMonth(nextMonth);
+  const thisStatus = useRotaStatus(thisMonth);
+  const nextStatus = useRotaStatus(nextMonth);
+
+  const shifts = useMemo(() => {
+    const rows = [];
+    if (isPublished(thisStatus.data?.status)) rows.push(...(thisQuery.data || []));
+    if (isPublished(nextStatus.data?.status)) rows.push(...(nextQuery.data || []));
+    return rows.filter((s) => s.onDate >= from);
+  }, [thisQuery.data, nextQuery.data, thisStatus.data, nextStatus.data, from]);
+
+  const ready = shifts.length > 0 && employees.length > 0;
+
+  const download = () =>
+    downloadRotaPdf(
+      employees,
+      shifts,
+      from,
+      `${formatDay(from)} – ${formatDay(monthEndDate(nextMonth))}`,
+    );
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={download}
+        disabled={!ready}
+        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-n-0 border border-n-200 text-sm font-semibold text-n-700 disabled:opacity-40"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+          <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+        </svg>
+        {t("rota_downloadPdf")}
+      </button>
+      {!ready && (
+        <p className="text-[11px] text-n-400 mt-1 px-1 text-center">{t("rota_noPublished")}</p>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 export default function TimesheetPanel() {
   const { t } = useT();
@@ -769,7 +824,10 @@ export default function TimesheetPanel() {
       </div>
 
       {!me ? (
-        <PinGate employees={employees} onUnlock={setMe} />
+        <>
+          <RotaDownloadButton />
+          <PinGate employees={employees} onUnlock={setMe} />
+        </>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2">

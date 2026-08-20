@@ -17,8 +17,15 @@ import React, { useMemo, useState } from "react";
 import Spinner from "./ui/Spinner.jsx";
 import { useEmployees } from "../hooks/useEmployees.js";
 import { useRotaMonth, useRotaStatus, useSaveShift, useSetRotaStatus } from "../hooks/useRota.js";
+import { useAvailabilityRange } from "../hooks/useTimesheet.js";
 import { groupShifts, rotaGrid, rotaDayTallies, isPublished } from "../models/RotaModel.js";
-import { WEEKDAYS, weekdayOf, isValidTime } from "../models/TimesheetModel.js";
+import {
+  WEEKDAYS,
+  weekdayOf,
+  isValidTime,
+  groupAvailability,
+  availabilityFor,
+} from "../models/TimesheetModel.js";
 import {
   currentMonthId,
   prevMonthId,
@@ -55,6 +62,19 @@ export default function RotaAdmin() {
   const tallies = useMemo(() => rotaDayTallies(dates, rows), [dates, rows]);
   const today = todayStr();
   const published = isPublished(statusQuery.data?.status);
+
+  // Availability, so the owner sees who SAID they could work before deciding
+  // who WILL. Only what people answered themselves (explicitOnly) — a usual
+  // week is a habit, not a promise about a particular day, and colouring a cell
+  // green off the back of it would invite a shift nobody agreed to.
+  const availQuery = useAvailabilityRange(dates[0], dates[dates.length - 1]);
+  const availByPerson = useMemo(() => {
+    const { weekly = [], exceptions = [] } = availQuery.data || {};
+    return groupAvailability(weekly, exceptions);
+  }, [availQuery.data]);
+  // true = said available, false = said off, null = never answered.
+  const availOf = (employeeId, date) =>
+    availabilityFor(date, availByPerson[employeeId] || {}, { explicitOnly: true }).available;
 
   const openEditor = (employeeId, employeeName, date, shift) => {
     setSelected({ employeeId, employeeName, date });
@@ -215,6 +235,23 @@ export default function RotaAdmin() {
                     const isSel =
                       selected?.employeeId === row.employeeId && selected?.date === cell.date;
                     const hasTimes = cell.scheduled && cell.startTime && cell.endTime;
+                    const avail = availOf(row.employeeId, cell.date);
+                    // Scheduling someone on a day they said they're OFF is the
+                    // mistake this whole feature exists to prevent, so it gets
+                    // an amber ring even over the selection ring.
+                    const conflict = cell.scheduled && avail === false;
+                    const tone = cell.scheduled
+                      ? "bg-accent-600 text-white"
+                      : avail === true
+                        ? "bg-emerald-50 dark:bg-emerald-900/25 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                        : avail === false
+                          ? "bg-rose-100 dark:bg-rose-900/30 text-rose-500 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/50"
+                          : "bg-n-50 dark:bg-n-100 text-n-300 hover:bg-accent-50 dark:hover:bg-accent-900/20";
+                    const ring = conflict
+                      ? "ring-2 ring-amber-400"
+                      : isSel
+                        ? "ring-2 ring-accent-400"
+                        : "";
                     return (
                       <button
                         key={cell.date}
@@ -222,13 +259,24 @@ export default function RotaAdmin() {
                         onClick={() => onCell(row, cell)}
                         aria-label={`${row.employeeName} ${cell.date}`}
                         aria-pressed={cell.scheduled}
-                        className={`h-7 rounded text-[10px] font-bold grid place-items-center transition ${
-                          cell.scheduled
-                            ? "bg-accent-600 text-white"
-                            : "bg-n-50 dark:bg-n-100 text-n-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
-                        } ${isSel ? "ring-2 ring-accent-400" : ""}`}
+                        title={
+                          avail === true
+                            ? "available"
+                            : avail === false
+                              ? "said off"
+                              : "not answered"
+                        }
+                        className={`h-7 rounded text-[10px] font-bold grid place-items-center transition ${tone} ${ring}`}
                       >
-                        {cell.scheduled ? (hasTimes ? "•" : "✓") : ""}
+                        {cell.scheduled
+                          ? hasTimes
+                            ? "•"
+                            : "✓"
+                          : avail === true
+                            ? "✓"
+                            : avail === false
+                              ? "✕"
+                              : ""}
                       </button>
                     );
                   })}
@@ -253,6 +301,7 @@ export default function RotaAdmin() {
             </div>
           </div>
           <p className="text-[11px] text-n-400 mt-2">{t("rota_gridHint")}</p>
+          <p className="text-[11px] text-n-400 mt-1">{t("rota_availLegend")}</p>
         </div>
       )}
 
@@ -262,7 +311,29 @@ export default function RotaAdmin() {
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <div className="font-bold text-n-900 truncate">{selected.employeeName}</div>
-              <div className="text-[11px] text-n-500">{formatDay(selected.date)}</div>
+              <div className="text-[11px] text-n-500 flex items-center gap-1.5">
+                <span>{formatDay(selected.date)}</span>
+                {(() => {
+                  const a = availOf(selected.employeeId, selected.date);
+                  const badge =
+                    a === true
+                      ? "bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300"
+                      : a === false
+                        ? "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300"
+                        : "bg-n-100 text-n-500";
+                  const label =
+                    a === true
+                      ? t("rota_availYes")
+                      : a === false
+                        ? t("rota_availNo")
+                        : t("rota_availUnknown");
+                  return (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${badge}`}>
+                      {label}
+                    </span>
+                  );
+                })()}
+              </div>
             </div>
             <button
               type="button"
