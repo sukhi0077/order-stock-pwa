@@ -7,12 +7,15 @@
 // wide columns, a name per row, readable on a phone. The MONTH view is for
 // spotting shape: who has answered at all, which weeks are thin, when the
 // holidays cluster. Neither is a substitute for the other, so both are here.
+//
+// The grid itself — the marks and the frozen name column — lives in
+// AvailabilityGrid, shared with the staff "see everyone" view.
 import React, { useMemo, useState } from "react";
 import Spinner from "./ui/Spinner.jsx";
+import AvailabilityGrid from "./timesheet/AvailabilityGrid.jsx";
 import { useEmployees } from "../hooks/useEmployees.js";
 import { useAvailabilityRange } from "../hooks/useTimesheet.js";
 import {
-  WEEKDAYS,
   weekdayOf,
   groupAvailability,
   availabilityGrid,
@@ -33,31 +36,6 @@ import { useT } from "../i18n/i18n.jsx";
 // the availability pattern and how a rota is written.
 function mondayOf(dateStr) {
   return shiftDateStr(dateStr, -(weekdayOf(dateStr) ?? 0));
-}
-
-// One cell. A mark as well as a colour, so the grid survives being printed in
-// black and white or read by someone colour-blind.
-function Mark({ state, dim }) {
-  const yes = state?.available === true;
-  const no = state?.available === false;
-  return (
-    <span
-      title={state?.source === "exception" ? "they answered for this date" : "not answered"}
-      className={`grid place-items-center h-7 rounded text-[11px] font-bold ${
-        dim
-          ? "text-n-300"
-          : yes
-            ? "bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300"
-            : no
-              ? // Red, and filled: someone on leave is the thing you are
-                // scanning for. Grey made a booked holiday look like silence.
-                "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300"
-              : "text-n-300"
-      }`}
-    >
-      {yes ? "✓" : no ? "✕" : "·"}
-    </span>
-  );
 }
 
 export default function AvailabilityAdmin() {
@@ -157,93 +135,16 @@ export default function AvailabilityAdmin() {
       ) : employees.length === 0 ? (
         <p className="text-center text-n-400 py-8 text-sm">{t("ts_noStaff")}</p>
       ) : (
-        <div className="bg-n-0 border border-n-200 rounded-2xl p-3 overflow-x-auto">
-          {/* Fixed column widths rather than a table: the month view needs 31
-              narrow columns and has to scroll sideways as one piece, names
-              included, or the row you are reading drifts away from its name. */}
-          <div
-            className="grid gap-1 min-w-max"
-            style={{
-              gridTemplateColumns: `minmax(6.5rem, auto) repeat(${dates.length}, ${
-                view === "month" ? "1.35rem" : "2.4rem"
-              })`,
-            }}
-          >
-            <span />
-            {dates.map((date) => {
-              const weekday = weekdayOf(date);
-              // Two letters, not one. Down a 31-column strip a lone "T" over
-              // the 6th and another over the 8th are Tuesday and Thursday and
-              // you cannot tell which without counting — and the reason to
-              // read this row at all is to find the Fridays.
-              const short = view === "month"
-                ? WEEKDAYS[weekday].slice(0, 2)
-                : WEEKDAYS[weekday];
-              const weekend = weekday >= 5;
-              return (
-                <span
-                  key={date}
-                  className={`text-center text-[9px] font-bold leading-tight ${
-                    date === today
-                      ? "text-accent-700 dark:text-accent-300"
-                      : weekend
-                        ? "text-n-500"
-                        : "text-n-400"
-                  }`}
-                >
-                  {short}
-                  <br />
-                  {Number(date.slice(-2))}
-                </span>
-              );
-            })}
-
-            {rows.map((row) => (
-              <React.Fragment key={row.employeeId}>
-                <span className="text-xs font-semibold text-n-800 truncate self-center pr-1">
-                  {row.employeeName}
-                </span>
-                {row.cells.map((cell) => (
-                  <Mark key={cell.date} state={cell} dim={cell.date < today} />
-                ))}
-              </React.Fragment>
-            ))}
-
-            {/* Two counts, because they answer different questions. "Free" is
-                who you can call on. "Off" is who has told you they cannot —
-                three people on leave the same Saturday is the thing you want
-                to catch weeks out, and it is invisible in the free count when
-                most of the team simply has not answered yet. */}
-            <span className="text-[10px] font-bold uppercase tracking-wide text-n-500 self-center pr-1">
-              {t("ts_freeCount")}
-            </span>
-            {tallies.map((d) => (
-              <span
-                key={d.date}
-                className={`grid place-items-center h-7 text-[11px] font-bold ${
-                  d.available === 0 ? "text-n-300" : "text-n-700"
-                }`}
-              >
-                {d.available}
-              </span>
-            ))}
-
-            <span className="text-[10px] font-bold uppercase tracking-wide text-n-500 self-center pr-1">
-              {t("ts_offCount")}
-            </span>
-            {tallies.map((d) => (
-              <span
-                key={d.date}
-                className={`grid place-items-center h-7 text-[11px] font-bold ${
-                  d.unavailable === 0
-                    ? "text-n-300"
-                    : "text-rose-600 dark:text-rose-400"
-                }`}
-              >
-                {d.unavailable}
-              </span>
-            ))}
-          </div>
+        <div className="bg-n-0 border border-n-200 rounded-2xl p-3">
+          <AvailabilityGrid
+            dates={dates}
+            rows={rows}
+            today={today}
+            compact={view === "month"}
+            tallies={tallies}
+            freeLabel={t("ts_freeCount")}
+            offLabel={t("ts_offCount")}
+          />
         </div>
       )}
 

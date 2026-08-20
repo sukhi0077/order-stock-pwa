@@ -16,7 +16,9 @@ import {
   useRemoveEntry,
   useAvailability,
   useSaveAvailability,
+  useAvailabilityRange,
 } from "../../hooks/useTimesheet.js";
+import { useRotaMonth, useRotaStatus } from "../../hooks/useRota.js";
 import { TimesheetService } from "../../services/TimesheetService.js";
 import { useBusinessDay } from "../../hooks/useBusinessDay.js";
 import {
@@ -25,6 +27,7 @@ import {
   monthOf,
   todayStr,
   datesInMonth,
+  shiftDateStr,
   formatDay,
 } from "../../utils/monthUtils.js";
 import {
@@ -37,7 +40,13 @@ import {
   fillableDates,
   clearableDates,
   weeksOf,
+  weekdayOf,
+  groupAvailability,
+  availabilityGrid,
+  dayTallies,
 } from "../../models/TimesheetModel.js";
+import { myShifts, shiftTimeLabel, isPublished } from "../../models/RotaModel.js";
+import AvailabilityGrid from "./AvailabilityGrid.jsx";
 import { downloadEmployeeTimesheetPdf } from "../../utils/exportTimesheetPdf.js";
 import { useT } from "../../i18n/i18n.jsx";
 
@@ -442,6 +451,130 @@ function DayCell({ date, state, past, onClick }) {
 }
 
 // ---------------------------------------------------------------------------
+// The staff member's own shifts, once the owner has PUBLISHED the month. A
+// draft month is deliberately invisible here — planning your week around shifts
+// that are still being moved around is exactly what publishing exists to
+// prevent. This month and next, from today on.
+function MyRota({ employeeId }) {
+  const { t } = useT();
+  const from = todayStr();
+  const thisMonth = monthOf(from);
+  const nextMonth = nextMonthId(thisMonth);
+  const thisQuery = useRotaMonth(thisMonth, employeeId);
+  const nextQuery = useRotaMonth(nextMonth, employeeId);
+  const thisStatus = useRotaStatus(thisMonth);
+  const nextStatus = useRotaStatus(nextMonth);
+
+  const shifts = useMemo(() => {
+    const rows = [];
+    if (isPublished(thisStatus.data?.status)) rows.push(...(thisQuery.data || []));
+    if (isPublished(nextStatus.data?.status)) rows.push(...(nextQuery.data || []));
+    return myShifts(rows, from);
+  }, [thisQuery.data, nextQuery.data, thisStatus.data, nextStatus.data, from]);
+
+  if (shifts.length === 0) return null;
+
+  return (
+    <div className="bg-n-0 border border-n-200 rounded-2xl p-3">
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500 mb-2">
+        {t("rota_myShifts")}
+      </div>
+      <div className="space-y-1">
+        {shifts.map((s) => {
+          const label = shiftTimeLabel(s);
+          return (
+            <div
+              key={s.onDate}
+              className="flex items-center justify-between text-sm py-0.5"
+            >
+              <span className="font-medium text-n-800">{formatDay(s.onDate)}</span>
+              <span className="text-xs text-n-500">{label || t("rota_scheduled")}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-[11px] text-n-400 mt-2">{t("rota_myShiftsHint")}</p>
+    </div>
+  );
+}
+
+// Everyone's availability for a week, read-only — so a staff member can see who
+// else is around before deciding whether to change their own answer. It is the
+// admin's week grid minus the editing: same marks, same frozen name column, the
+// reader's own row picked out in the accent colour.
+function TeamAvailabilityView({ meId }) {
+  const { t } = useT();
+  const [weekStart, setWeekStart] = useState(
+    () => shiftDateStr(todayStr(), -(weekdayOf(todayStr()) ?? 0)),
+  );
+  const dates = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => shiftDateStr(weekStart, i)),
+    [weekStart],
+  );
+  const { employees } = useEmployees({ activeOnly: true });
+  const availQuery = useAvailabilityRange(dates[0], dates[6]);
+
+  const rows = useMemo(() => {
+    const { weekly = [], exceptions = [] } = availQuery.data || {};
+    return availabilityGrid(dates, employees, groupAvailability(weekly, exceptions), {
+      explicitOnly: true,
+    });
+  }, [dates, employees, availQuery.data]);
+  const tallies = useMemo(() => dayTallies(dates, rows), [dates, rows]);
+  const today = todayStr();
+
+  return (
+    <div className="bg-n-0 border border-n-200 rounded-2xl p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
+          {t("rota_teamAvail")}
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setWeekStart(shiftDateStr(weekStart, -7))}
+            className="h-7 w-7 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold"
+            aria-label="previous week"
+          >
+            ‹
+          </button>
+          <span className="text-[11px] text-n-500 whitespace-nowrap">
+            {formatDay(dates[0])} – {formatDay(dates[6])}
+          </span>
+          <button
+            type="button"
+            onClick={() => setWeekStart(shiftDateStr(weekStart, 7))}
+            className="h-7 w-7 grid place-items-center rounded-lg hover:bg-n-100 text-n-600 font-bold"
+            aria-label="next week"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      {availQuery.isLoading ? (
+        <div className="flex justify-center py-6">
+          <Spinner />
+        </div>
+      ) : employees.length === 0 ? (
+        <p className="text-center text-n-400 py-4 text-sm">{t("ts_noStaff")}</p>
+      ) : (
+        <AvailabilityGrid
+          dates={dates}
+          rows={rows}
+          today={today}
+          tallies={tallies}
+          freeLabel={t("ts_freeCount")}
+          offLabel={t("ts_offCount")}
+          highlightId={meId}
+        />
+      )}
+      <p className="text-[11px] text-n-400">{t("rota_teamAvailHint")}</p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 function AvailabilityTab({ employee }) {
   const { t, tMonth } = useT();
   const from = todayStr();
@@ -521,6 +654,8 @@ function AvailabilityTab({ employee }) {
 
   return (
     <div className="space-y-3">
+      <MyRota employeeId={employee.id} />
+
       <div className="bg-n-0 border border-n-200 rounded-2xl p-3">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500 mb-2">
           {t("ts_usualWeek")}
@@ -586,6 +721,8 @@ function AvailabilityTab({ employee }) {
           <p className="text-[11px] text-n-400 mt-2">{t("ts_exceptionHint")}</p>
         </div>
       ))}
+
+      <TeamAvailabilityView meId={employee.id} />
     </div>
   );
 }

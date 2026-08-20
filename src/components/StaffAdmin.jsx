@@ -9,6 +9,7 @@ import React, { useMemo, useState } from "react";
 import Spinner from "./ui/Spinner.jsx";
 import EmployeeManagerModal from "./dsr/EmployeeManagerModal.jsx";
 import AvailabilityAdmin from "./AvailabilityAdmin.jsx";
+import RotaAdmin from "./RotaAdmin.jsx";
 import { useEmployees } from "../hooks/useEmployees.js";
 import { useTimesheetMonth } from "../hooks/useTimesheet.js";
 import { TimesheetService } from "../services/TimesheetService.js";
@@ -154,6 +155,7 @@ export default function StaffAdmin() {
         {[
           ["hours", t("ts_hoursSection")],
           ["availability", t("ts_availability")],
+          ["rota", t("rota_section")],
           ["people", t("ts_peopleSection")],
         ].map(([id, label]) => (
           <button
@@ -171,6 +173,8 @@ export default function StaffAdmin() {
 
       {section === "availability" ? (
         <AvailabilityAdmin />
+      ) : section === "rota" ? (
+        <RotaAdmin />
       ) : section === "people" ? (
         // The roster and its PINs. Its own section because it includes people
         // who worked no hours this month, and because "who works here" is a
