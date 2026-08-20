@@ -398,9 +398,6 @@ function HoursTab({ employee }) {
                     )}
                   </div>
                 ))}
-                {!editable && (
-                  <p className="text-[10px] text-n-400 mt-1">{t("ts_lockedDay")}</p>
-                )}
               </div>
             );
           })}
