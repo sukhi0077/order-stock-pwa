@@ -161,26 +161,36 @@ function AdminTrends({ reports }) {
                 </span>
               </div>
 
-              {days.map((d) => (
-                <div
-                  key={d.date}
-                  className="flex-1 h-full flex flex-col justify-end items-center min-w-0"
-                  title={`${d.date}: ${money(d.total)}`}
-                >
-                  {/* Value label above the bar (hidden when too many days) */}
-                  {days.length <= 12 && d.total > 0 && (
-                    <span className="text-[9px] text-n-700 font-semibold mb-0.5 whitespace-nowrap">
-                      {Math.round(d.total)}
-                    </span>
-                  )}
+              {days.map((d) => {
+                const isPeak = d.total > 0 && d.date === peakDay.date;
+                return (
                   <div
-                    className="w-full bg-accent-50 dark:bg-accent-900/20 hover:bg-accent-400 rounded-t transition-colors"
-                    style={{
-                      height: `${Math.max(2, (d.total / maxDay) * 90)}%`,
-                    }}
-                  />
-                </div>
-              ))}
+                    key={d.date}
+                    className="flex-1 h-full flex flex-col justify-end items-center min-w-0"
+                    title={`${d.date}: ${money(d.total)}`}
+                  >
+                    {/* Value label above the bar (hidden when too many days) */}
+                    {days.length <= 12 && d.total > 0 && (
+                      <span className="text-[9px] text-n-700 font-semibold mb-0.5 whitespace-nowrap">
+                        {Math.round(d.total)}
+                      </span>
+                    )}
+                    {/* Solid fill so the bar actually reads on the card — the
+                        old accent-50 was near-white and vanished. The peak day
+                        is the darker accent so the eye lands on it. */}
+                    <div
+                      className={`w-full min-w-[3px] rounded-t transition-colors ${
+                        isPeak
+                          ? "bg-accent-600 hover:bg-accent-700"
+                          : "bg-accent-500 hover:bg-accent-600"
+                      }`}
+                      style={{
+                        height: `${Math.max(2, (d.total / maxDay) * 90)}%`,
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
             {/* Labels row, aligned to the bars above */}
             <div className="flex gap-1 mt-1">
