@@ -314,21 +314,25 @@ function HoursTab({ employee }) {
           <span className="font-semibold text-n-800">{formatDay(today)}</span>
           <span className="text-[11px] text-n-400">{t("ts_todayOnly")}</span>
         </div>
-        {/* Start and end only — the two fields now share the row that used to
-            hold a break, so each gets a wider, easier tap target. */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Start and end. Stacked on a phone — a native time box plus its "now"
+            button will not fit two-across on a narrow screen without
+            overlapping — and side by side only once there's room. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {[
             ["ts_start", "startTime"],
             ["ts_end", "endTime"],
           ].map(([labelKey, field]) => (
             <label key={field} className="flex flex-col gap-1 min-w-0">
               <span className="text-[10px] uppercase tracking-wide text-n-400">{t(labelKey)}</span>
-              <div className="relative min-w-0">
+              {/* input flex-1 + min-w-0 so it shrinks to the column; the "now"
+                  button is a separate shrink-0 cell, never overlapping the
+                  native picker or pushing the row past the panel edge. */}
+              <div className="flex items-center gap-1 min-w-0">
                 <input
                   type="time"
                   value={draft[field]}
                   onChange={(e) => set(field, e.target.value)}
-                  className="h-11 w-full min-w-0 box-border pl-2 pr-9 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+                  className="h-11 flex-1 min-w-0 w-full box-border px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
                 />
                 {/* One tap fills in the current time — the moment you clock in or
                     out is almost always "now". */}
@@ -337,9 +341,9 @@ function HoursTab({ employee }) {
                   onClick={() => set(field, nowTime())}
                   title={t("ts_useNow")}
                   aria-label={t("ts_useNow")}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-8 grid place-items-center rounded-md text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
+                  className="shrink-0 h-11 w-9 grid place-items-center rounded-lg border border-accent-200 dark:border-accent-800 text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
                 >
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="9" />
                     <path d="M12 7v5l3 2" />
                   </svg>
