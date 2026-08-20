@@ -31,7 +31,6 @@ import {
   datesInMonth,
   shiftDateStr,
   formatDay,
-  monthEndDate,
 } from "../../utils/monthUtils.js";
 import {
   WEEKDAYS,
@@ -314,8 +313,8 @@ function HoursTab({ employee }) {
           <span className="font-semibold text-n-800">{formatDay(today)}</span>
           <span className="text-[11px] text-n-400">{t("ts_todayOnly")}</span>
         </div>
-        {/* Start and end, side by side. The input shrinks (flex-1 min-w-0) and
-            the "now" button is a slim fixed cell, so both fit two-across. */}
+        {/* Start and end, side by side. The clock icon lives inside the box; the
+            input shrinks (min-w-0, its grid cell too) so two fit two-across. */}
         <div className="grid grid-cols-2 gap-2">
           {[
             ["ts_start", "startTime"],
@@ -323,26 +322,24 @@ function HoursTab({ employee }) {
           ].map(([labelKey, field]) => (
             <label key={field} className="flex flex-col gap-1 min-w-0">
               <span className="text-[10px] uppercase tracking-wide text-n-400">{t(labelKey)}</span>
-              {/* input flex-1 + min-w-0 so it shrinks to the column; the "now"
-                  button is a separate shrink-0 cell, never overlapping the
-                  native picker or pushing the row past the panel edge. */}
-              <div className="flex items-center gap-1 min-w-0">
+              <div className="relative min-w-0">
                 <input
                   type="time"
                   value={draft[field]}
                   onChange={(e) => set(field, e.target.value)}
-                  className="h-11 flex-1 min-w-0 w-full box-border px-1.5 text-sm rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+                  className="h-11 w-full min-w-0 box-border pl-2.5 pr-8 text-base font-semibold rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500 [&::-webkit-calendar-picker-indicator]:opacity-0"
                 />
-                {/* One tap fills in the current time — the moment you clock in or
-                    out is almost always "now". */}
+                {/* One tap fills in the current time — clocking in or out is
+                    almost always "now". Sits over the native picker indicator,
+                    which is hidden above so the two don't fight for the corner. */}
                 <button
                   type="button"
                   onClick={() => set(field, nowTime())}
                   title={t("ts_useNow")}
                   aria-label={t("ts_useNow")}
-                  className="shrink-0 h-11 w-7 grid place-items-center rounded-lg border border-accent-200 dark:border-accent-800 text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2 h-9 w-7 grid place-items-center rounded-md text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="9" />
                     <path d="M12 7v5l3 2" />
                   </svg>
@@ -371,28 +368,31 @@ function HoursTab({ employee }) {
       </div>
       )}
 
-      {/* Month picker + total in one highlighted bar: ‹  This month: 28h  › —
-          two months only, this and last, so the arrows just flip between them. */}
-      <div className="flex items-center justify-between gap-2 bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-xl px-2 py-2">
+      {/* Month picker + total: ‹  This month: 28h  › — separate, clearly
+          tappable arrow buttons (as on the order screens) flanking a
+          highlighted total. Two months only, this and last. */}
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => setMonthView("prev")}
           disabled={!isCurrent}
           aria-label="last month"
-          className="h-8 w-8 grid place-items-center rounded-lg text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 disabled:opacity-30 text-lg font-bold"
+          className="h-11 w-11 shrink-0 grid place-items-center rounded-xl bg-n-0 border border-n-200 text-n-600 hover:bg-n-50 disabled:opacity-30 text-xl font-bold"
         >
           ‹
         </button>
-        <span className="font-bold text-n-900 dark:text-n-100">
-          {isCurrent ? t("ts_thisMonth") : t("ts_lastMonth")}:{" "}
-          <span className="text-accent-700 dark:text-accent-300">{summary.formatted}</span>
-        </span>
+        <div className="flex-1 text-center py-2.5 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <span className="font-bold text-n-900 dark:text-n-100">
+            {isCurrent ? t("ts_thisMonth") : t("ts_lastMonth")}:{" "}
+            <span className="text-accent-700 dark:text-accent-300">{summary.formatted}</span>
+          </span>
+        </div>
         <button
           type="button"
           onClick={() => setMonthView("current")}
           disabled={isCurrent}
           aria-label="this month"
-          className="h-8 w-8 grid place-items-center rounded-lg text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 disabled:opacity-30 text-lg font-bold"
+          className="h-11 w-11 shrink-0 grid place-items-center rounded-xl bg-n-0 border border-n-200 text-n-600 hover:bg-n-50 disabled:opacity-30 text-xl font-bold"
         >
           ›
         </button>
@@ -929,39 +929,63 @@ function RotaDownloadButton() {
   const thisStatus = useRotaStatus(thisMonth);
   const nextStatus = useRotaStatus(nextMonth);
 
-  const shifts = useMemo(() => {
-    const rows = [];
-    if (isPublished(thisStatus.data?.status)) rows.push(...(thisQuery.data || []));
-    if (isPublished(nextStatus.data?.status)) rows.push(...(nextQuery.data || []));
-    return rows.filter((s) => s.onDate >= from);
-  }, [thisQuery.data, nextQuery.data, thisStatus.data, nextStatus.data, from]);
+  // Which month's rota to download — flip between this and next with the arrows.
+  const [sel, setSel] = useState("current"); // 'current' | 'next'
+  const isNext = sel === "next";
 
-  const ready = shifts.length > 0 && employees.length > 0;
+  // For this month, from today on (yesterday's rota is history); for next month,
+  // the whole month.
+  const fromDate = isNext ? `${nextMonth}-01` : from;
+  const monthId = isNext ? nextMonth : thisMonth;
+  const shifts = (isNext ? nextQuery.data : thisQuery.data) || [];
+  const published = isPublished((isNext ? nextStatus : thisStatus).data?.status);
+  const hasShifts = shifts.some((s) => s.onDate >= fromDate);
+  const ready = published && hasShifts && employees.length > 0;
 
   const download = () =>
-    downloadRotaPdf(
-      employees,
-      shifts,
-      from,
-      `${formatDay(from)} – ${formatDay(monthEndDate(nextMonth))}`,
-    );
+    downloadRotaPdf(employees, shifts, fromDate, `${monthId}`);
+
+  const arrow =
+    "h-11 w-11 shrink-0 grid place-items-center rounded-xl bg-n-0 border border-n-200 text-n-600 hover:bg-n-50 disabled:opacity-30 text-xl font-bold";
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={download}
-        disabled={!ready}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 text-sm font-bold text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 transition disabled:opacity-40 disabled:hover:bg-accent-50"
-      >
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-          <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-        </svg>
-        {t("rota_downloadPdf")}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setSel("current")}
+          disabled={!isNext}
+          aria-label="current month rota"
+          className={arrow}
+        >
+          ‹
+        </button>
+        <button
+          type="button"
+          onClick={download}
+          disabled={!ready}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 text-sm font-bold text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 transition disabled:opacity-40 disabled:hover:bg-accent-50"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+            <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+          </svg>
+          {isNext ? t("rota_nextMonthPdf") : t("rota_currentMonthPdf")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setSel("next")}
+          disabled={isNext}
+          aria-label="next month rota"
+          className={arrow}
+        >
+          ›
+        </button>
+      </div>
       {!ready && (
-        <p className="text-[11px] text-n-400 mt-1.5 px-1 text-center">{t("rota_noPublished")}</p>
+        <p className="text-[11px] text-n-400 mt-1.5 px-1 text-center">
+          {published ? t("rota_noShifts") : t("rota_noPublished")}
+        </p>
       )}
     </div>
   );
