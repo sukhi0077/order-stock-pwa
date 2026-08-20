@@ -297,26 +297,6 @@ function HoursTab({ employee }) {
 
   return (
     <div className="space-y-3">
-      {/* This month / last month. Hours are logged in this month; last month is
-          read-only, here only so a payslip can still be exported after it turns. */}
-      <div className="flex gap-1 bg-n-100 rounded-xl p-1">
-        {[
-          ["current", t("ts_thisMonth")],
-          ["prev", t("ts_lastMonth")],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setMonthView(id)}
-            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
-              monthView === id ? "bg-n-0 text-n-900 shadow-sm" : "text-n-500 hover:text-n-700"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
       {isCurrent && (
       <div className="bg-n-0 border border-n-200 rounded-2xl p-3 space-y-2.5">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
@@ -341,14 +321,14 @@ function HoursTab({ employee }) {
             ["ts_start", "startTime"],
             ["ts_end", "endTime"],
           ].map(([labelKey, field]) => (
-            <label key={field} className="flex flex-col gap-1">
+            <label key={field} className="flex flex-col gap-1 min-w-0">
               <span className="text-[10px] uppercase tracking-wide text-n-400">{t(labelKey)}</span>
-              <div className="relative">
+              <div className="relative min-w-0">
                 <input
                   type="time"
                   value={draft[field]}
                   onChange={(e) => set(field, e.target.value)}
-                  className="h-11 w-full pl-2 pr-9 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+                  className="h-11 w-full min-w-0 box-border pl-2 pr-9 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
                 />
                 {/* One tap fills in the current time — the moment you clock in or
                     out is almost always "now". */}
@@ -388,10 +368,31 @@ function HoursTab({ employee }) {
       </div>
       )}
 
-      <div className="px-1">
-        <span className="text-sm font-bold text-n-900">
-          {t("ts_monthTotal", { total: summary.formatted })}
+      {/* Month picker + total in one highlighted bar: ‹  This month: 28h  › —
+          two months only, this and last, so the arrows just flip between them. */}
+      <div className="flex items-center justify-between gap-2 bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-xl px-2 py-2">
+        <button
+          type="button"
+          onClick={() => setMonthView("prev")}
+          disabled={!isCurrent}
+          aria-label="last month"
+          className="h-8 w-8 grid place-items-center rounded-lg text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 disabled:opacity-30 text-lg font-bold"
+        >
+          ‹
+        </button>
+        <span className="font-bold text-n-900 dark:text-n-100">
+          {isCurrent ? t("ts_thisMonth") : t("ts_lastMonth")}:{" "}
+          <span className="text-accent-700 dark:text-accent-300">{summary.formatted}</span>
         </span>
+        <button
+          type="button"
+          onClick={() => setMonthView("current")}
+          disabled={isCurrent}
+          aria-label="this month"
+          className="h-8 w-8 grid place-items-center rounded-lg text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 disabled:opacity-30 text-lg font-bold"
+        >
+          ›
+        </button>
       </div>
       {/* Export is the reason to open last month, so it's a full-width action,
           not a faint link. It exports whichever month is shown. */}
