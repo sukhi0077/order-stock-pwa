@@ -249,6 +249,13 @@ const blankEntry = () => ({
   note: "",
 });
 
+// The device clock as "HH:MM" — what the "now" button on the time fields fills
+// in. Local time on purpose: it is the moment the person is clocking in or out.
+function nowTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function HoursTab({ employee }) {
   const { t } = useT();
   // Not a constant: a phone left open across midnight has to start writing to
@@ -306,27 +313,42 @@ function HoursTab({ employee }) {
           <span className="font-semibold text-n-800">{formatDay(today)}</span>
           <span className="text-[11px] text-n-400">{t("ts_todayOnly")}</span>
         </div>
-        {/* Start and end only — the two fields share the row, each a wide,
-            easy tap target. */}
+        {/* Start and end, side by side. The input shrinks (flex-1 min-w-0) and
+            the "now" button is a slim fixed cell, so both fit two-across. */}
         <div className="grid grid-cols-2 gap-2">
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wide text-n-400">{t("ts_start")}</span>
-            <input
-              type="time"
-              value={draft.startTime}
-              onChange={(e) => set("startTime", e.target.value)}
-              className="h-11 px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wide text-n-400">{t("ts_end")}</span>
-            <input
-              type="time"
-              value={draft.endTime}
-              onChange={(e) => set("endTime", e.target.value)}
-              className="h-11 px-2 rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
-            />
-          </label>
+          {[
+            ["ts_start", "startTime"],
+            ["ts_end", "endTime"],
+          ].map(([labelKey, field]) => (
+            <label key={field} className="flex flex-col gap-1 min-w-0">
+              <span className="text-[10px] uppercase tracking-wide text-n-400">{t(labelKey)}</span>
+              {/* input flex-1 + min-w-0 so it shrinks to the column; the "now"
+                  button is a separate shrink-0 cell, never overlapping the
+                  native picker or pushing the row past the panel edge. */}
+              <div className="flex items-center gap-1 min-w-0">
+                <input
+                  type="time"
+                  value={draft[field]}
+                  onChange={(e) => set(field, e.target.value)}
+                  className="h-11 flex-1 min-w-0 w-full box-border px-1.5 text-base font-semibold rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+                />
+                {/* One tap fills in the current time — the moment you clock in or
+                    out is almost always "now". */}
+                <button
+                  type="button"
+                  onClick={() => set(field, nowTime())}
+                  title={t("ts_useNow")}
+                  aria-label={t("ts_useNow")}
+                  className="shrink-0 h-11 w-7 grid place-items-center rounded-lg border border-accent-200 dark:border-accent-800 text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                </button>
+              </div>
+            </label>
+          ))}
         </div>
         <input
           type="text"
