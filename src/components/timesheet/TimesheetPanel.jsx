@@ -48,11 +48,7 @@ import {
   dayTallies,
   frontdeskAlertDates,
 } from "../../models/TimesheetModel.js";
-import {
-  myShifts,
-  shiftTimeLabel,
-  isPublished,
-} from "../../models/RotaModel.js";
+import { myShifts, shiftTimeLabel, isPublished } from "../../models/RotaModel.js";
 import AvailabilityGrid from "./AvailabilityGrid.jsx";
 import { downloadEmployeeTimesheetPdf } from "../../utils/exportTimesheetPdf.js";
 import { downloadRotaPdf } from "../../utils/exportRotaPdf.js";
@@ -171,9 +167,7 @@ function PinGate({ employees, onUnlock }) {
           </button>
         ))}
         {employees.length === 0 && (
-          <p className="text-center text-n-400 py-8 text-sm">
-            {t("ts_noStaff")}
-          </p>
+          <p className="text-center text-n-400 py-8 text-sm">{t("ts_noStaff")}</p>
         )}
 
         {/* The team rota download sits under the name list, deliberately set
@@ -232,9 +226,7 @@ function PinGate({ employees, onUnlock }) {
         />
       )}
 
-      {error && (
-        <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
-      )}
+      {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
 
       {hasPin !== null && (
         <button
@@ -273,8 +265,7 @@ function HoursTab({ employee }) {
   // payslip can still be exported after the month has turned. Two months only —
   // older ones are the admin's to hand out.
   const [monthView, setMonthView] = useState("current"); // 'current' | 'prev'
-  const monthId =
-    monthView === "prev" ? prevMonthId(currentMonthId()) : currentMonthId();
+  const monthId = monthView === "prev" ? prevMonthId(currentMonthId()) : currentMonthId();
   const isCurrent = monthView === "current";
   const entriesQuery = useTimesheetMonth(monthId, employee.id);
   const save = useSaveEntry();
@@ -285,10 +276,7 @@ function HoursTab({ employee }) {
   // Memoised because `?? []` would hand useMemo a brand-new array on every
   // render, defeating both memos below.
   const entries = useMemo(() => entriesQuery.data || [], [entriesQuery.data]);
-  const summary = useMemo(
-    () => monthlySummary(entries, monthId),
-    [entries, monthId],
-  );
+  const summary = useMemo(() => monthlySummary(entries, monthId), [entries, monthId]);
   // Newest day first: the shift you just logged should be the one you can see.
   const days = useMemo(() => byDay(entries).reverse(), [entries]);
 
@@ -299,11 +287,7 @@ function HoursTab({ employee }) {
     try {
       // workDate is set here, not held in the draft: it must be today at the
       // moment of saving, not whenever the form happened to be opened.
-      await save.mutateAsync({
-        ...draft,
-        workDate: today,
-        employeeId: employee.id,
-      });
+      await save.mutateAsync({ ...draft, workDate: today, employeeId: employee.id });
       setDraft(blankEntry());
     } catch (e) {
       setError(e.message);
@@ -313,11 +297,11 @@ function HoursTab({ employee }) {
   return (
     <div className="space-y-3">
       {isCurrent && (
-        <div className="bg-n-0 border border-n-200 rounded-2xl p-3 space-y-2.5">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
-            {t("ts_addHours")}
-          </div>
-          {/* Today, and only today — no date picker.
+      <div className="bg-n-0 border border-n-200 rounded-2xl p-3 space-y-2.5">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-n-500">
+          {t("ts_addHours")}
+        </div>
+        {/* Today, and only today — no date picker.
             The rule is enforced in the database (ts_is_today), not here; this
             just stops the app offering a choice it would then refuse.
 
@@ -325,78 +309,63 @@ function HoursTab({ employee }) {
             clock. Log it before midnight — you know your finish time — or ask
             the admin. That friction is the deliberate price of a timesheet
             nobody can back-date. */}
-          <div className="w-full h-11 px-3 rounded-lg bg-n-50 border border-n-200 flex items-center justify-between">
-            <span className="font-semibold text-n-800">{formatDay(today)}</span>
-            <span className="text-[11px] text-n-400">{t("ts_todayOnly")}</span>
-          </div>
-          {/* Start and end, side by side. The input shrinks (flex-1 min-w-0) and
-            the "now" button is a slim fixed cell, so both fit two-across. */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              ["ts_start", "startTime"],
-              ["ts_end", "endTime"],
-            ].map(([labelKey, field]) => (
-              <label key={field} className="flex flex-col gap-1 min-w-0">
-                <span className="text-[10px] uppercase tracking-wide text-n-400">
-                  {t(labelKey)}
-                </span>
-                {/* input flex-1 + min-w-0 so it shrinks to the column; the "now"
-                  button is a separate shrink-0 cell, never overlapping the
-                  native picker or pushing the row past the panel edge. */}
-                <div className="flex items-center gap-1 min-w-0">
-                  <input
-                    type="time"
-                    value={draft[field]}
-                    onChange={(e) => set(field, e.target.value)}
-                    className="h-11 flex-1 min-w-0 w-fit box-border px-1.5 text-base font-semibold rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
-                  />
-                  {/* One tap fills in the current time — the moment you clock in or
-                    out is almost always "now". */}
-                  <button
-                    type="button"
-                    onClick={() => set(field, nowTime())}
-                    title={t("ts_useNow")}
-                    aria-label={t("ts_useNow")}
-                    className="shrink-0 h-11 w-7 grid place-items-center rounded-lg border border-accent-200 dark:border-accent-800 text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
-                  >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 7v5l3 2" />
-                    </svg>
-                  </button>
-                </div>
-              </label>
-            ))}
-          </div>
-          <input
-            type="text"
-            maxLength={200}
-            value={draft.note}
-            onChange={(e) => set("note", e.target.value)}
-            placeholder={t("ts_notePlaceholder")}
-            className="w-full px-3 py-2 text-sm rounded-lg bg-n-0 border border-n-300 text-n-700 outline-none focus:ring-2 focus:ring-accent-500"
-          />
-          {error && (
-            <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
-          )}
-          <button
-            type="button"
-            onClick={submit}
-            disabled={save.isPending}
-            className="w-full py-3 rounded-xl bg-accent-600 hover:bg-accent-500 text-white font-bold disabled:opacity-40"
-          >
-            {save.isPending ? t("saving") : t("ts_addHours")}
-          </button>
+        <div className="w-full h-11 px-3 rounded-lg bg-n-50 border border-n-200 flex items-center justify-between">
+          <span className="font-semibold text-n-800">{formatDay(today)}</span>
+          <span className="text-[11px] text-n-400">{t("ts_todayOnly")}</span>
         </div>
+        {/* Start and end, side by side with a clear gap between them. The input
+            is sized to its content (w-auto) so the box hugs the time rather
+            than stretching half the row; the "now" button sits just after it. */}
+        <div className="flex items-end gap-4">
+          {[
+            ["ts_start", "startTime"],
+            ["ts_end", "endTime"],
+          ].map(([labelKey, field]) => (
+            <label key={field} className="flex flex-col gap-1">
+              <span className="text-[10px] uppercase tracking-wide text-n-400">{t(labelKey)}</span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="time"
+                  value={draft[field]}
+                  onChange={(e) => set(field, e.target.value)}
+                  className="h-11 w-auto box-border px-2 text-base font-semibold rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+                />
+                {/* One tap fills in the current time — the moment you clock in or
+                    out is almost always "now". */}
+                <button
+                  type="button"
+                  onClick={() => set(field, nowTime())}
+                  title={t("ts_useNow")}
+                  aria-label={t("ts_useNow")}
+                  className="shrink-0 h-11 w-7 grid place-items-center rounded-lg border border-accent-200 dark:border-accent-800 text-accent-600 dark:text-accent-300 hover:bg-accent-50 dark:hover:bg-accent-900/20"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                </button>
+              </div>
+            </label>
+          ))}
+        </div>
+        <input
+          type="text"
+          maxLength={200}
+          value={draft.note}
+          onChange={(e) => set("note", e.target.value)}
+          placeholder={t("ts_notePlaceholder")}
+          className="w-full px-3 py-2 text-sm rounded-lg bg-n-0 border border-n-300 text-n-700 outline-none focus:ring-2 focus:ring-accent-500"
+        />
+        {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
+        <button
+          type="button"
+          onClick={submit}
+          disabled={save.isPending}
+          className="w-full py-3 rounded-xl bg-accent-600 hover:bg-accent-500 text-white font-bold disabled:opacity-40"
+        >
+          {save.isPending ? t("saving") : t("ts_addHours")}
+        </button>
+      </div>
       )}
 
       {/* Month picker + total: ‹  This month: 28h  › — separate, clearly
@@ -415,9 +384,7 @@ function HoursTab({ employee }) {
         <div className="flex-1 text-center py-2.5 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
           <span className="font-bold text-n-900 dark:text-n-100">
             {isCurrent ? t("ts_thisMonth") : t("ts_lastMonth")}:{" "}
-            <span className="text-accent-700 dark:text-accent-300">
-              {summary.formatted}
-            </span>
+            <span className="text-accent-700 dark:text-accent-300">{summary.formatted}</span>
           </span>
         </div>
         <button
@@ -438,16 +405,7 @@ function HoursTab({ employee }) {
         onClick={() => downloadEmployeeTimesheetPdf(employee, entries, monthId)}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 text-sm font-bold text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 transition disabled:opacity-40"
       >
-        <svg
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
           <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
         </svg>
@@ -466,41 +424,28 @@ function HoursTab({ employee }) {
             // the database refuses.
             const editable = day.date === today;
             return (
-              <div
-                key={day.date}
-                className="bg-n-0 border border-n-200 rounded-xl p-3"
-              >
+              <div key={day.date} className="bg-n-0 border border-n-200 rounded-xl p-3">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-semibold text-n-800">
-                    {formatDay(day.date)}
-                  </span>
+                  <span className="text-sm font-semibold text-n-800">{formatDay(day.date)}</span>
                   <span className="text-sm font-bold text-accent-700 dark:text-accent-300">
                     {formatMinutes(day.minutes)}
                   </span>
                 </div>
                 {day.entries.map((e) => (
-                  <div
-                    key={e.id}
-                    className="flex items-center gap-2 text-xs py-0.5"
-                  >
+                  <div key={e.id} className="flex items-center gap-2 text-xs py-0.5">
                     <span className="text-n-700">
                       {e.startTime} – {e.endTime}
                     </span>
                     {e.breakMinutes > 0 && (
                       <span className="text-n-400">−{e.breakMinutes}m</span>
                     )}
-                    <span className="flex-1 min-w-0 truncate text-n-400">
-                      {e.note}
-                    </span>
-                    <span className="text-n-500">
-                      {formatMinutes(entryMinutes(e))}
-                    </span>
+                    <span className="flex-1 min-w-0 truncate text-n-400">{e.note}</span>
+                    <span className="text-n-500">{formatMinutes(entryMinutes(e))}</span>
                     {editable ? (
                       <button
                         type="button"
                         onClick={() => {
-                          if (window.confirm(t("ts_removeConfirm")))
-                            remove.mutate(e.id);
+                          if (window.confirm(t("ts_removeConfirm"))) remove.mutate(e.id);
                         }}
                         className="h-6 w-6 grid place-items-center rounded text-n-400 hover:text-rose-600 dark:hover:text-rose-400"
                         aria-label="remove"
@@ -517,9 +462,7 @@ function HoursTab({ employee }) {
             );
           })}
           {days.length === 0 && (
-            <p className="text-center text-n-400 py-8 text-sm">
-              {t("ts_noHours")}
-            </p>
+            <p className="text-center text-n-400 py-8 text-sm">{t("ts_noHours")}</p>
           )}
         </div>
       )}
@@ -568,9 +511,7 @@ function DayCell({ date, state, past, onClick }) {
       className={`relative h-11 rounded-lg border text-[11px] font-bold leading-none flex flex-col items-center justify-center gap-0.5 transition ${tone}`}
     >
       <span>{day}</span>
-      <span aria-hidden="true">
-        {yes ? "✓" : no ? "✕" : suggested ? "·" : ""}
-      </span>
+      <span aria-hidden="true">{yes ? "✓" : no ? "✕" : suggested ? "·" : ""}</span>
     </button>
   );
 }
@@ -592,10 +533,8 @@ function MyRota({ employeeId }) {
 
   const shifts = useMemo(() => {
     const rows = [];
-    if (isPublished(thisStatus.data?.status))
-      rows.push(...(thisQuery.data || []));
-    if (isPublished(nextStatus.data?.status))
-      rows.push(...(nextQuery.data || []));
+    if (isPublished(thisStatus.data?.status)) rows.push(...(thisQuery.data || []));
+    if (isPublished(nextStatus.data?.status)) rows.push(...(nextQuery.data || []));
     return myShifts(rows, from);
   }, [thisQuery.data, nextQuery.data, thisStatus.data, nextStatus.data, from]);
 
@@ -614,12 +553,8 @@ function MyRota({ employeeId }) {
               key={s.onDate}
               className="flex items-center justify-between text-sm py-0.5"
             >
-              <span className="font-medium text-n-800">
-                {formatDay(s.onDate)}
-              </span>
-              <span className="text-xs text-n-500">
-                {label || t("rota_scheduled")}
-              </span>
+              <span className="font-medium text-n-800">{formatDay(s.onDate)}</span>
+              <span className="text-xs text-n-500">{label || t("rota_scheduled")}</span>
             </div>
           );
         })}
@@ -637,8 +572,8 @@ function TeamAvailabilityView({ meId }) {
   const { t, tMonth } = useT();
   const [view, setView] = useState("week"); // 'week' | 'month'
   const [monthId, setMonthId] = useState(currentMonthId());
-  const [weekStart, setWeekStart] = useState(() =>
-    shiftDateStr(todayStr(), -(weekdayOf(todayStr()) ?? 0)),
+  const [weekStart, setWeekStart] = useState(
+    () => shiftDateStr(todayStr(), -(weekdayOf(todayStr()) ?? 0)),
   );
   const dates = useMemo(
     () =>
@@ -709,9 +644,7 @@ function TeamAvailabilityView({ meId }) {
           ‹
         </button>
         <span className="text-[11px] text-n-600 font-semibold whitespace-nowrap">
-          {view === "month"
-            ? tMonth(monthId)
-            : `${formatDay(dates[0])} – ${formatDay(dates[6])}`}
+          {view === "month" ? tMonth(monthId) : `${formatDay(dates[0])} – ${formatDay(dates[6])}`}
         </span>
         <button
           type="button"
@@ -847,17 +780,8 @@ function AvailabilityTab({ employee }) {
   // "just use my normal week" means.
   const cycleDate = (date) => {
     const ex = data.exceptions.find((x) => x.onDate === date);
-    const next = !ex
-      ? { available: true }
-      : ex.available
-        ? { available: false }
-        : null;
-    saveAvail.mutate({
-      kind: "date",
-      employeeId: employee.id,
-      key: date,
-      value: next,
-    });
+    const next = !ex ? { available: true } : ex.available ? { available: false } : null;
+    saveAvail.mutate({ kind: "date", employeeId: employee.id, key: date, value: next });
   };
 
   if (availQuery.isLoading) {
@@ -878,8 +802,7 @@ function AvailabilityTab({ employee }) {
         </div>
         <div className="grid grid-cols-7 gap-1">
           {WEEKDAYS.map((label, wd) => {
-            const on =
-              data.weekly.find((w) => w.weekday === wd)?.available ?? false;
+            const on = data.weekly.find((w) => w.weekday === wd)?.available ?? false;
             return (
               <button
                 key={label}
@@ -938,10 +861,7 @@ function AvailabilityTab({ employee }) {
             >
               <div className="grid grid-cols-7 gap-1 mb-1">
                 {WEEKDAYS.map((label) => (
-                  <span
-                    key={label}
-                    className="text-center text-[10px] font-bold text-n-400"
-                  >
+                  <span key={label} className="text-center text-[10px] font-bold text-n-400">
                     {label}
                   </span>
                 ))}
@@ -986,9 +906,7 @@ function AvailabilityTab({ employee }) {
           ))}
         </div>
 
-        <p className="text-[11px] text-n-400 mt-2 px-1">
-          {t("ts_exceptionHint")}
-        </p>
+        <p className="text-[11px] text-n-400 mt-2 px-1">{t("ts_exceptionHint")}</p>
       </div>
 
       <TeamAvailabilityView meId={employee.id} />
@@ -1020,9 +938,7 @@ function RotaDownloadButton() {
   const fromDate = isNext ? `${nextMonth}-01` : from;
   const monthId = isNext ? nextMonth : thisMonth;
   const shifts = (isNext ? nextQuery.data : thisQuery.data) || [];
-  const published = isPublished(
-    (isNext ? nextStatus : thisStatus).data?.status,
-  );
+  const published = isPublished((isNext ? nextStatus : thisStatus).data?.status);
   const hasShifts = shifts.some((s) => s.onDate >= fromDate);
   const ready = published && hasShifts && employees.length > 0;
 
@@ -1050,16 +966,7 @@ function RotaDownloadButton() {
           disabled={!ready}
           className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 text-sm font-bold text-accent-700 dark:text-accent-300 hover:bg-accent-100 dark:hover:bg-accent-900/30 transition disabled:opacity-40 disabled:hover:bg-accent-50"
         >
-          <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
             <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
           </svg>
@@ -1103,24 +1010,13 @@ export default function TimesheetPanel() {
     <div className="space-y-4 pb-10">
       <div className="flex items-center gap-2">
         <span className="h-9 w-9 grid place-items-center rounded-xl bg-accent-600 text-white shrink-0">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="9" />
             <path d="M12 7v5l3 2" />
           </svg>
         </span>
         <div className="min-w-0">
-          <h2 className="text-xl font-bold text-n-900 leading-tight">
-            {t("timesheet")}
-          </h2>
+          <h2 className="text-xl font-bold text-n-900 leading-tight">{t("timesheet")}</h2>
           <p className="text-xs text-n-500 truncate">
             {me ? me.name : t("timesheet_desc")}
           </p>
@@ -1160,11 +1056,7 @@ export default function TimesheetPanel() {
               </button>
             ))}
           </div>
-          {tab === "hours" ? (
-            <HoursTab employee={me} />
-          ) : (
-            <AvailabilityTab employee={me} />
-          )}
+          {tab === "hours" ? <HoursTab employee={me} /> : <AvailabilityTab employee={me} />}
         </>
       )}
     </div>
