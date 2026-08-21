@@ -346,7 +346,7 @@ function HoursTab({ employee }) {
                     type="time"
                     value={draft[field]}
                     onChange={(e) => set(field, e.target.value)}
-                    className="h-11 w-auto box-border px-2 text-base font-semibold rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
+                    className="h-11 w-1/3 box-border px-2 text-base font-semibold rounded-lg bg-n-0 border border-n-300 text-n-900 outline-none focus:ring-2 focus:ring-accent-500"
                   />
                   {/* One tap fills in the current time — the moment you clock in or
                     out is almost always "now". */}
