@@ -332,7 +332,7 @@ function HoursTab({ employee }) {
           {/* Start and end, side by side with a clear gap between them. The input
             is sized to its content (w-auto) so the box hugs the time rather
             than stretching half the row; the "now" button sits just after it. */}
-          <div className="flex items-end gap-4">
+          <div className="flex items-end gap-8">
             {[
               ["ts_start", "startTime"],
               ["ts_end", "endTime"],
@@ -341,7 +341,7 @@ function HoursTab({ employee }) {
                 <span className="text-[10px] uppercase tracking-wide text-n-400">
                   {t(labelKey)}
                 </span>
-                <div className="flex items-center gap-[50%]">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="time"
                     value={draft[field]}
